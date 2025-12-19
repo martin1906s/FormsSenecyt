@@ -1,0 +1,941 @@
+<div class="form-container">
+  <!-- Barra superior con logos -->
+  <header class="header-bar">
+    <div class="logo-container">
+      <img src="assets/logoKrake.png" alt="Logo Krake" class="logo" />
+      <img src="assets/logoMovilis.png" alt="Logo Movilis" class="logo" />
+    </div>
+    <h1 class="form-title">Registro SENECYT</h1>
+  </header>
+
+  <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="student-form">
+    
+    <!-- SECCIÓN 1: Identificación -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('identificacion')">
+        <h2 class="section-title">
+          <span class="section-icon">📋</span>
+          Identificación
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['identificacion'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['identificacion']">
+        <div class="form-grid">
+          <!-- Campo 1: tipoDocumentoId -->
+          <div class="form-group">
+            <label>Tipo de Documento ID <span class="required">*</span></label>
+            <input type="number" formControlName="tipoDocumentoId" class="form-control" 
+                   [class.error]="hasError('tipoDocumentoId')" />
+            <small class="error-message" *ngIf="hasError('tipoDocumentoId')">
+              {{ getErrorMessage('tipoDocumentoId') }}
+            </small>
+          </div>
+
+          <!-- Campo 2: numeroIdentificacion -->
+          <div class="form-group">
+            <label>Número de Identificación <span class="required">*</span></label>
+            <input type="text" formControlName="numeroIdentificacion" class="form-control"
+                   [class.error]="hasError('numeroIdentificacion')" />
+            <small class="error-message" *ngIf="hasError('numeroIdentificacion')">
+              {{ getErrorMessage('numeroIdentificacion') }}
+            </small>
+            <small class="hint">10 dígitos para cédula, 9 caracteres para pasaporte</small>
+          </div>
+
+          <!-- Campo 17: fechaNacimiento -->
+          <div class="form-group">
+            <label>Fecha de Nacimiento <span class="required">*</span></label>
+            <input type="date" formControlName="fechaNacimiento" class="form-control"
+                   [class.error]="hasError('fechaNacimiento')" />
+            <small class="error-message" *ngIf="hasError('fechaNacimiento')">
+              {{ getErrorMessage('fechaNacimiento') }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 2: Datos personales -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('datosPersonales')">
+        <h2 class="section-title">
+          <span class="section-icon">👤</span>
+          Datos Personales
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['datosPersonales'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['datosPersonales']">
+        <div class="form-grid">
+          <!-- Campo 3: primerApellido -->
+          <div class="form-group">
+            <label>Primer Apellido <span class="required">*</span></label>
+            <input type="text" formControlName="primerApellido" class="form-control"
+                   style="text-transform: uppercase;" maxlength="60"
+                   [class.error]="hasError('primerApellido')" />
+            <small class="error-message" *ngIf="hasError('primerApellido')">
+              {{ getErrorMessage('primerApellido') }}
+            </small>
+          </div>
+
+          <!-- Campo 4: segundoApellido -->
+          <div class="form-group">
+            <label>Segundo Apellido (o "NA")</label>
+            <input type="text" formControlName="segundoApellido" class="form-control"
+                   maxlength="60" [class.error]="hasError('segundoApellido')" />
+            <small class="error-message" *ngIf="hasError('segundoApellido')">
+              {{ getErrorMessage('segundoApellido') }}
+            </small>
+          </div>
+
+          <!-- Campo 5: primerNombre -->
+          <div class="form-group">
+            <label>Primer Nombre <span class="required">*</span></label>
+            <input type="text" formControlName="primerNombre" class="form-control"
+                   style="text-transform: uppercase;" maxlength="60"
+                   [class.error]="hasError('primerNombre')" />
+            <small class="error-message" *ngIf="hasError('primerNombre')">
+              {{ getErrorMessage('primerNombre') }}
+            </small>
+          </div>
+
+          <!-- Campo 6: segundoNombre -->
+          <div class="form-group">
+            <label>Segundo Nombre (o "NA")</label>
+            <input type="text" formControlName="segundoNombre" class="form-control"
+                   maxlength="60" [class.error]="hasError('segundoNombre')" />
+            <small class="error-message" *ngIf="hasError('segundoNombre')">
+              {{ getErrorMessage('segundoNombre') }}
+            </small>
+          </div>
+
+          <!-- Campo 7: sexoId -->
+          <div class="form-group">
+            <label>Sexo ID <span class="required">*</span></label>
+            <input type="number" formControlName="sexoId" class="form-control"
+                   [class.error]="hasError('sexoId')" />
+            <small class="error-message" *ngIf="hasError('sexoId')">
+              {{ getErrorMessage('sexoId') }}
+            </small>
+          </div>
+
+          <!-- Campo 8: generoId -->
+          <div class="form-group">
+            <label>Género ID <span class="required">*</span></label>
+            <input type="number" formControlName="generoId" class="form-control"
+                   [class.error]="hasError('generoId')" />
+            <small class="error-message" *ngIf="hasError('generoId')">
+              {{ getErrorMessage('generoId') }}
+            </small>
+          </div>
+
+          <!-- Campo 9: estadocivilId -->
+          <div class="form-group">
+            <label>Estado Civil ID <span class="required">*</span></label>
+            <input type="number" formControlName="estadocivilId" class="form-control"
+                   [class.error]="hasError('estadocivilId')" />
+            <small class="error-message" *ngIf="hasError('estadocivilId')">
+              {{ getErrorMessage('estadocivilId') }}
+            </small>
+          </div>
+
+          <!-- Campo 10: etniaId -->
+          <div class="form-group">
+            <label>Etnia ID <span class="required">*</span></label>
+            <input type="number" formControlName="etniaId" class="form-control"
+                   [class.error]="hasError('etniaId')" />
+            <small class="error-message" *ngIf="hasError('etniaId')">
+              {{ getErrorMessage('etniaId') }}
+            </small>
+          </div>
+
+          <!-- Campo 11: pueblonacionalidadId -->
+          <div class="form-group">
+            <label>Pueblo Nacionalidad ID <span class="required" *ngIf="studentForm.get('etniaId')?.value === 1">*</span></label>
+            <input type="number" formControlName="pueblonacionalidadId" class="form-control"
+                   [class.error]="hasError('pueblonacionalidadId')"
+                   [disabled]="studentForm.get('etniaId')?.value !== 1" />
+            <small class="error-message" *ngIf="hasError('pueblonacionalidadId')">
+              {{ getErrorMessage('pueblonacionalidadId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('etniaId')?.value !== 1">Se establece automáticamente como "NA"</small>
+          </div>
+
+          <!-- Campo 12: tipoSangre -->
+          <div class="form-group">
+            <label>Tipo de Sangre <span class="required">*</span></label>
+            <select formControlName="tipoSangre" class="form-control"
+                    [class.error]="hasError('tipoSangre')">
+              <option value="">Seleccione...</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('tipoSangre')">
+              {{ getErrorMessage('tipoSangre') }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 3: Discapacidad -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('discapacidad')">
+        <h2 class="section-title">
+          <span class="section-icon">♿</span>
+          Discapacidad
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['discapacidad'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['discapacidad']">
+        <div class="form-grid">
+          <!-- Campo 13: discapacidad -->
+          <div class="form-group">
+            <label>Discapacidad <span class="required">*</span></label>
+            <select formControlName="discapacidad" class="form-control"
+                    [class.error]="hasError('discapacidad')">
+              <option value="">Seleccione...</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('discapacidad')">
+              {{ getErrorMessage('discapacidad') }}
+            </small>
+          </div>
+
+          <!-- Campo 14: porcentajeDiscapacidad -->
+          <div class="form-group">
+            <label>Porcentaje de Discapacidad (o "NA")</label>
+            <input type="text" formControlName="porcentajeDiscapacidad" class="form-control"
+                   [class.error]="hasError('porcentajeDiscapacidad')"
+                   [disabled]="studentForm.get('discapacidad')?.value === 2" />
+            <small class="error-message" *ngIf="hasError('porcentajeDiscapacidad')">
+              {{ getErrorMessage('porcentajeDiscapacidad') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 2">Se establece automáticamente como "NA"</small>
+          </div>
+
+          <!-- Campo 15: numCarnetConadis -->
+          <div class="form-group">
+            <label>Número Carnet CONADIS (o "NA")</label>
+            <input type="text" formControlName="numCarnetConadis" class="form-control"
+                   maxlength="7" [class.error]="hasError('numCarnetConadis')"
+                   [disabled]="studentForm.get('discapacidad')?.value === 2" />
+            <small class="error-message" *ngIf="hasError('numCarnetConadis')">
+              {{ getErrorMessage('numCarnetConadis') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 2">Se establece automáticamente como "NA"</small>
+          </div>
+
+          <!-- Campo 16: tipoDiscapacidad -->
+          <div class="form-group">
+            <label>Tipo de Discapacidad</label>
+            <input type="number" formControlName="tipoDiscapacidad" class="form-control"
+                   [class.error]="hasError('tipoDiscapacidad')"
+                   [disabled]="studentForm.get('discapacidad')?.value === 2" />
+            <small class="error-message" *ngIf="hasError('tipoDiscapacidad')">
+              {{ getErrorMessage('tipoDiscapacidad') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 2">Se establece automáticamente como 7</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 4: Nacionalidad y residencia -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('nacionalidad')">
+        <h2 class="section-title">
+          <span class="section-icon">🌍</span>
+          Nacionalidad y Residencia
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['nacionalidad'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['nacionalidad']">
+        <div class="form-grid">
+          <!-- Campo 18: paisNacionalidadId -->
+          <div class="form-group">
+            <label>País Nacionalidad ID <span class="required">*</span></label>
+            <input type="text" formControlName="paisNacionalidadId" class="form-control"
+                   maxlength="2" minlength="2" [class.error]="hasError('paisNacionalidadId')" />
+            <small class="error-message" *ngIf="hasError('paisNacionalidadId')">
+              {{ getErrorMessage('paisNacionalidadId') }}
+            </small>
+            <small class="hint">2 caracteres (ej: EC, US, CO)</small>
+          </div>
+
+          <!-- Campo 19: provinciaNacimientoId -->
+          <div class="form-group">
+            <label>Provincia Nacimiento ID (o "NA")</label>
+            <input type="text" formControlName="provinciaNacimientoId" class="form-control"
+                   maxlength="2" [class.error]="hasError('provinciaNacimientoId')" />
+            <small class="error-message" *ngIf="hasError('provinciaNacimientoId')">
+              {{ getErrorMessage('provinciaNacimientoId') }}
+            </small>
+            <small class="hint">2 caracteres o "NA"</small>
+          </div>
+
+          <!-- Campo 20: cantonNacimientoId -->
+          <div class="form-group">
+            <label>Cantón Nacimiento ID (o "NA")</label>
+            <input type="text" formControlName="cantonNacimientoId" class="form-control"
+                   maxlength="4" [class.error]="hasError('cantonNacimientoId')" />
+            <small class="error-message" *ngIf="hasError('cantonNacimientoId')">
+              {{ getErrorMessage('cantonNacimientoId') }}
+            </small>
+            <small class="hint">4 caracteres o "NA"</small>
+          </div>
+
+          <!-- Campo 21: paisResidenciaId -->
+          <div class="form-group">
+            <label>País Residencia ID <span class="required">*</span></label>
+            <input type="text" formControlName="paisResidenciaId" class="form-control"
+                   maxlength="2" minlength="2" [class.error]="hasError('paisResidenciaId')" />
+            <small class="error-message" *ngIf="hasError('paisResidenciaId')">
+              {{ getErrorMessage('paisResidenciaId') }}
+            </small>
+            <small class="hint">2 caracteres (ej: EC, US, CO)</small>
+          </div>
+
+          <!-- Campo 22: provinciaResidenciaId -->
+          <div class="form-group">
+            <label>Provincia Residencia ID (o "NA")</label>
+            <input type="text" formControlName="provinciaResidenciaId" class="form-control"
+                   maxlength="2" [class.error]="hasError('provinciaResidenciaId')" />
+            <small class="error-message" *ngIf="hasError('provinciaResidenciaId')">
+              {{ getErrorMessage('provinciaResidenciaId') }}
+            </small>
+            <small class="hint">2 caracteres o "NA"</small>
+          </div>
+
+          <!-- Campo 23: cantonResidenciaId -->
+          <div class="form-group">
+            <label>Cantón Residencia ID (o "NA")</label>
+            <input type="text" formControlName="cantonResidenciaId" class="form-control"
+                   maxlength="4" [class.error]="hasError('cantonResidenciaId')" />
+            <small class="error-message" *ngIf="hasError('cantonResidenciaId')">
+              {{ getErrorMessage('cantonResidenciaId') }}
+            </small>
+            <small class="hint">4 caracteres o "NA"</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 5: Información académica -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('informacionAcademica')">
+        <h2 class="section-title">
+          <span class="section-icon">🎓</span>
+          Información Académica
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['informacionAcademica'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['informacionAcademica']">
+        <div class="form-grid">
+          <!-- Campo 24: tipoColegioId -->
+          <div class="form-group">
+            <label>Tipo Colegio ID</label>
+            <input type="number" formControlName="tipoColegioId" class="form-control"
+                   [class.error]="hasError('tipoColegioId')" />
+            <small class="error-message" *ngIf="hasError('tipoColegioId')">
+              {{ getErrorMessage('tipoColegioId') }}
+            </small>
+          </div>
+
+          <!-- Campo 25: modalidadCarrera -->
+          <div class="form-group">
+            <label>Modalidad Carrera</label>
+            <input type="number" formControlName="modalidadCarrera" class="form-control"
+                   [class.error]="hasError('modalidadCarrera')" />
+            <small class="error-message" *ngIf="hasError('modalidadCarrera')">
+              {{ getErrorMessage('modalidadCarrera') }}
+            </small>
+          </div>
+
+          <!-- Campo 26: jornadaCarrera -->
+          <div class="form-group">
+            <label>Jornada Carrera</label>
+            <input type="number" formControlName="jornadaCarrera" class="form-control"
+                   [class.error]="hasError('jornadaCarrera')" />
+            <small class="error-message" *ngIf="hasError('jornadaCarrera')">
+              {{ getErrorMessage('jornadaCarrera') }}
+            </small>
+          </div>
+
+          <!-- Campo 27: fechaInicioCarrera -->
+          <div class="form-group">
+            <label>Fecha Inicio Carrera</label>
+            <input type="date" formControlName="fechaInicioCarrera" class="form-control"
+                   [class.error]="hasError('fechaInicioCarrera')" />
+            <small class="error-message" *ngIf="hasError('fechaInicioCarrera')">
+              {{ getErrorMessage('fechaInicioCarrera') }}
+            </small>
+          </div>
+
+          <!-- Campo 28: fechaMatricula -->
+          <div class="form-group">
+            <label>Fecha Matrícula</label>
+            <input type="date" formControlName="fechaMatricula" class="form-control"
+                   [class.error]="hasError('fechaMatricula')" />
+            <small class="error-message" *ngIf="hasError('fechaMatricula')">
+              {{ getErrorMessage('fechaMatricula') }}
+            </small>
+          </div>
+
+          <!-- Campo 29: tipoMatriculaId -->
+          <div class="form-group">
+            <label>Tipo Matrícula ID</label>
+            <input type="number" formControlName="tipoMatriculaId" class="form-control"
+                   [class.error]="hasError('tipoMatriculaId')" />
+            <small class="error-message" *ngIf="hasError('tipoMatriculaId')">
+              {{ getErrorMessage('tipoMatriculaId') }}
+            </small>
+          </div>
+
+          <!-- Campo 30: nivelAcademicoQueCursa -->
+          <div class="form-group">
+            <label>Nivel Académico que Cursa</label>
+            <input type="number" formControlName="nivelAcademicoQueCursa" class="form-control"
+                   [class.error]="hasError('nivelAcademicoQueCursa')" />
+            <small class="error-message" *ngIf="hasError('nivelAcademicoQueCursa')">
+              {{ getErrorMessage('nivelAcademicoQueCursa') }}
+            </small>
+          </div>
+
+          <!-- Campo 31: duracionPeriodoAcademico -->
+          <div class="form-group">
+            <label>Duración Periodo Académico</label>
+            <input type="number" formControlName="duracionPeriodoAcademico" class="form-control"
+                   [class.error]="hasError('duracionPeriodoAcademico')" />
+            <small class="error-message" *ngIf="hasError('duracionPeriodoAcademico')">
+              {{ getErrorMessage('duracionPeriodoAcademico') }}
+            </small>
+            <small class="hint">Entero de 2 dígitos (1-99)</small>
+          </div>
+
+          <!-- Campo 32: haRepetidoAlMenosUnaMateria -->
+          <div class="form-group">
+            <label>¿Ha Repetido al Menos Una Materia?</label>
+            <select formControlName="haRepetidoAlMenosUnaMateria" class="form-control"
+                    [class.error]="hasError('haRepetidoAlMenosUnaMateria')">
+              <option value="">Seleccione...</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('haRepetidoAlMenosUnaMateria')">
+              {{ getErrorMessage('haRepetidoAlMenosUnaMateria') }}
+            </small>
+          </div>
+
+          <!-- Campo 33: paraleloId -->
+          <div class="form-group">
+            <label>Paralelo ID</label>
+            <input type="number" formControlName="paraleloId" class="form-control"
+                   [class.error]="hasError('paraleloId')" />
+            <small class="error-message" *ngIf="hasError('paraleloId')">
+              {{ getErrorMessage('paraleloId') }}
+            </small>
+            <small class="hint">Entero de 2 dígitos (1-99)</small>
+          </div>
+
+          <!-- Campo 34: haPerdidoLaGratuidad -->
+          <div class="form-group">
+            <label>¿Ha Perdido la Gratuidad?</label>
+            <select formControlName="haPerdidoLaGratuidad" class="form-control"
+                    [class.error]="hasError('haPerdidoLaGratuidad')">
+              <option value="">Seleccione...</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('haPerdidoLaGratuidad')">
+              {{ getErrorMessage('haPerdidoLaGratuidad') }}
+            </small>
+          </div>
+
+          <!-- Campo 35: recibePensionDiferenciada -->
+          <div class="form-group">
+            <label>¿Recibe Pensión Diferenciada?</label>
+            <select formControlName="recibePensionDiferenciada" class="form-control"
+                    [class.error]="hasError('recibePensionDiferenciada')">
+              <option value="">Seleccione...</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('recibePensionDiferenciada')">
+              {{ getErrorMessage('recibePensionDiferenciada') }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 6: Información económica -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('informacionEconomica')">
+        <h2 class="section-title">
+          <span class="section-icon">💰</span>
+          Información Económica
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['informacionEconomica'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['informacionEconomica']">
+        <div class="form-grid">
+          <!-- Campo 36: estudianteocupacionId -->
+          <div class="form-group">
+            <label>Estudiante Ocupación ID</label>
+            <input type="number" formControlName="estudianteocupacionId" class="form-control"
+                   [class.error]="hasError('estudianteocupacionId')" />
+            <small class="error-message" *ngIf="hasError('estudianteocupacionId')">
+              {{ getErrorMessage('estudianteocupacionId') }}
+            </small>
+          </div>
+
+          <!-- Campo 37: ingresosestudianteId -->
+          <div class="form-group">
+            <label>Ingresos Estudiante ID</label>
+            <input type="number" formControlName="ingresosestudianteId" class="form-control"
+                   [class.error]="hasError('ingresosestudianteId')" />
+            <small class="error-message" *ngIf="hasError('ingresosestudianteId')">
+              {{ getErrorMessage('ingresosestudianteId') }}
+            </small>
+          </div>
+
+          <!-- Campo 38: bonodesarrolloId -->
+          <div class="form-group">
+            <label>Bono Desarrollo ID</label>
+            <input type="number" formControlName="bonodesarrolloId" class="form-control"
+                   [class.error]="hasError('bonodesarrolloId')" />
+            <small class="error-message" *ngIf="hasError('bonodesarrolloId')">
+              {{ getErrorMessage('bonodesarrolloId') }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 7: Prácticas preprofesionales -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('practicasPreprofesionales')">
+        <h2 class="section-title">
+          <span class="section-icon">💼</span>
+          Prácticas Preprofesionales
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['practicasPreprofesionales'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['practicasPreprofesionales']">
+        <div class="form-grid">
+          <!-- Campo 39: haRealizadoPracticasPreprofesionales -->
+          <div class="form-group">
+            <label>¿Ha Realizado Prácticas Preprofesionales?</label>
+            <select formControlName="haRealizadoPracticasPreprofesionales" class="form-control"
+                    [class.error]="hasError('haRealizadoPracticasPreprofesionales')">
+              <option value="">Seleccione...</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('haRealizadoPracticasPreprofesionales')">
+              {{ getErrorMessage('haRealizadoPracticasPreprofesionales') }}
+            </small>
+          </div>
+
+          <!-- Campo 40: nroHorasPracticasPreprofesionalesPorPeriodo -->
+          <div class="form-group">
+            <label>Número Horas Prácticas por Periodo (o "NA")</label>
+            <input type="text" formControlName="nroHorasPracticasPreprofesionalesPorPeriodo" 
+                   class="form-control"
+                   [class.error]="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')"
+                   [disabled]="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 2" />
+            <small class="error-message" *ngIf="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')">
+              {{ getErrorMessage('nroHorasPracticasPreprofesionalesPorPeriodo') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 2">
+              Se establece automáticamente como "NA"
+            </small>
+            <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 1">
+              Entero de 3 dígitos (0-999) o "NA"
+            </small>
+          </div>
+
+          <!-- Campo 41: entornoInstitucionalPracticasProfesionales -->
+          <div class="form-group">
+            <label>Entorno Institucional Prácticas Profesionales</label>
+            <input type="number" formControlName="entornoInstitucionalPracticasProfesionales" 
+                   class="form-control"
+                   [class.error]="hasError('entornoInstitucionalPracticasProfesionales')"
+                   [disabled]="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 2" />
+            <small class="error-message" *ngIf="hasError('entornoInstitucionalPracticasProfesionales')">
+              {{ getErrorMessage('entornoInstitucionalPracticasProfesionales') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 2">
+              Se establece automáticamente como 5
+            </small>
+          </div>
+
+          <!-- Campo 42: sectorEconomicoPracticaProfesional -->
+          <div class="form-group">
+            <label>Sector Económico Práctica Profesional</label>
+            <input type="number" formControlName="sectorEconomicoPracticaProfesional" 
+                   class="form-control"
+                   [class.error]="hasError('sectorEconomicoPracticaProfesional')"
+                   [disabled]="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 2" />
+            <small class="error-message" *ngIf="hasError('sectorEconomicoPracticaProfesional')">
+              {{ getErrorMessage('sectorEconomicoPracticaProfesional') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 2">
+              Se establece automáticamente como 22
+            </small>
+            <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 1">
+              Entero de 2 dígitos (1-99)
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 8: Becas y ayudas -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('becasAyudas')">
+        <h2 class="section-title">
+          <span class="section-icon">🎁</span>
+          Becas y Ayudas
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['becasAyudas'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['becasAyudas']">
+        <div class="form-grid">
+          <!-- Campo 43: tipoBecaId -->
+          <div class="form-group">
+            <label>Tipo Beca ID</label>
+            <select formControlName="tipoBecaId" class="form-control"
+                    [class.error]="hasError('tipoBecaId')">
+              <option value="">Seleccione...</option>
+              <option value="1">Tipo 1</option>
+              <option value="2">Tipo 2</option>
+              <option value="3">Tipo 3</option>
+              <option value="4">Tipo 4</option>
+              <option value="5">Tipo 5 (No aplica)</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('tipoBecaId')">
+              {{ getErrorMessage('tipoBecaId') }}
+            </small>
+          </div>
+
+          <!-- Campo 44: primeraRazonBecaId -->
+          <div class="form-group">
+            <label>Primera Razón Beca ID</label>
+            <input type="number" formControlName="primeraRazonBecaId" class="form-control"
+                   [class.error]="hasError('primeraRazonBecaId')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('primeraRazonBecaId')">
+              {{ getErrorMessage('primeraRazonBecaId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "No aplica"
+            </small>
+          </div>
+
+          <!-- Campo 45: segundaRazonBecaId -->
+          <div class="form-group">
+            <label>Segunda Razón Beca ID</label>
+            <input type="number" formControlName="segundaRazonBecaId" class="form-control"
+                   [class.error]="hasError('segundaRazonBecaId')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('segundaRazonBecaId')">
+              {{ getErrorMessage('segundaRazonBecaId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "No aplica"
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value !== 5">
+              Entero de 4 dígitos (0-9999)
+            </small>
+          </div>
+
+          <!-- Campo 46: terceraRazonBecaId -->
+          <div class="form-group">
+            <label>Tercera Razón Beca ID</label>
+            <input type="number" formControlName="terceraRazonBecaId" class="form-control"
+                   [class.error]="hasError('terceraRazonBecaId')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('terceraRazonBecaId')">
+              {{ getErrorMessage('terceraRazonBecaId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "No aplica"
+            </small>
+          </div>
+
+          <!-- Campo 47: cuartaRazonBecaId -->
+          <div class="form-group">
+            <label>Cuarta Razón Beca ID</label>
+            <input type="number" formControlName="cuartaRazonBecaId" class="form-control"
+                   [class.error]="hasError('cuartaRazonBecaId')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('cuartaRazonBecaId')">
+              {{ getErrorMessage('cuartaRazonBecaId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "No aplica"
+            </small>
+          </div>
+
+          <!-- Campo 48: quintaRazonBecaId -->
+          <div class="form-group">
+            <label>Quinta Razón Beca ID</label>
+            <input type="text" formControlName="quintaRazonBecaId" class="form-control"
+                   maxlength="10" [class.error]="hasError('quintaRazonBecaId')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('quintaRazonBecaId')">
+              {{ getErrorMessage('quintaRazonBecaId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "No aplica"
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value !== 5">
+              Máximo 10 caracteres
+            </small>
+          </div>
+
+          <!-- Campo 49: sextaRazonBecaId -->
+          <div class="form-group">
+            <label>Sexta Razón Beca ID</label>
+            <input type="number" formControlName="sextaRazonBecaId" class="form-control"
+                   [class.error]="hasError('sextaRazonBecaId')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('sextaRazonBecaId')">
+              {{ getErrorMessage('sextaRazonBecaId') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "No aplica"
+            </small>
+          </div>
+
+          <!-- Campo 50: montoBeca -->
+          <div class="form-group">
+            <label>Monto Beca (o "NA")</label>
+            <input type="text" formControlName="montoBeca" class="form-control"
+                   [class.error]="hasError('montoBeca')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('montoBeca')">
+              {{ getErrorMessage('montoBeca') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "NA"
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value !== 5">
+              Entero de 5 dígitos (0-99999) o "NA"
+            </small>
+          </div>
+
+          <!-- Campo 51: porcientoBecaCoberturaArancel -->
+          <div class="form-group">
+            <label>Porciento Beca Cobertura Arancel (o "NA")</label>
+            <input type="text" formControlName="porcientoBecaCoberturaArancel" class="form-control"
+                   [class.error]="hasError('porcientoBecaCoberturaArancel')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('porcientoBecaCoberturaArancel')">
+              {{ getErrorMessage('porcientoBecaCoberturaArancel') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "NA"
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value !== 5">
+              Entero de 3 dígitos (0-999) o "NA"
+            </small>
+          </div>
+
+          <!-- Campo 52: porcientoBecaCoberturaManuntencion -->
+          <div class="form-group">
+            <label>Porciento Beca Cobertura Manutención (o "NA")</label>
+            <input type="text" formControlName="porcientoBecaCoberturaManuntencion" class="form-control"
+                   [class.error]="hasError('porcientoBecaCoberturaManuntencion')"
+                   [disabled]="studentForm.get('tipoBecaId')?.value === 5" />
+            <small class="error-message" *ngIf="hasError('porcientoBecaCoberturaManuntencion')">
+              {{ getErrorMessage('porcientoBecaCoberturaManuntencion') }}
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value === 5">
+              Se establece automáticamente como "NA"
+            </small>
+            <small class="hint" *ngIf="studentForm.get('tipoBecaId')?.value !== 5">
+              Entero de 3 dígitos (0-999) o "NA"
+            </small>
+          </div>
+
+          <!-- Campo 53: financiamientoBeca -->
+          <div class="form-group">
+            <label>Financiamiento Beca (Opcional)</label>
+            <input type="number" formControlName="financiamientoBeca" class="form-control"
+                   [class.error]="hasError('financiamientoBeca')" />
+            <small class="error-message" *ngIf="hasError('financiamientoBeca')">
+              {{ getErrorMessage('financiamientoBeca') }}
+            </small>
+          </div>
+
+          <!-- Campo 54: montoAyudaEconomica -->
+          <div class="form-group">
+            <label>Monto Ayuda Económica (o "NA")</label>
+            <input type="text" formControlName="montoAyudaEconomica" class="form-control"
+                   [class.error]="hasError('montoAyudaEconomica')" />
+            <small class="error-message" *ngIf="hasError('montoAyudaEconomica')">
+              {{ getErrorMessage('montoAyudaEconomica') }}
+            </small>
+            <small class="hint">Entero de 5 dígitos (0-99999) o "NA"</small>
+          </div>
+
+          <!-- Campo 55: montoCreditoEducativo -->
+          <div class="form-group">
+            <label>Monto Crédito Educativo (o "NA")</label>
+            <input type="text" formControlName="montoCreditoEducativo" class="form-control"
+                   [class.error]="hasError('montoCreditoEducativo')" />
+            <small class="error-message" *ngIf="hasError('montoCreditoEducativo')">
+              {{ getErrorMessage('montoCreditoEducativo') }}
+            </small>
+            <small class="hint">Entero de 5 dígitos (0-99999) o "NA"</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 9: Vinculación social -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('vinculacionSocial')">
+        <h2 class="section-title">
+          <span class="section-icon">🤝</span>
+          Vinculación Social
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['vinculacionSocial'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['vinculacionSocial']">
+        <div class="form-grid">
+          <!-- Campo 56: participaEnProyectoVinculacionSociedad -->
+          <div class="form-group">
+            <label>¿Participa en Proyecto Vinculación Sociedad?</label>
+            <select formControlName="participaEnProyectoVinculacionSociedad" class="form-control"
+                    [class.error]="hasError('participaEnProyectoVinculacionSociedad')">
+              <option value="">Seleccione...</option>
+              <option value="1">Sí</option>
+              <option value="2">No</option>
+            </select>
+            <small class="error-message" *ngIf="hasError('participaEnProyectoVinculacionSociedad')">
+              {{ getErrorMessage('participaEnProyectoVinculacionSociedad') }}
+            </small>
+          </div>
+
+          <!-- Campo 57: tipoAlcanceProyectoVinculacionId -->
+          <div class="form-group">
+            <label>Tipo Alcance Proyecto Vinculación ID (Opcional)</label>
+            <input type="number" formControlName="tipoAlcanceProyectoVinculacionId" class="form-control"
+                   [class.error]="hasError('tipoAlcanceProyectoVinculacionId')" />
+            <small class="error-message" *ngIf="hasError('tipoAlcanceProyectoVinculacionId')">
+              {{ getErrorMessage('tipoAlcanceProyectoVinculacionId') }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 10: Contacto -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('contacto')">
+        <h2 class="section-title">
+          <span class="section-icon">📞</span>
+          Contacto
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['contacto'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['contacto']">
+        <div class="form-grid">
+          <!-- Campo 58: correoElectronico -->
+          <div class="form-group">
+            <label>Correo Electrónico (o "NA")</label>
+            <input type="email" formControlName="correoElectronico" class="form-control"
+                   maxlength="30" [class.error]="hasError('correoElectronico')" />
+            <small class="error-message" *ngIf="hasError('correoElectronico')">
+              {{ getErrorMessage('correoElectronico') }}
+            </small>
+            <small class="hint">Máximo 30 caracteres o "NA"</small>
+          </div>
+
+          <!-- Campo 59: numeroCelular -->
+          <div class="form-group">
+            <label>Número Celular <span class="required">*</span></label>
+            <input type="tel" formControlName="numeroCelular" class="form-control"
+                   maxlength="10" minlength="10" [class.error]="hasError('numeroCelular')" />
+            <small class="error-message" *ngIf="hasError('numeroCelular')">
+              {{ getErrorMessage('numeroCelular') }}
+            </small>
+            <small class="hint">10 dígitos numéricos o "0000000000"</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 11: Datos del hogar -->
+    <div class="form-section">
+      <div class="section-header" (click)="toggleSection('datosHogar')">
+        <h2 class="section-title">
+          <span class="section-icon">🏠</span>
+          Datos del Hogar
+        </h2>
+        <span class="toggle-icon">{{ collapsedSections['datosHogar'] ? '▼' : '▶' }}</span>
+      </div>
+      <div class="section-content" [class.collapsed]="collapsedSections['datosHogar']">
+        <div class="form-grid">
+          <!-- Campo 60: nivelFormacionPadre -->
+          <div class="form-group">
+            <label>Nivel Formación Padre</label>
+            <input type="number" formControlName="nivelFormacionPadre" class="form-control"
+                   [class.error]="hasError('nivelFormacionPadre')" />
+            <small class="error-message" *ngIf="hasError('nivelFormacionPadre')">
+              {{ getErrorMessage('nivelFormacionPadre') }}
+            </small>
+          </div>
+
+          <!-- Campo 61: nivelFormacionMadre -->
+          <div class="form-group">
+            <label>Nivel Formación Madre</label>
+            <input type="number" formControlName="nivelFormacionMadre" class="form-control"
+                   [class.error]="hasError('nivelFormacionMadre')" />
+            <small class="error-message" *ngIf="hasError('nivelFormacionMadre')">
+              {{ getErrorMessage('nivelFormacionMadre') }}
+            </small>
+          </div>
+
+          <!-- Campo 62: ingresoTotalHogar -->
+          <div class="form-group">
+            <label>Ingreso Total Hogar (o "NA")</label>
+            <input type="text" formControlName="ingresoTotalHogar" class="form-control"
+                   [class.error]="hasError('ingresoTotalHogar')" />
+            <small class="error-message" *ngIf="hasError('ingresoTotalHogar')">
+              {{ getErrorMessage('ingresoTotalHogar') }}
+            </small>
+            <small class="hint">Entero de 4 dígitos (0-9999) o "NA"</small>
+          </div>
+
+          <!-- Campo 63: cantidadMiembrosHogar -->
+          <div class="form-group">
+            <label>Cantidad Miembros Hogar <span class="required">*</span></label>
+            <input type="number" formControlName="cantidadMiembrosHogar" class="form-control"
+                   [class.error]="hasError('cantidadMiembrosHogar')" />
+            <small class="error-message" *ngIf="hasError('cantidadMiembrosHogar')">
+              {{ getErrorMessage('cantidadMiembrosHogar') }}
+            </small>
+            <small class="hint">Entero de 2 dígitos (1-99)</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+  </form>
+</div>
