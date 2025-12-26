@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class EstudianteService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/estudiantes'; // Ajusta según tu configuración
+  private apiUrl = 'https://backendformsenecyt-production.up.railway.app/estudiantes'; // Ajusta según tu configuración
 
   createEstudiante(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}`, data);

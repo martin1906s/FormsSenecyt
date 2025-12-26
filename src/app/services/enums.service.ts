@@ -49,7 +49,7 @@ export interface EnumsResponse {
 })
 export class EnumsService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/estudiantes'; // Ajusta según tu configuración
+  private apiUrl = 'https://backendformsenecyt-production.up.railway.app/estudiantes'; // Ajusta según tu configuración
 
   getEnums(): Observable<EnumsResponse> {
     return this.http.get<EnumsResponse>(`${this.apiUrl}/enums`);
