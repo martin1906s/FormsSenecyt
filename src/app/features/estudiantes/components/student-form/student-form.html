@@ -184,10 +184,10 @@
           <!-- Campo 11: pueblonacionalidadId -->
           <div class="form-group">
             <label
-              >Pueblo y Nacionalidad
-              <span class="required" *ngIf="studentForm.get('etniaId')?.value === 'INDIGENA'">*</span></label
+              >Pueblo Nacionalidad ID
+              <span class="required" *ngIf="studentForm.get('etniaId')?.value === 1">*</span></label
             >
-            <select formControlName="pueblonacionalidadId" [disabled]="studentForm.get('pueblonacionalidadId')?.disabled">
+            <select formControlName="pueblonacionalidadId">
               <option value="">Seleccione</option>
               @for (item of enums?.PuebloNacionalidad; track $index) {
               <option [value]="item">{{ getEnumLabel(item) }}</option>
@@ -196,8 +196,8 @@
             <small class="error-message" *ngIf="hasError('pueblonacionalidadId')">
               {{ getErrorMessage('pueblonacionalidadId') }}
             </small>
-            <small class="hint" *ngIf="studentForm.get('etniaId')?.value && studentForm.get('etniaId')?.value !== 'INDIGENA'"
-              >Se establece automáticamente como "No aplica" cuando la etnia no es Indígena</small
+            <small class="hint" *ngIf="studentForm.get('etniaId')?.value !== 1"
+              >Se establece automáticamente como "NA"</small
             >
           </div>
 
@@ -243,7 +243,7 @@
 
           <!-- Campo 14: porcentajeDiscapacidad -->
           <div class="form-group">
-            <label>Porcentaje de Discapacidad (o "NA") <span class="required" *ngIf="studentForm.get('discapacidad')?.value === 'SI'">*</span></label>
+            <label>Porcentaje de Discapacidad (o "NA")</label>
             <input
               type="number"
               min="0"
@@ -251,55 +251,48 @@
               formControlName="porcentajeDiscapacidad"
               class="form-control"
               [class.error]="hasError('porcentajeDiscapacidad')"
-              [disabled]="studentForm.get('porcentajeDiscapacidad')?.disabled"
+              [disabled]="studentForm.get('discapacidad')?.value === 2"
             />
             <small class="error-message" *ngIf="hasError('porcentajeDiscapacidad')">
               {{ getErrorMessage('porcentajeDiscapacidad') }}
             </small>
-            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 'NO'"
-              >Se establece automáticamente como "NA" cuando no hay discapacidad</small
+            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 2"
+              >Se establece automáticamente como "NA"</small
             >
           </div>
 
           <!-- Campo 15: numCarnetConadis -->
           <div class="form-group">
-            <label>Número Carnet CONADIS (o "NA") <span class="required" *ngIf="studentForm.get('discapacidad')?.value === 'SI'">*</span></label>
+            <label>Número Carnet CONADIS (o "NA")</label>
             <input
               type="text"
               formControlName="numCarnetConadis"
               class="form-control"
               maxlength="7"
               [class.error]="hasError('numCarnetConadis')"
-              [disabled]="studentForm.get('numCarnetConadis')?.disabled"
+              [disabled]="studentForm.get('discapacidad')?.value === 2"
             />
             <small class="error-message" *ngIf="hasError('numCarnetConadis')">
               {{ getErrorMessage('numCarnetConadis') }}
             </small>
-            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 'NO'"
-              >Se establece automáticamente como "NA" cuando no hay discapacidad</small
+            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 2"
+              >Se establece automáticamente como "NA"</small
             >
           </div>
 
           <!-- Campo 16: tipoDiscapacidad -->
           <div class="form-group">
-            <label>Tipo de Discapacidad <span class="required" *ngIf="studentForm.get('discapacidad')?.value === 'SI'">*</span></label>
+            <label>Tipo de Discapacidad</label>
             <select
               formControlName="tipoDiscapacidad"
               class="form-control"
               [class.error]="hasError('tipoDiscapacidad')"
-              [disabled]="studentForm.get('tipoDiscapacidad')?.disabled"
             >
               <option value="">Seleccione</option>
               @for (item of enums?.TipoDiscapacidad; track $index) {
               <option [value]="item">{{ getEnumLabel(item) }}</option>
               }
             </select>
-            <small class="error-message" *ngIf="hasError('tipoDiscapacidad')">
-              {{ getErrorMessage('tipoDiscapacidad') }}
-            </small>
-            <small class="hint" *ngIf="studentForm.get('discapacidad')?.value === 'NO'"
-              >Se establece automáticamente como "No aplica" cuando no hay discapacidad</small
-            >
           </div>
         </div>
       </div>
@@ -332,61 +325,33 @@
           </div>
 
           <!-- Campo 19: provinciaNacimientoId -->
-          <div class="form-group autocomplete-container">
-            <label>Provincia de Nacimiento <span class="required" *ngIf="studentForm.get('paisNacionalidadId')?.value === 'ECUADOR'">*</span></label>
-            <input
-              type="text"
+          <div class="form-group">
+            <label>Provincia Nacimiento ID (o "NA")</label>
+            <select
+              formControlName="provinciaNacimientoId"
               class="form-control"
               [class.error]="hasError('provinciaNacimientoId')"
-              [disabled]="studentForm.get('provinciaNacimientoId')?.disabled"
-              [value]="provinciaNacimientoSearch || getEnumLabel(studentForm.get('provinciaNacimientoId')?.value || '')"
-              (input)="onProvinciaNacimientoInput($event)"
-              (blur)="onProvinciaNacimientoBlur()"
-              (focus)="provinciaNacimientoSearch = ''; filterProvinciasNacimiento('')"
-              placeholder="Buscar provincia..."
-            />
-            <div class="autocomplete-dropdown" *ngIf="filteredProvinciasNacimiento.length > 0">
-              @for (provincia of filteredProvinciasNacimiento; track $index) {
-              <div class="autocomplete-item" (mousedown)="selectProvinciaNacimiento(provincia)">
-                {{ getEnumLabel(provincia) }}
-              </div>
+            >
+              <option value="">Seleccione</option>
+              @for (item of enums?.Provincia; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
               }
-            </div>
-            <small class="error-message" *ngIf="hasError('provinciaNacimientoId')">
-              {{ getErrorMessage('provinciaNacimientoId') }}
-            </small>
-            <small class="hint" *ngIf="studentForm.get('paisNacionalidadId')?.value && studentForm.get('paisNacionalidadId')?.value !== 'ECUADOR'">
-              Solo disponible si el país es Ecuador
-            </small>
+            </select>
           </div>
 
           <!-- Campo 20: cantonNacimientoId -->
-          <div class="form-group autocomplete-container">
-            <label>Cantón de Nacimiento <span class="required" *ngIf="studentForm.get('paisNacionalidadId')?.value === 'ECUADOR'">*</span></label>
-            <input
-              type="text"
+          <div class="form-group">
+            <label>Cantón Nacimiento ID (o "NA")</label>
+            <select
+              formControlName="cantonNacimientoId"
               class="form-control"
               [class.error]="hasError('cantonNacimientoId')"
-              [disabled]="studentForm.get('cantonNacimientoId')?.disabled"
-              [value]="cantonNacimientoSearch || getEnumLabel(studentForm.get('cantonNacimientoId')?.value || '')"
-              (input)="onCantonNacimientoInput($event)"
-              (blur)="onCantonNacimientoBlur()"
-              (focus)="cantonNacimientoSearch = ''; filterCantonesNacimiento('')"
-              placeholder="Buscar cantón..."
-            />
-            <div class="autocomplete-dropdown" *ngIf="filteredCantonesNacimiento.length > 0">
-              @for (canton of filteredCantonesNacimiento; track $index) {
-              <div class="autocomplete-item" (mousedown)="selectCantonNacimiento(canton)">
-                {{ getEnumLabel(canton) }}
-              </div>
+            >
+              <option value="">Seleccione</option>
+              @for (item of enums?.Canton; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
               }
-            </div>
-            <small class="error-message" *ngIf="hasError('cantonNacimientoId')">
-              {{ getErrorMessage('cantonNacimientoId') }}
-            </small>
-            <small class="hint" *ngIf="studentForm.get('paisNacionalidadId')?.value && studentForm.get('paisNacionalidadId')?.value !== 'ECUADOR'">
-              Solo disponible si el país es Ecuador
-            </small>
+            </select>
           </div>
 
           <!-- Campo 21: paisResidenciaId -->
@@ -405,61 +370,33 @@
           </div>
 
           <!-- Campo 22: provinciaResidenciaId -->
-          <div class="form-group autocomplete-container">
-            <label>Provincia de Residencia <span class="required" *ngIf="studentForm.get('paisResidenciaId')?.value === 'ECUADOR'">*</span></label>
-            <input
-              type="text"
+          <div class="form-group">
+            <label>Provincia Residencia ID (o "NA")</label>
+            <select
+              formControlName="provinciaResidenciaId"
               class="form-control"
               [class.error]="hasError('provinciaResidenciaId')"
-              [disabled]="studentForm.get('provinciaResidenciaId')?.disabled"
-              [value]="provinciaResidenciaSearch || getEnumLabel(studentForm.get('provinciaResidenciaId')?.value || '')"
-              (input)="onProvinciaResidenciaInput($event)"
-              (blur)="onProvinciaResidenciaBlur()"
-              (focus)="provinciaResidenciaSearch = ''; filterProvinciasResidencia('')"
-              placeholder="Buscar provincia..."
-            />
-            <div class="autocomplete-dropdown" *ngIf="filteredProvinciasResidencia.length > 0">
-              @for (provincia of filteredProvinciasResidencia; track $index) {
-              <div class="autocomplete-item" (mousedown)="selectProvinciaResidencia(provincia)">
-                {{ getEnumLabel(provincia) }}
-              </div>
+            >
+              <option value="">Seleccione</option>
+              @for (item of enums?.Provincia; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
               }
-            </div>
-            <small class="error-message" *ngIf="hasError('provinciaResidenciaId')">
-              {{ getErrorMessage('provinciaResidenciaId') }}
-            </small>
-            <small class="hint" *ngIf="studentForm.get('paisResidenciaId')?.value && studentForm.get('paisResidenciaId')?.value !== 'ECUADOR'">
-              Solo disponible si el país es Ecuador
-            </small>
+            </select>
           </div>
 
           <!-- Campo 23: cantonResidenciaId -->
-          <div class="form-group autocomplete-container">
-            <label>Cantón de Residencia <span class="required" *ngIf="studentForm.get('paisResidenciaId')?.value === 'ECUADOR'">*</span></label>
-            <input
-              type="text"
+          <div class="form-group">
+            <label>Cantón Residencia ID (o "NA")</label>
+            <select
+              formControlName="cantonResidenciaId"
               class="form-control"
               [class.error]="hasError('cantonResidenciaId')"
-              [disabled]="studentForm.get('cantonResidenciaId')?.disabled"
-              [value]="cantonResidenciaSearch || getEnumLabel(studentForm.get('cantonResidenciaId')?.value || '')"
-              (input)="onCantonResidenciaInput($event)"
-              (blur)="onCantonResidenciaBlur()"
-              (focus)="cantonResidenciaSearch = ''; filterCantonesResidencia('')"
-              placeholder="Buscar cantón..."
-            />
-            <div class="autocomplete-dropdown" *ngIf="filteredCantonesResidencia.length > 0">
-              @for (canton of filteredCantonesResidencia; track $index) {
-              <div class="autocomplete-item" (mousedown)="selectCantonResidencia(canton)">
-                {{ getEnumLabel(canton) }}
-              </div>
+            >
+              <option value="">Seleccione</option>
+              @for (item of enums?.Canton; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
               }
-            </div>
-            <small class="error-message" *ngIf="hasError('cantonResidenciaId')">
-              {{ getErrorMessage('cantonResidenciaId') }}
-            </small>
-            <small class="hint" *ngIf="studentForm.get('paisResidenciaId')?.value && studentForm.get('paisResidenciaId')?.value !== 'ECUADOR'">
-              Solo disponible si el país es Ecuador
-            </small>
+            </select>
           </div>
         </div>
       </div>
@@ -1261,7 +1198,7 @@
     <div *ngIf="submitMessage" class="submit-message" [class.success]="!submitError" [class.error]="submitError">
       <span *ngIf="submitError">⚠️</span>
       <span *ngIf="!submitError">✓</span>
-      <span class="message-text">{{ submitMessage }}</span>
+      {{ submitMessage }}
     </div>
 
     <!-- Botones de acción -->
