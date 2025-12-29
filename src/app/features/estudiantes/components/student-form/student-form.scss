@@ -1,33 +1,22 @@
-// Variables de colores - Nuevo esquema blanco/morado
-$morado-primario: #881F80; // Indigo-500
-$morado-secundario: #881F80; // Violet-500
-$morado-oscuro: #881F80; // Indigo-600
-$morado-claro: #a78bfa; // Violet-400
+$morado-primario: #881F80;
+$morado-secundario: #881F80;
+$morado-oscuro: #881F80;
+$morado-claro: #a78bfa;
 $blanco: #ffffff;
 $blanco-suave: #fafafa;
 $gris-claro: #f3f4f6;
 $gris-medio: #9ca3af;
 $gris-oscuro: #6b7280;
 $gris-texto: #374151;
-$verde-exito: #10b981; // Verde suave para éxito (mínimo)
+$verde-exito: #10b981;
 $rojo-error: #ef4444;
 $sombra-suave: rgba(99, 102, 241, 0.1);
 $sombra-media: rgba(99, 102, 241, 0.2);
 
-// Mejoras globales para responsive
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-// Prevenir zoom en iOS al hacer focus en inputs
 @supports (-webkit-touch-callout: none) {
-  input[type="text"],
-  input[type="email"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="date"],
-  select,
-  textarea {
+  input[type="text"], input[type="email"], input[type="number"], input[type="tel"], input[type="date"], select, textarea {
     font-size: 16px !important;
   }
 }
@@ -37,14 +26,11 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   background: linear-gradient(135deg, $blanco-suave 0%, $blanco 100%);
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  
-  // Mejora para evitar overflow horizontal
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;
 }
 
-// Barra superior con logos
 .header-bar {
   background: $blanco;
   padding: 25px 40px;
@@ -58,28 +44,14 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   transition: box-shadow 0.3s ease;
   flex-wrap: wrap;
   gap: 20px;
-
-  &:hover {
-    box-shadow: 0 4px 12px $sombra-media;
-  }
-
+  &:hover { box-shadow: 0 4px 12px $sombra-media; }
   .logo-container {
     display: flex;
     gap: 20px;
     align-items: center;
-
-    .logo {
-      height: 60px;
-      width: auto;
-      object-fit: contain;
-    }
+    .logo { height: 60px; width: auto; object-fit: contain; }
   }
-
-  .header-titles {
-    flex: 1;
-    min-width: 300px;
-  }
-
+  .header-titles { flex: 1; min-width: 300px; }
   .form-title {
     color: $morado-primario;
     font-size: 2rem;
@@ -87,7 +59,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     margin: 0;
     letter-spacing: -0.5px;
   }
-
   .form-subtitle {
     color: $gris-oscuro;
     font-size: 1.2rem;
@@ -95,10 +66,8 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     margin: 8px 0 0 0;
     letter-spacing: -0.3px;
   }
-
 }
 
-// Formulario principal
 .student-form {
   max-width: 1400px;
   margin: 0 auto;
@@ -108,12 +77,9 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   box-shadow: 0 4px 20px $sombra-suave;
   width: 100%;
   box-sizing: border-box;
-  
-  // Mejora para evitar overflow
   overflow-x: hidden;
 }
 
-// Mensajes de estado
 .submit-message {
   padding: 16px 20px;
   border-radius: 12px;
@@ -123,18 +89,12 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   align-items: flex-start;
   gap: 12px;
   animation: slideDown 0.3s ease-out;
-
-  .message-text {
-    white-space: pre-line;
-    flex: 1;
-  }
-
+  .message-text { white-space: pre-line; flex: 1; }
   &.success {
     background: rgba(16, 185, 129, 0.1);
     color: #047857;
     border: 1px solid rgba(16, 185, 129, 0.3);
   }
-
   &.error {
     background: rgba(239, 68, 68, 0.1);
     color: #991b1b;
@@ -142,7 +102,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   }
 }
 
-// Indicador de carga de enums
 .loading-enums {
   display: flex;
   flex-direction: column;
@@ -153,7 +112,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   border-radius: 16px;
   box-shadow: 0 2px 8px $sombra-suave;
   margin-bottom: 30px;
-
   .loading-spinner {
     width: 50px;
     height: 50px;
@@ -163,27 +121,14 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     animation: spin 0.8s linear infinite;
     margin-bottom: 20px;
   }
-
-  p {
-    color: $gris-texto;
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin: 0;
-  }
+  p { color: $gris-texto; font-size: 1.1rem; font-weight: 500; margin: 0; }
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-// Secciones del formulario
 .form-section {
   margin-bottom: 25px;
   background: $blanco;
@@ -192,14 +137,13 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   border: 1px solid $gris-claro;
   transition: all 0.3s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
+  animation: fadeIn 0.4s ease-out;
   &:hover {
     border-color: $morado-claro;
     box-shadow: 0 4px 12px $sombra-suave;
   }
 }
 
-// Encabezado de sección
 .section-header {
   background: linear-gradient(135deg, $morado-primario 0%, $morado-secundario 100%);
   padding: 20px 30px;
@@ -209,11 +153,7 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   align-items: center;
   transition: all 0.3s ease;
   user-select: none;
-
-  &:hover {
-    background: linear-gradient(135deg, $morado-oscuro 0%, $morado-primario 100%);
-  }
-
+  &:hover { background: linear-gradient(135deg, $morado-oscuro 0%, $morado-primario 100%); }
   .section-title {
     color: $blanco;
     font-size: 1.4rem;
@@ -222,13 +162,8 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     display: flex;
     align-items: center;
     gap: 15px;
-
-    .section-icon {
-      font-size: 1.6rem;
-      filter: brightness(0) invert(1);
-    }
+    .section-icon { font-size: 1.6rem; filter: brightness(0) invert(1); }
   }
-
   .toggle-icon {
     color: $blanco;
     font-size: 1.2rem;
@@ -237,66 +172,38 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   }
 }
 
-// Contenido de sección
 .section-content {
   padding: 30px;
   background: $blanco;
   transition: all 0.3s ease;
   max-height: 5000px;
   overflow: hidden;
-
-  &.collapsed {
-    max-height: 0;
-    padding: 0 30px;
-    overflow: hidden;
-  }
+  &.collapsed { max-height: 0; padding: 0 30px; overflow: hidden; }
 }
 
-// Grid de formulario
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 25px;
-  
-  // Mejora responsive para evitar overflow
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
     gap: 18px;
   }
 }
 
-// Grupos de formulario
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   label {
     color: $gris-texto;
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 5px;
-
-    .required {
-      color: $rojo-error;
-      margin-left: 3px;
-    }
+    .required { color: $rojo-error; margin-left: 3px; }
   }
-
-  .hint {
-    color: $gris-medio;
-    font-size: 0.8rem;
-    margin-top: 3px;
-    font-style: italic;
-  }
-
-  .error-message {
-    color: $rojo-error;
-    font-size: 0.85rem;
-    margin-top: 5px;
-    font-weight: 500;
-  }
-
+  .hint { color: $gris-medio; font-size: 0.8rem; margin-top: 3px; font-style: italic; }
+  .error-message { color: $rojo-error; font-size: 0.85rem; margin-top: 5px; font-weight: 500; }
   .form-control {
     padding: 12px 16px;
     background: $blanco;
@@ -311,52 +218,31 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-
     &:focus {
       outline: none;
       border-color: $morado-primario;
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
-
-    &:hover:not(:disabled) {
-      border-color: $morado-claro;
-    }
-
+    &:hover:not(:disabled) { border-color: $morado-claro; }
     &.error {
       border-color: $rojo-error;
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
-
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       background: $gris-claro;
     }
-
-    &::placeholder {
-      color: $gris-medio;
-    }
-
-    option {
-      background: $blanco;
-      color: $gris-texto;
-      padding: 8px;
-    }
-
-    // Mejoras para móviles
+    &::placeholder { color: $gris-medio; }
+    option { background: $blanco; color: $gris-texto; padding: 8px; }
     @media (max-width: 480px) {
       padding: 10px 14px;
-      font-size: 16px; // Evita zoom en iOS
+      font-size: 16px;
     }
   }
-
-  textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
-  }
+  textarea.form-control { resize: vertical; min-height: 100px; }
 }
 
-// Botones de acción
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -377,590 +263,57 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   font-family: inherit;
   position: relative;
   overflow: hidden;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
   &.btn-primary {
     background: linear-gradient(135deg, $morado-primario 0%, $morado-secundario 100%);
     color: $blanco;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-
     &:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
       background: linear-gradient(135deg, $morado-oscuro 0%, $morado-primario 100%);
     }
-
-    &:active:not(:disabled) {
-      transform: translateY(0);
-    }
+    &:active:not(:disabled) { transform: translateY(0); }
   }
-
   &.btn-secondary {
     background: $blanco;
     color: $gris-texto;
     border: 2px solid $gris-claro;
-
     &:hover:not(:disabled) {
       background: $gris-claro;
       border-color: $gris-medio;
       transform: translateY(-2px);
     }
   }
-}
-
-// Responsive Design
-@media (max-width: 1200px) {
-  .student-form {
-    max-width: 100%;
-    padding: 35px;
-  }
-
-  .form-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 22px;
-  }
-
-}
-
-@media (max-width: 1024px) {
-  .form-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-  }
-
-  .header-bar {
-    padding: 20px 30px;
-    gap: 15px;
-
-    .logo-container {
-      gap: 15px;
-    }
-
-    .form-title {
-      font-size: 1.6rem;
-    }
-
-    .form-subtitle {
-      font-size: 1.1rem;
-    }
-
-    .logo {
-      height: 50px;
-    }
-  }
-
-  .section-content {
-    padding: 25px;
-  }
-
-  .student-form {
-    padding: 30px;
-  }
-
-  .step-section {
-    padding: 30px;
-  }
-
-  .steps-indicator {
-    gap: 8px;
-  }
-
-  .step-indicator {
-    min-width: 80px;
-    max-width: 120px;
-    padding: 12px 8px;
-
-    .step-title {
-      font-size: 0.65rem;
-    }
-  }
-
-}
-
-@media (max-width: 768px) {
-  .form-container {
-    padding: 15px;
-  }
-
-  .student-form {
-    padding: 20px;
-    border-radius: 12px;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .section-header {
-    padding: 16px 20px;
-
-    .section-title {
-      font-size: 1.2rem;
-      gap: 12px;
-    }
-  }
-
-  .header-bar {
-    padding: 18px 20px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-
-    .logo-container {
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .header-titles {
-      min-width: auto;
-      text-align: center;
-    }
-
-    .form-title {
-      font-size: 1.4rem;
-    }
-
-    .form-subtitle {
-      font-size: 1rem;
-      text-align: center;
-    }
-
-    .logo {
-      height: 45px;
-    }
-  }
-
-  .form-actions {
-    flex-direction: column-reverse;
-    gap: 12px;
-
-    .btn {
-      width: 100%;
-    }
-  }
-
-  .section-content {
-    padding: 20px;
-  }
-
-  .progress-container {
-    padding: 20px;
-  }
-
-  .progress-text {
-    font-size: 0.9rem;
-  }
-
-  .steps-indicator {
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
-
-  .step-indicator {
-    min-width: 70px;
-    max-width: 100px;
-    padding: 10px 6px;
-
-    .step-number {
-      font-size: 1.2rem;
-    }
-
-    .step-icon {
-      font-size: 1.4rem;
-    }
-
-    .step-title {
-      font-size: 0.6rem;
-    }
-  }
-
-  .step-title {
-    font-size: 1.6rem;
-    flex-direction: column;
-    text-align: center;
-    gap: 10px;
-
-    .step-icon-large {
-      font-size: 2rem;
-    }
-  }
-
-  .step-section {
-    padding: 25px 20px;
-  }
-
-  .step-navigation {
-    flex-direction: column-reverse;
-    gap: 15px;
-
-    .btn {
-      width: 100%;
-      min-width: auto;
-    }
-  }
-
-  .autocomplete-dropdown {
-    max-height: 250px;
-    font-size: 0.9rem;
-
-    .autocomplete-item {
-      padding: 10px 14px;
-      font-size: 0.9rem;
-    }
-  }
-
-  .submit-message {
-    padding: 14px 18px;
-    font-size: 0.9rem;
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
-
-    .message-text {
-      text-align: left;
+  &.loading {
+    position: relative;
+    color: transparent;
+    &::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin-left: -10px;
+      margin-top: -10px;
+      border: 2px solid $blanco;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
   }
 }
 
-@media (max-width: 480px) {
-  .form-container {
-    padding: 10px;
-  }
-
-  .header-bar {
-    padding: 15px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    border-radius: 10px;
-
-    .logo-container {
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .logo {
-      height: 40px;
-    }
-
-    .header-titles {
-      text-align: center;
-    }
-
-    .form-title {
-      font-size: 1.2rem;
-      width: 100%;
-    }
-
-    .form-subtitle {
-      font-size: 0.9rem;
-      margin-top: 5px;
-    }
-  }
-
-  .section-header {
-    padding: 14px 16px;
-
-    .section-title {
-      font-size: 1.1rem;
-      gap: 10px;
-      flex-wrap: wrap;
-
-      .section-icon {
-        font-size: 1.3rem;
-      }
-    }
-  }
-
-  .form-group {
-    gap: 6px;
-
-    label {
-      font-size: 0.85rem;
-    }
-
-    .form-control {
-      padding: 10px 14px;
-      font-size: 0.95rem;
-    }
-
-    .error-message {
-      font-size: 0.8rem;
-    }
-
-    .hint {
-      font-size: 0.75rem;
-    }
-  }
-
-  .btn {
-    padding: 12px 24px;
-    font-size: 0.95rem;
-  }
-
-  .student-form {
-    padding: 16px;
-    border-radius: 10px;
-  }
-
-  .progress-container {
-    padding: 15px;
-    border-radius: 10px;
-  }
-
-  .progress-bar {
-    height: 10px;
-  }
-
-  .progress-text {
-    font-size: 0.85rem;
-    margin-bottom: 15px;
-  }
-
-  .steps-indicator {
-    gap: 5px;
-    justify-content: center;
-  }
-
-  .step-indicator {
-    min-width: 55px;
-    max-width: 75px;
-    padding: 8px 4px;
-    border-radius: 8px;
-
-    .step-number {
-      font-size: 1rem;
-    }
-
-    .step-icon {
-      font-size: 1.1rem;
-    }
-
-    .step-title {
-      font-size: 0.5rem;
-      display: none; // Ocultar títulos en móviles muy pequeños
-    }
-  }
-
-  .step-title {
-    font-size: 1.3rem;
-    flex-direction: column;
-    gap: 8px;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
-
-    .step-icon-large {
-      font-size: 1.6rem;
-    }
-  }
-
-  .step-section {
-    padding: 18px 15px;
-    border-radius: 10px;
-  }
-
-  .step-navigation {
-    gap: 12px;
-    padding-top: 20px;
-    margin-top: 30px;
-
-    .btn {
-      padding: 12px 20px;
-      font-size: 0.9rem;
-    }
-  }
-
-  .form-grid {
-    gap: 18px;
-  }
-
-  .section-content {
-    padding: 18px 15px;
-  }
-
-  .autocomplete-dropdown {
-    max-height: 200px;
-    font-size: 0.85rem;
-
-    .autocomplete-item {
-      padding: 10px 12px;
-      font-size: 0.85rem;
-    }
-  }
-
-  .submit-message {
-    padding: 12px 16px;
-    font-size: 0.85rem;
-    border-radius: 8px;
-  }
-
-  .loading-enums {
-    padding: 40px 15px;
-    border-radius: 10px;
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-    }
-
-    p {
-      font-size: 1rem;
-    }
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-// Mejoras adicionales para tablets en orientación vertical
-@media (max-width: 768px) and (orientation: portrait) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-// Mejoras para pantallas muy pequeñas (menos de 360px)
-@media (max-width: 360px) {
-  .form-container {
-    padding: 8px;
-  }
-
-  .header-bar {
-    padding: 12px;
-    gap: 10px;
-
-    .logo-container {
-      gap: 8px;
-    }
-
-    .form-title {
-      font-size: 1.1rem;
-    }
-
-    .form-subtitle {
-      font-size: 0.85rem;
-    }
-
-    .logo {
-      height: 35px;
-    }
-  }
-
-  .student-form {
-    padding: 12px;
-  }
-
-  .step-section {
-    padding: 15px 12px;
-  }
-
-  .step-indicator {
-    min-width: 50px;
-    max-width: 65px;
-    padding: 6px 3px;
-
-    .step-number {
-      font-size: 0.9rem;
-    }
-
-    .step-icon {
-      font-size: 1rem;
-    }
-  }
-
-  .form-grid {
-    gap: 15px;
-  }
-
-  .progress-container {
-    padding: 12px;
-  }
-
-  .progress-text {
-    font-size: 0.8rem;
-  }
-}
-
-// Mejoras para orientación landscape en móviles
-@media (max-width: 768px) and (orientation: landscape) {
-  .header-bar {
-    padding: 15px 20px;
-    flex-direction: row;
-    align-items: center;
-
-    .logo-container {
-      flex-shrink: 0;
-    }
-
-    .header-titles {
-      flex: 1;
-    }
-  }
-
-  .step-indicator {
-    min-width: 60px;
-    max-width: 90px;
-  }
-}
-
-// Mejoras para pantallas grandes (más de 1400px)
-@media (min-width: 1400px) {
-  .student-form {
-    max-width: 1600px;
-  }
-
-  .form-grid {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 30px;
-  }
-}
-
-// Mejoras para touch devices
-@media (hover: none) and (pointer: coarse) {
-  .btn {
-    min-height: 44px; // Tamaño mínimo recomendado para touch
-    min-width: 44px;
-  }
-
-  .autocomplete-item {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-
-  .step-indicator {
-    min-height: 60px;
-  }
-
-  .form-control {
-    min-height: 44px;
-  }
-}
-
-// Mejoras para impresión
-@media print {
-  .header-bar,
-  .progress-container,
-  .step-navigation,
-  .btn {
-    display: none;
-  }
-
-  .student-form {
-    box-shadow: none;
-    padding: 0;
-  }
-
-  .form-section {
-    page-break-inside: avoid;
-  }
-}
-
-// Barra de progreso
 .progress-container {
   margin-bottom: 40px;
   padding: 30px;
@@ -969,17 +322,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   box-shadow: 0 2px 8px $sombra-suave;
   width: 100%;
   box-sizing: border-box;
-  
-  @media (max-width: 768px) {
-    padding: 20px;
-    margin-bottom: 25px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-  }
 }
 
 .progress-bar {
@@ -1014,16 +356,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 20px;
-  
-  // Mejora para evitar overflow en móviles
-  @media (max-width: 768px) {
-    justify-content: center;
-    gap: 8px;
-  }
-  
-  @media (max-width: 480px) {
-    gap: 5px;
-  }
 }
 
 .step-indicator {
@@ -1038,29 +370,17 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   transition: all 0.3s ease;
   border: 2px solid transparent;
   position: relative;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-  
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
   &.active {
     background: linear-gradient(135deg, $morado-primario 0%, $morado-secundario 100%);
     color: $blanco;
     border-color: $morado-oscuro;
     box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
-    
-    .step-number,
-    .step-title {
-      color: $blanco;
-      font-weight: 700;
-    }
+    .step-number, .step-title { color: $blanco; font-weight: 700; }
   }
-  
   &.completed {
     background: rgba(16, 185, 129, 0.1);
     border-color: $verde-exito;
-    
     .step-number::after {
       content: '✓';
       position: absolute;
@@ -1070,11 +390,9 @@ $sombra-media: rgba(99, 102, 241, 0.2);
       font-weight: bold;
     }
   }
-  
   &.invalid {
     background: rgba(239, 68, 68, 0.1);
     border-color: $rojo-error;
-    
     .step-number::after {
       content: '⚠';
       position: absolute;
@@ -1084,7 +402,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
       font-weight: bold;
     }
   }
-  
   .step-number {
     display: block;
     font-size: 1.5rem;
@@ -1093,13 +410,11 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     margin-bottom: 5px;
     position: relative;
   }
-  
   .step-icon {
     display: block;
     font-size: 1.8rem;
     margin-bottom: 5px;
   }
-  
   .step-title {
     display: block;
     font-size: 0.75rem;
@@ -1109,7 +424,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   }
 }
 
-// Contenido del paso
 .step-content {
   min-height: 400px;
   animation: fadeIn 0.4s ease-out;
@@ -1133,10 +447,7 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 3px solid $morado-claro;
-  
-  .step-icon-large {
-    font-size: 2.5rem;
-  }
+  .step-icon-large { font-size: 2.5rem; }
 }
 
 .step-notice {
@@ -1146,7 +457,6 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   padding: 40px;
 }
 
-// Navegación de pasos
 .step-navigation {
   display: flex;
   justify-content: space-between;
@@ -1154,77 +464,35 @@ $sombra-media: rgba(99, 102, 241, 0.2);
   margin-top: 40px;
   padding-top: 30px;
   border-top: 2px solid $gris-claro;
-  
   .btn {
     min-width: 150px;
     padding: 14px 32px;
     font-size: 1rem;
     font-weight: 600;
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 }
 
-// Animaciones
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.form-section {
-  animation: fadeIn 0.4s ease-out;
-}
-
-// Scrollbar personalizado
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: $gris-claro;
-  border-radius: 5px;
-}
-
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: $gris-claro; border-radius: 5px; }
 ::-webkit-scrollbar-thumb {
   background: $morado-primario;
   border-radius: 5px;
-
-  &:hover {
-    background: $morado-oscuro;
-  }
+  &:hover { background: $morado-oscuro; }
 }
 
-// Mejoras adicionales
-.form-control[type="date"],
-.form-control[type="time"],
-.form-control[type="datetime-local"] {
+.form-control[type="date"], .form-control[type="time"], .form-control[type="datetime-local"] {
   position: relative;
-  
   &::-webkit-calendar-picker-indicator {
     cursor: pointer;
     opacity: 0.6;
     transition: opacity 0.3s ease;
-    
-    &:hover {
-      opacity: 1;
-    }
+    &:hover { opacity: 1; }
   }
 }
 
-// Selects mejorados
 .select-wrapper {
   position: relative;
-  
   &::after {
     content: '';
     position: absolute;
@@ -1239,79 +507,33 @@ $sombra-media: rgba(99, 102, 241, 0.2);
     pointer-events: none;
     transition: transform 0.3s ease;
   }
-  
-  &:hover::after {
-    border-top-color: $morado-oscuro;
-  }
+  &:hover::after { border-top-color: $morado-oscuro; }
 }
 
-select.form-control,
-.select-enhanced {
+select.form-control, .select-enhanced {
   cursor: pointer;
   appearance: none;
   background-image: none;
   padding-right: 45px;
   transition: all 0.3s ease;
-  
   &:focus {
     border-color: $morado-primario;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
   }
-  
-  &:hover {
-    border-color: $morado-claro;
-  }
-  
+  &:hover { border-color: $morado-claro; }
   option {
     padding: 12px 16px;
     background: $blanco;
     color: $gris-texto;
     font-size: 1rem;
-    
-    &:hover {
-      background: rgba(99, 102, 241, 0.1);
-    }
-    
-    &:checked {
-      background: $morado-primario;
-      color: $blanco;
-    }
+    &:hover { background: rgba(99, 102, 241, 0.1); }
+    &:checked { background: $morado-primario; color: $blanco; }
   }
 }
 
-// Estados de carga
-.btn.loading {
-  position: relative;
-  color: transparent;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    top: 50%;
-    left: 50%;
-    margin-left: -10px;
-    margin-top: -10px;
-    border: 2px solid $blanco;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// Estilos para autocompletado
-.autocomplete-wrapper,
-.autocomplete-container {
+.autocomplete-wrapper, .autocomplete-container {
   position: relative;
   width: 100%;
-
   .autocomplete-dropdown {
     position: absolute;
     top: 100%;
@@ -1328,7 +550,6 @@ select.form-control,
     margin-top: 2px;
     width: 100%;
     box-sizing: border-box;
-
     .autocomplete-item {
       padding: 12px 16px;
       cursor: pointer;
@@ -1337,41 +558,232 @@ select.form-control,
       transition: all 0.2s ease;
       word-wrap: break-word;
       overflow-wrap: break-word;
-
       &:hover {
         background: linear-gradient(90deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
         color: $morado-secundario;
       }
-
-      &:last-child {
-        border-bottom: none;
-      }
+      &:last-child { border-bottom: none; }
     }
   }
+  input:focus + .autocomplete-dropdown, .autocomplete-dropdown:hover { display: block; }
+}
 
-  input:focus + .autocomplete-dropdown,
-  .autocomplete-dropdown:hover {
-    display: block;
+@media (max-width: 1200px) {
+  .student-form { max-width: 100%; padding: 35px; }
+  .form-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+}
+
+@media (max-width: 1024px) {
+  .form-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+  .header-bar {
+    padding: 20px 30px;
+    gap: 15px;
+    .logo-container { gap: 15px; }
+    .form-title { font-size: 1.6rem; }
+    .form-subtitle { font-size: 1.1rem; }
+    .logo { height: 50px; }
   }
-
-  // Mejoras responsive para autocompletado
-  @media (max-width: 768px) {
-    .autocomplete-dropdown {
-      max-height: 250px;
-      font-size: 0.9rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .autocomplete-dropdown {
-      max-height: 200px;
-      font-size: 0.85rem;
-
-      .autocomplete-item {
-        padding: 10px 12px;
-        font-size: 0.85rem;
-      }
-    }
+  .section-content { padding: 25px; }
+  .student-form { padding: 30px; }
+  .step-section { padding: 30px; }
+  .steps-indicator { gap: 8px; }
+  .step-indicator {
+    min-width: 80px;
+    max-width: 120px;
+    padding: 12px 8px;
+    .step-title { font-size: 0.65rem; }
   }
 }
 
+@media (max-width: 768px) {
+  .form-container { padding: 15px; }
+  .student-form { padding: 20px; border-radius: 12px; }
+  .form-grid { grid-template-columns: 1fr; gap: 20px; }
+  .section-header {
+    padding: 16px 20px;
+    .section-title { font-size: 1.2rem; gap: 12px; }
+  }
+  .header-bar {
+    padding: 18px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+    .logo-container { gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .header-titles { min-width: auto; text-align: center; }
+    .form-title { font-size: 1.4rem; }
+    .form-subtitle { font-size: 1rem; text-align: center; }
+    .logo { height: 45px; }
+  }
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 12px;
+    .btn { width: 100%; }
+  }
+  .section-content { padding: 20px; }
+  .progress-container { padding: 20px; }
+  .progress-text { font-size: 0.9rem; }
+  .steps-indicator { flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .step-indicator {
+    min-width: 70px;
+    max-width: 100px;
+    padding: 10px 6px;
+    .step-number { font-size: 1.2rem; }
+    .step-icon { font-size: 1.4rem; }
+    .step-title { font-size: 0.6rem; }
+  }
+  .step-title {
+    font-size: 1.6rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+    .step-icon-large { font-size: 2rem; }
+  }
+  .step-section { padding: 25px 20px; }
+  .step-navigation {
+    flex-direction: column-reverse;
+    gap: 15px;
+    .btn { width: 100%; min-width: auto; }
+  }
+  .autocomplete-dropdown {
+    max-height: 250px;
+    font-size: 0.9rem;
+    .autocomplete-item { padding: 10px 14px; font-size: 0.9rem; }
+  }
+  .submit-message {
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    .message-text { text-align: left; }
+  }
+}
+
+@media (max-width: 480px) {
+  .form-container { padding: 10px; }
+  .header-bar {
+    padding: 15px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border-radius: 10px;
+    .logo-container { justify-content: center; gap: 10px; }
+    .logo { height: 40px; }
+    .header-titles { text-align: center; }
+    .form-title { font-size: 1.2rem; width: 100%; }
+    .form-subtitle { font-size: 0.9rem; margin-top: 5px; }
+  }
+  .section-header {
+    padding: 14px 16px;
+    .section-title {
+      font-size: 1.1rem;
+      gap: 10px;
+      flex-wrap: wrap;
+      .section-icon { font-size: 1.3rem; }
+    }
+  }
+  .form-group {
+    gap: 6px;
+    label { font-size: 0.85rem; }
+    .form-control { padding: 10px 14px; font-size: 0.95rem; }
+    .error-message { font-size: 0.8rem; }
+    .hint { font-size: 0.75rem; }
+  }
+  .btn { padding: 12px 24px; font-size: 0.95rem; }
+  .student-form { padding: 16px; border-radius: 10px; }
+  .progress-container { padding: 15px; border-radius: 10px; }
+  .progress-bar { height: 10px; }
+  .progress-text { font-size: 0.85rem; margin-bottom: 15px; }
+  .steps-indicator { gap: 5px; justify-content: center; }
+  .step-indicator {
+    min-width: 55px;
+    max-width: 75px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    .step-number { font-size: 1rem; }
+    .step-icon { font-size: 1.1rem; }
+    .step-title { font-size: 0.5rem; display: none; }
+  }
+  .step-title {
+    font-size: 1.3rem;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    .step-icon-large { font-size: 1.6rem; }
+  }
+  .step-section { padding: 18px 15px; border-radius: 10px; }
+  .step-navigation {
+    gap: 12px;
+    padding-top: 20px;
+    margin-top: 30px;
+    .btn { padding: 12px 20px; font-size: 0.9rem; }
+  }
+  .form-grid { gap: 18px; }
+  .section-content { padding: 18px 15px; }
+  .autocomplete-dropdown {
+    max-height: 200px;
+    font-size: 0.85rem;
+    .autocomplete-item { padding: 10px 12px; font-size: 0.85rem; }
+  }
+  .submit-message { padding: 12px 16px; font-size: 0.85rem; border-radius: 8px; }
+  .loading-enums {
+    padding: 40px 15px;
+    border-radius: 10px;
+    .loading-spinner { width: 40px; height: 40px; }
+    p { font-size: 1rem; }
+  }
+}
+
+@media (max-width: 360px) {
+  .form-container { padding: 8px; }
+  .header-bar {
+    padding: 12px;
+    gap: 10px;
+    .logo-container { gap: 8px; }
+    .form-title { font-size: 1.1rem; }
+    .form-subtitle { font-size: 0.85rem; }
+    .logo { height: 35px; }
+  }
+  .student-form { padding: 12px; }
+  .step-section { padding: 15px 12px; }
+  .step-indicator {
+    min-width: 50px;
+    max-width: 65px;
+    padding: 6px 3px;
+    .step-number { font-size: 0.9rem; }
+    .step-icon { font-size: 1rem; }
+  }
+  .form-grid { gap: 15px; }
+  .progress-container { padding: 12px; }
+  .progress-text { font-size: 0.8rem; }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .header-bar {
+    padding: 15px 20px;
+    flex-direction: row;
+    align-items: center;
+    .logo-container { flex-shrink: 0; }
+    .header-titles { flex: 1; }
+  }
+  .step-indicator { min-width: 60px; max-width: 90px; }
+}
+
+@media (min-width: 1400px) {
+  .student-form { max-width: 1600px; }
+  .form-grid { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn { min-height: 44px; min-width: 44px; }
+  .autocomplete-item { min-height: 44px; display: flex; align-items: center; }
+  .step-indicator { min-height: 60px; }
+  .form-control { min-height: 44px; }
+}
+
+@media print {
+  .header-bar, .progress-container, .step-navigation, .btn { display: none; }
+  .student-form { box-shadow: none; padding: 0; }
+  .form-section { page-break-inside: avoid; }
+}
