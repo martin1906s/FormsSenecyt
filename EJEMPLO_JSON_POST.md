@@ -276,7 +276,7 @@ Content-Type: application/json
 - `AUDITIVA`
 - `VISUAL`
 - `PSICOSOCIAL`
-- `MULTIPLE`
+- `OTRA`
 - `NO_APLICA`
 
 ### tipoMatricula

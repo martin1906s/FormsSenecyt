@@ -6,15 +6,26 @@
       <img src="assets/logoMovilis.jpg" alt="Logo Movilis" class="logo" />
     </div>
     <h1 class="form-title">Registro SENECYT</h1>
-    <button 
-      type="button" 
-      class="btn-test-data" 
-      (click)="fillTestData()"
-      [disabled]="isLoadingEnums || !enums"
-      title="Llenar formulario con datos de prueba"
-    >
-      🧪 Datos de Prueba
-    </button>
+    <div class="header-actions">
+      <button 
+        type="button" 
+        class="btn-export-excel" 
+        (click)="exportToExcel()"
+        [disabled]="isSubmitting"
+        title="Exportar todos los estudiantes a Excel"
+      >
+        📊 Exportar Excel
+      </button>
+      <button 
+        type="button" 
+        class="btn-test-data" 
+        (click)="fillTestData()"
+        [disabled]="isLoadingEnums || !enums"
+        title="Llenar formulario con datos de prueba"
+      >
+        🧪 Datos de Prueba
+      </button>
+    </div>
   </header>
 
   <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="student-form">
@@ -592,6 +603,21 @@
               </div>
               <small class="error-message" *ngIf="hasError('tipoMatriculaId')">
                 {{ getErrorMessage('tipoMatriculaId') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Número de semanas de duración del periodo académico</label>
+              <input
+                type="number"
+                formControlName="duracionPeriodoAcademico"
+                class="form-control"
+                [class.error]="hasError('duracionPeriodoAcademico')"
+                placeholder="Ejemplo: 22"
+                min="1"
+              />
+              <small class="error-message" *ngIf="hasError('duracionPeriodoAcademico')">
+                {{ getErrorMessage('duracionPeriodoAcademico') }}
               </small>
             </div>
 

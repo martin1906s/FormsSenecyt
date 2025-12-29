@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { EnumsService, EnumsResponse } from '../../../../services/enums.service';
 import { EstudianteService } from '../../../../services/estudiante.service';
 import { finalize } from 'rxjs';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-student-form',
@@ -43,7 +44,7 @@ export class StudentForm implements OnInit {
     { id: 'datosPersonales', title: 'Datos Personales', icon: '👤', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'puebloNacionalidad', 'tipoSangre'] },
     { id: 'discapacidad', title: 'Discapacidad', icon: '♿', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad'] },
     { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: '🌍', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
-    { id: 'informacionAcademica', title: 'Información Académica', icon: '🎓', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada'] },
+    { id: 'informacionAcademica', title: 'Información Académica', icon: '🎓', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada'] },
     { id: 'informacionEconomica', title: 'Información Económica', icon: '💰', fields: ['estudianteocupacionId', 'ingresosestudianteId', 'bonoDesarrollo'] },
     { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: '💼', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: '🎁', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
@@ -1009,6 +1010,20 @@ export class StudentForm implements OnInit {
       // 29. tipoMatriculaId (Enum) - obligatorio
       tipoMatriculaId: ['', [Validators.required]],
 
+      // 29.5. duracionPeriodoAcademico (Entero) - obligatorio
+      duracionPeriodoAcademico: ['', [
+        Validators.required,
+        Validators.min(1),
+        (control: AbstractControl) => {
+          if (!control.value) return null;
+          const num = Number(control.value);
+          if (isNaN(num) || !Number.isInteger(num) || num < 1) {
+            return { numeric: { value: control.value } };
+          }
+          return null;
+        }
+      ]],
+
       // 30. nivelAcademicoQueCursa (Enum) - obligatorio
       nivelAcademicoQueCursa: ['', [Validators.required]],
 
@@ -1372,6 +1387,7 @@ export class StudentForm implements OnInit {
       fechaInicioCarrera: 'Fecha Inicio Carrera',
       fechaMatricula: 'Fecha Matrícula',
       tipoMatriculaId: 'Tipo Matrícula',
+      duracionPeriodoAcademico: 'Duración Periodo Académico',
       nivelAcademicoQueCursa: 'Nivel Académico que Cursa',
       haRepetidoAlMenosUnaMateria: '¿Ha Repetido al Menos Una Materia?',
       paraleloId: 'Paralelo',
@@ -1524,6 +1540,7 @@ export class StudentForm implements OnInit {
       fechaInicioCarrera: formValue.fechaInicioCarrera || '',
       fechaMatricula: formValue.fechaMatricula || '',
       tipoMatricula: formValue.tipoMatriculaId || '',
+      duracionPeriodoAcademico: Number(formValue.duracionPeriodoAcademico) || 0,
       nivelAcademico: formValue.nivelAcademicoQueCursa || '',
       haRepetidoAlMenosUnaMateria: formValue.haRepetidoAlMenosUnaMateria || '',
       paralelo: formValue.paraleloId || '',
@@ -1775,6 +1792,7 @@ export class StudentForm implements OnInit {
       fechaInicioCarrera: 'Fecha Inicio Carrera',
       fechaMatricula: 'Fecha Matrícula',
       tipoMatriculaId: 'Tipo Matrícula',
+      duracionPeriodoAcademico: 'Duración Periodo Académico',
       nivelAcademicoQueCursa: 'Nivel Académico que Cursa',
       haRepetidoAlMenosUnaMateria: '¿Ha Repetido al Menos Una Materia?',
       paraleloId: 'Paralelo',
@@ -1993,6 +2011,7 @@ export class StudentForm implements OnInit {
       fechaInicioCarrera: '2020-09-01',
       fechaMatricula: '2024-09-01',
       tipoMatriculaId: tipoMatricula,
+      duracionPeriodoAcademico: 22,
       nivelAcademicoQueCursa: nivelAcademico,
       haRepetidoAlMenosUnaMateria: haRepetido,
       paraleloId: paralelo,
@@ -2080,5 +2099,1070 @@ export class StudentForm implements OnInit {
     setTimeout(() => {
       this.submitMessage = '';
     }, 3000);
+  }
+
+  // Funciones de mapeo para convertir valores enum a códigos numéricos
+  private mapTipoDocumento(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'CEDULA': 1,
+      'PASAPORTE': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapSexo(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'HOMBRE': 1,
+      'MUJER': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapGenero(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'MASCULINO': 1,
+      'FEMENINO': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapEstadoCivil(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SOLTERO': 1,
+      'CASADO': 2,
+      'DIVORCIADO': 3,
+      'UNION_LIBRE': 4,
+      'VIUDO': 5
+    };
+    return map[value] || null;
+  }
+
+  private mapEtnia(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'INDIGENA': 1,
+      'AFROECUATORIANO': 2,
+      'NEGRO': 3,
+      'MULATO': 4,
+      'MONTUVIO': 5,
+      'MESTIZO': 6,
+      'BLANCO': 7,
+      'OTRO': 8,
+      'NO_REGISTRA': 9
+    };
+    return map[value] || null;
+  }
+
+  private mapTipoSangre(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'A_POSITIVO': 1,
+      'A_NEGATIVO': 2,
+      'B_POSITIVO': 3,
+      'B_NEGATIVO': 4,
+      'AB_POSITIVO': 5,
+      'AB_NEGATIVO': 6,
+      'O_POSITIVO': 7,
+      'O_NEGATIVO': 8
+    };
+    return map[value] || null;
+  }
+
+  private mapDiscapacidad(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapTipoDiscapacidad(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'INTELECTUAL': 1,
+      'FISICA': 2,
+      'VISUAL': 3,
+      'AUDITIVA': 4,
+      'PSICOSOCIAL': 5, // Mental
+      'OTRA': 6,
+      'NO_APLICA': 7
+    };
+    return map[value] || null;
+  }
+
+  private mapTipoColegio(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'FISCAL': 1,
+      'FISCOMISIONAL': 2,
+      'PARTICULAR': 3,
+      'MUNICIPAL': 4,
+      'EXTRANJERO': 5,
+      'NO_REGISTRA': 6
+    };
+    return map[value] || null;
+  }
+
+  private mapModalidadCarrera(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'PRESENCIAL': 1,
+      'SEMIPRESENCIAL': 2,
+      'DISTANCIA': 3,
+      'DUAL': 4,
+      'LINEA': 5,
+      'HIBRIDA': 6
+    };
+    return map[value] || null;
+  }
+
+  private mapJornadaCarrera(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'MATUTINA': 1,
+      'VESPERTINA': 2,
+      'NOCTURNA': 3,
+      'INTENSIVA': 4
+    };
+    return map[value] || null;
+  }
+
+  private mapTipoMatricula(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'ORDINARIA': 1,
+      'EXTRAORDINARIA': 2,
+      'ESPECIAL': 3
+    };
+    return map[value] || null;
+  }
+
+  private mapNivelAcademico(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'PRIMERO': 1,
+      'SEGUNDO': 2,
+      'TERCERO': 3,
+      'CUARTO': 4,
+      'QUINTO': 5,
+      'SEXTO': 6
+    };
+    return map[value] || null;
+  }
+
+  private mapHaRepetido(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapParalelo(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8,
+      'I': 9, 'J': 10, 'K': 11, 'L': 12, 'M': 13, 'N': 14, 'O': 15,
+      'P': 16, 'Q': 17, 'R': 18, 'S': 19, 'T': 20
+    };
+    return map[value] || null;
+  }
+
+  private mapHaPerdidoGratuidad(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2,
+      'NO_APLICA': 3
+    };
+    return map[value] || null;
+  }
+
+  private mapRecibePensionDiferenciada(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2,
+      'NO_APLICA': 3
+    };
+    return map[value] || null;
+  }
+
+  private mapEstudianteOcupacion(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SOLO_ESTUDIA': 1,
+      'TRABAJA_Y_ESTUDIA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapIngresosEstudiante(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'FINANCIAR_ESTUDIOS': 1,
+      'PARA_MANTENER_HOGAR': 2,
+      'GASTOS_PERSONALES': 3,
+      'NO_APLICA': 4
+    };
+    return map[value] || null;
+  }
+
+  private mapBonoDesarrollo(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapHaRealizadoPracticas(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapEntornoInstitucional(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'PUBLICA': 1,
+      'PRIVADA': 2,
+      'ONG': 3,
+      'OTRO': 4,
+      'NO_APLICA': 5
+    };
+    return map[value] || null;
+  }
+
+  private mapSectorEconomico(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'AGRICULTURA_GANADERIA_SILVICULTURA_Y_PESCA': 1,
+      'EXPLOTACION_DE_MINAS_Y_CANTERAS': 2,
+      'INDUSTRIAS_MANUFACTURERAS': 3,
+      'SUMINISTRO_ELECTRICIDAD_GAS_VAPOR_AIRE_ACONDICIONADO': 4,
+      'DISTRIBUCION_AGUA_ALCANTARILLADO_GESTION_DESECHOS_SANEAMIENTO': 5,
+      'CONSTRUCCION': 6,
+      'COMERCIO_MAYOR_MENOR_REPARACION_VEHICULOS_AUTOMOTORES': 7,
+      'TRANSPORTE_Y_ALMACENAMIENTO': 9,
+      'ALOJAMIENTO_Y_SERVICIO_DE_COMIDAS': 10,
+      'INFORMACION_Y_COMUNICACION': 11,
+      'ACTIVIDADES_FINANCIERAS_Y_DE_SEGUROS': 12,
+      'ACTIVIDADES_INMOBILIARIAS': 13,
+      'ACTIVIDADES_PROFESIONALES_CIENTIFICAS_Y_TECNICAS': 14,
+      'SERVICIOS_ADMINISTRATIVOS_Y_DE_APOYO': 15,
+      'ADMINISTRACION_PUBLICA_Y_DEFENSA': 16,
+      'ENSEÑANZA': 17,
+      'ATENCION_SALUD_HUMANA_Y_ASISTENCIA_SOCIAL': 18,
+      'ARTES_ENTRETENIMIENTO_Y_RECREACION': 19,
+      'OTRAS_ACTIVIDADES_DE_SERVICIOS': 20,
+      'HOGARES_PRODUCTORES_BIENES_SERVICIOS_USO_PROPIO': 21,
+      'NO_APLICA': 22
+    };
+    return map[value] || null;
+  }
+
+  private mapTipoBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'TOTAL': 1,
+      'PARCIAL': 2,
+      'NO_APLICA': 3
+    };
+    return map[value] || null;
+  }
+
+  private mapPrimeraRazonBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SOCIOECONOMICA': 1,
+      'NO_APLICA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapSegundaRazonBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'EXCELENCIA_ACADEMICA': 1,
+      'NO_APLICA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapTerceraRazonBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'DEPORTISTA': 1,
+      'NO_APLICA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapCuartaRazonBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'PUEBLOS_Y_NACIONALIDADES': 1,
+      'NO_APLICA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapQuintaRazonBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'DISCAPACIDAD': 1,
+      'NO_APLICA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapSextaRazonBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'OTRA': 1,
+      'NO_APLICA': 2
+    };
+    return map[value] || null;
+  }
+
+  private mapFinanciamientoBeca(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'FONDOS_PROPIOS': 1,
+      'TRANSFERENCIA_DEL_ESTADO': 2,
+      'DONACIONES': 3,
+      'NO_APLICA': 4
+    };
+    return map[value] || null;
+  }
+
+  private mapParticipaVinculacion(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'SI': 1,
+      'NO': 2,
+      'NO_APLICA': 3
+    };
+    return map[value] || null;
+  }
+
+  private mapTipoAlcanceVinculacion(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'NACIONAL': 1,
+      'PROVINCIAL': 2,
+      'CANTONAL': 3,
+      'PARROQUIAL': 4,
+      'NO_APLICA': 5
+    };
+    return map[value] || null;
+  }
+
+  private mapNivelFormacion(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'CENTRO_ALFABETIZACION': 1,
+      'JARDIN_DE_INFANTES': 2,
+      'PRIMARIA': 3,
+      'EDUCACION_BASICA': 4,
+      'SECUNDARIA': 5,
+      'EDUCACION_MEDIA': 6,
+      'SUPERIOR_NO_UNIVERSITARIA': 7,
+      'SUPERIOR_UNIVERSITARIA': 8,
+      'POSGRADO': 9,
+      'NO_APLICA': 10
+    };
+    return map[value] || null;
+  }
+
+  // Mapeo de PuebloNacionalidad a códigos 1-34
+  private mapPuebloNacionalidad(value: string): number | null {
+    if (!value || value === 'NO_APLICA') return 34;
+    const map: { [key: string]: number } = {
+      'KICHWA': 1,
+      'AWA': 2,
+      'CHACHI': 3,
+      'EPERA': 4,
+      'TSACHILA': 5,
+      'ACHUAR': 6,
+      'COFAN': 7,
+      'SECOYA': 8,
+      'SHIWIAR': 9,
+      'SHUAR': 10,
+      'WAORANI': 11,
+      'SAPARA': 12,
+      'ANDOA': 13,
+      'SIONA': 14,
+      'HUANCAVILCA': 15,
+      'MANTA': 16,
+      'PALTA': 17,
+      'CHIBULEO': 18,
+      'KANARI': 19,
+      'KARANKI': 20,
+      'KAYAMPI': 21,
+      'KISAPINCHA': 22,
+      'KITU_KARA': 23,
+      'NATABUELA': 24,
+      'OTAVALO': 25,
+      'PANZALEO': 26,
+      'PURUHA': 27,
+      'SALASACA': 28,
+      'SARAGURO': 29,
+      'TOMABELA': 30,
+      'WARANKA': 31,
+      'QUIJOS': 32,
+      'PASTO': 33,
+      'NO_APLICA': 34
+    };
+    return map[value] || null;
+  }
+
+  // Mapeo de Provincia a códigos 01-90 (como números)
+  private mapProvincia(value: string): number | null {
+    if (!value) return null;
+    const map: { [key: string]: number } = {
+      'AZUAY': 1,
+      'BOLIVAR': 2,
+      'CANAR': 3,
+      'CARCHI': 4,
+      'COTOPAXI': 5,
+      'CHIMBORAZO': 6,
+      'EL_ORO': 7,
+      'ESMERALDAS': 8,
+      'GUAYAS': 9,
+      'IMBABURA': 10,
+      'LOJA': 11,
+      'LOS_RIOS': 12,
+      'MANABI': 13,
+      'MORONA_SANTIAGO': 14,
+      'NAPO': 15,
+      'PASTAZA': 16,
+      'PICHINCHA': 17,
+      'TUNGURAHUA': 18,
+      'ZAMORA_CHINCHIPE': 19,
+      'GALAPAGOS': 20,
+      'SUCUMBIOS': 21,
+      'ORELLANA': 22,
+      'SANTO_DOMINGO_DE_LOS_TSACHILAS': 23,
+      'SANTA_ELENA': 24
+    };
+    return map[value] || null;
+  }
+
+  // Mapeo de Canton a códigos numéricos (ej: 0110, 0108, etc.)
+  private mapCanton(value: string): number | null {
+    if (!value) return null;
+    // Mapeo completo de cantones según los códigos proporcionados
+    const map: { [key: string]: number } = {
+      'OÑA': 110,
+      'SANTA_ISABEL': 108,
+      'NABON': 104,
+      'GIRON': 102,
+      'SAN_FERNANDO': 107,
+      'PUCARA': 106,
+      'SIGSIG': 109,
+      'CAMILO_PONCE_ENRIQUEZ': 115,
+      'CHORDELEG': 111,
+      'GUALACEO': 103,
+      'CUENCA': 101,
+      'SEVILLA_DE_ORO': 113,
+      'EL_PAN': 112,
+      'GUACHAPALA': 114,
+      'PAUTE': 105,
+      'CHILLANES': 202,
+      'SAN_MIGUEL': 205,
+      'CHIMBO': 203,
+      'CALUMA': 206,
+      'GUARANDA': 201,
+      'ECHEANDIA': 204,
+      'LAS_NAVES': 207,
+      'DELEG': 306,
+      'AZOGUES': 301,
+      'BIBLIAN': 302,
+      'CANAR': 303,
+      'EL_TAMBO': 305,
+      'SUSCAL': 307,
+      'LA_TRONCAL': 304,
+      'BOLIVAR': 402,
+      'MIRA': 404,
+      'MONTUFAR': 405,
+      'SAN_PEDRO_DE_HUACA': 406,
+      'ESPEJO': 403,
+      'TULCAN': 401,
+      'PANGUA': 503,
+      'SALCEDO': 505,
+      'PUJILI': 504,
+      'LATACUNGA': 501,
+      'SAQUISILI': 506,
+      'LA_MANA': 502,
+      'SIGCHOS': 507,
+      'CHUNCHI': 605,
+      'CUMANDA': 610,
+      'ALAUSI': 602,
+      'PALLATANGA': 608,
+      'GUAMOTE': 606,
+      'CHAMBO': 604,
+      'COLTA': 603,
+      'RIOBAMBA': 601,
+      'GUANO': 607,
+      'PENIPE': 609,
+      'MARCABELI': 708,
+      'BALSAS': 704,
+      'LAS_LAJAS': 714,
+      'PORTOVELO': 711,
+      'ZARUMA': 713,
+      'PIÑAS': 710,
+      'ATAHUALPA': 703,
+      'HUAQUILLAS': 707,
+      'ARENILLAS': 702,
+      'SANTA_ROSA': 712,
+      'CHILLA': 705,
+      'PASAJE': 709,
+      'MACHALA': 701,
+      'EL_GUABO': 706,
+      'QUININDE': 804,
+      'MUISNE': 803,
+      'ATACAMES': 806,
+      'ESMERALDAS': 801,
+      'RIOVERDE': 807,
+      'ELOY_ALFARO': 802,
+      'SAN_LORENZO': 805,
+      'GUAYAQUIL': 901,
+      'ALFREDO_BAQUERIZO_MORENO_JUJAN': 902,
+      'BALAO': 903,
+      'BALZAR': 904,
+      'COLIMES': 905,
+      'DAULE': 906,
+      'DURAN': 907,
+      'EL_EMPALME': 908,
+      'EL_TRIUNFO': 909,
+      'MILAGRO': 910,
+      'NARANJAL': 911,
+      'NARANJITO': 912,
+      'PALESTINA': 913,
+      'PEDRO_CARBO': 914,
+      'SAMBORONDON': 916,
+      'SANTA_LUCIA': 918,
+      'URBINA_JADO': 919,
+      'YAGUACHI': 920,
+      'PLAYAS': 921,
+      'SIMON_BOLIVAR': 922,
+      'CORONEL_MARCELINO_MARIDUEÑA': 923,
+      'LOMAS_DE_SARGENTILLO': 924,
+      'NOBOL': 925,
+      'GENERAL_ANTONIO_ELIZALDE': 927,
+      'ISIDRO_AYORA': 928,
+      'OTAVALO': 1004,
+      'COTACACHI': 1003,
+      'ANTONIO_ANTE': 1002,
+      'PIMAMPIRO': 1005,
+      'SAN_MIGUEL_DE_URCUQUI': 1006,
+      'IBARRA': 1001,
+      'ESPINDOLA': 1106,
+      'QUILANGA': 1115,
+      'ZAPOTILLO': 1113,
+      'MACARA': 1108,
+      'GONZANAMA': 1107,
+      'CALVAS': 1102,
+      'SOZORANGA': 1112,
+      'PINDAL': 1114,
+      'CELICA': 1104,
+      'PALTAS': 1109,
+      'OLMEDO': 1116,
+      'CATAMAYO': 1103,
+      'PUYANGO': 1110,
+      'LOJA': 1101,
+      'CHAGUARPAMBA': 1105,
+      'SARAGURO': 1111,
+      'BABAHOYO': 1201,
+      'BABA': 1202,
+      'MONTALVO': 1203,
+      'PUEBLOVIEJO': 1204,
+      'QUEVEDO': 1205,
+      'URDANETA': 1206,
+      'VENTANAS': 1207,
+      'VINCES': 1208,
+      'PALENQUE': 1209,
+      'BUENA_FE': 1210,
+      'VALENCIA': 1211,
+      'MOCACHE': 1212,
+      'QUINSALOMA': 1213,
+      'PUERTO_LOPEZ': 1319,
+      'PAJAN': 1310,
+      'CANTÓN_24_DE_MAYO': 1316,
+      'JIPIJAPA': 1306,
+      'SANTA_ANA': 1313,
+      'MONTECRISTI': 1309,
+      'MANTA': 1308,
+      'JARAMIJO': 1321,
+      'PORTOVIEJO': 1301,
+      'JUNIN': 1307,
+      'ROCAFUERTE': 1312,
+      'C_BOLIVAR': 1302,
+      'PICHINCHA': 1311,
+      'TOSAGUA': 1315,
+      'SUCRE': 1314,
+      'CHONE': 1303,
+      'SAN_VICENTE': 1322,
+      'EL_CARMEN': 1304,
+      'FLAVIO_ALFARO': 1305,
+      'JAMA': 1320,
+      'PEDERNALES': 1317,
+      'GUALAQUIZA': 1402,
+      'SAN_JUAN_BOSCO': 1408,
+      'LIMON_INDANZA': 1403,
+      'TIWINTZA': 1412,
+      'LOGROÑO': 1410,
+      'SANTIAGO': 1405,
+      'SUCUA': 1406,
+      'MORONA': 1401,
+      'TAISHA': 1409,
+      'HUAMBOYA': 1407,
+      'PALORA': 1404,
+      'PABLO_SEXTO': 1411,
+      'CARLOS_JULIO_AROSEMENA_TOLA': 1509,
+      'TENA': 1501,
+      'ARCHIDONA': 1503,
+      'QUIJOS': 1507,
+      'EL_CHACO': 1504,
+      'PASTAZA': 1601,
+      'MERA': 1602,
+      'SANTA_CLARA': 1603,
+      'ARAJUNO': 1604,
+      'MEJIA': 1703,
+      'DISTRITO_METROPOLITANO_DE_QUITO': 1701,
+      'CAYAMBE': 1702,
+      'SAN_MIGUEL_DE_LOS_BANCOS': 1707,
+      'PEDRO_MONCAYO': 1704,
+      'PEDRO_VICENTE_MALDONADO': 1708,
+      'PUERTO_QUITO': 1709,
+      'MOCHA': 1804,
+      'QUERO': 1806,
+      'CEVALLOS': 1803,
+      'TISALEO': 1809,
+      'PATATE': 1805,
+      'PELILEO': 1807,
+      'AMBATO': 1801,
+      'PILLARO': 1808,
+      'CHINCHIPE': 1902,
+      'PALANDA': 1908,
+      'ZAMORA': 1901,
+      'NANGARITZA': 1903,
+      'PAQUISHA': 1909,
+      'CENTINELA_DEL_CONDOR': 1907,
+      'YANTZAZA': 1905,
+      'EL_PANGUI': 1906,
+      'YACUAMBI': 1904,
+      'SAN_CRISTOBAL': 2001,
+      'SANTA_CRUZ': 2003,
+      'ISABELA': 2002,
+      'CUYABENO': 2107,
+      'SHUSHUFINDI': 2104,
+      'GONZALO_PIZARRO': 2102,
+      'LAGO_AGRIO': 2101,
+      'PUTUMAYO': 2103,
+      'CASCALES': 2106,
+      'SUCUMBIOS': 2105,
+      'AGUARICO': 2202,
+      'LORETO': 2204,
+      'ORELLANA': 2201,
+      'LA_JOYA_DE_LOS_SACHAS': 2203,
+      'SANTO_DOMINGO': 2301,
+      'LA_CONCORDIA': 2302,
+      'LA_LIBERTAD': 2402,
+      'SALINAS': 2403,
+      'SANTA_ELENA': 2401,
+      'ABDON_CALDERON': 9007,
+      'EL_PIEDRERO': 9004,
+      'JUVAL': 9006,
+      'SANTA_ROSA_DE_AGUA_CLARA': 9005,
+      'MATILDE_ESTHER': 9008,
+      'LAS_GOLONDRINAS': 9001
+    };
+    return map[value] || null;
+  }
+
+  // Mapeo de Pais a códigos 1-999
+  private mapPais(value: string): number | null {
+    if (!value) return null;
+    // Mapeo de países más comunes, agregar más según necesidad
+    const map: { [key: string]: number } = {
+      'AFGANISTAN': 1,
+      'ALBANIA': 2,
+      'ALEMANIA': 3,
+      'ANDORRA': 4,
+      'ANGOLA': 5,
+      'ANGUILA': 6,
+      'ANTIGUA_Y_BARBUDA': 7,
+      'ARABIA_SAUDITA': 8,
+      'ARGELIA': 9,
+      'ARGENTINA': 10,
+      'ARMENIA': 11,
+      'ARUBA': 12,
+      'AUSTRALIA': 13,
+      'AUSTRIA': 14,
+      'AZERBAIYAN': 15,
+      'BAHAMAS': 16,
+      'BAHREIN': 17,
+      'BANGLADESH': 18,
+      'BARBADOS': 19,
+      'BELGICA': 20,
+      'BELICE': 21,
+      'BENIN': 22,
+      'BERMUDAS': 23,
+      'BIELORRUSIA': 24,
+      'BOLIVIA': 25,
+      'BONAIRE_SAN_EUSTAQUIO_Y_SABA': 26,
+      'BOSNIA_Y_HERZEGOVINA': 27,
+      'BOTSWANA': 28,
+      'BRASIL': 29,
+      'BRUNEI_DARUSSALAM': 30,
+      'BULGARIA': 31,
+      'BURKINA_FASO': 32,
+      'BURUNDI': 33,
+      'BUTAN': 34,
+      'CABO_VERDE': 35,
+      'CAMBOYA': 36,
+      'CAMERUN': 37,
+      'CANADA': 38,
+      'CHAD': 39,
+      'CHILE': 40,
+      'CHINA': 41,
+      'CHIPRE': 42,
+      'COLOMBIA': 43,
+      'COMORAS': 44,
+      'CONGO': 45,
+      'COREA_DEL_NORTE': 46,
+      'COREA_DEL_SUR': 47,
+      'COSTA_DE_MARFIL': 48,
+      'COSTA_RICA': 49,
+      'CROACIA': 50,
+      'CUBA': 51,
+      'CURACAO': 52,
+      'DINAMARCA': 53,
+      'DJIBOUTI': 54,
+      'DOMINICA': 55,
+      'ECUADOR': 56,
+      'EGIPTO': 57,
+      'EL_SALVADOR': 58,
+      'EL_VATICANO': 59,
+      'EMIRATOS_ARABES_UNIDOS': 60,
+      'ERITREA': 61,
+      'ESLOVAQUIA': 62,
+      'ESLOVENIA': 63,
+      'ESPANA': 64,
+      'ESTADO_DE_PALESTINA': 65,
+      'ESTADOS_UNIDOS_DE_AMERICA': 66,
+      'ESTONIA': 67,
+      'ETIOPIA': 68,
+      'FIYI': 69,
+      'FILIPINAS': 70,
+      'FINLANDIA': 71,
+      'FRANCIA': 72,
+      'GABON': 73,
+      'GAMBIA': 74,
+      'GEORGIA': 75,
+      'GHANA': 76,
+      'GIBRALTAR': 77,
+      'GRANADA': 78,
+      'GRECIA': 79,
+      'GROENLANDIA': 80,
+      'GUADALUPE': 81,
+      'GUAM': 82,
+      'GUATEMALA': 83,
+      'GUAYANA_FRANCESA': 84,
+      'GUERNSEY': 85,
+      'GUINEA': 86,
+      'GUINEA_ECUATORIAL': 87,
+      'GUINEA_BISSAU': 88,
+      'GUYANA': 89,
+      'HAITI': 90,
+      'HONDURAS': 91,
+      'HONG_KONG': 92,
+      'HUNGRIA': 93,
+      'INDIA': 94,
+      'INDONESIA': 95,
+      'IRAK': 96,
+      'IRAN': 97,
+      'IRLANDA': 98,
+      'ISLA_DE_MAN': 99,
+      'ISLA_NORFOLK': 100,
+      'ISLANDIA': 101,
+      'ISLAS_ALAND': 102,
+      'ISLAS_CAIMAN': 103,
+      'ISLAS_COOK': 104,
+      'ISLAS_FEROE': 106,
+      'ISLAS_MALVINAS_FALKLAND': 107,
+      'ISLAS_MARIANAS_DEL_NORTE': 108,
+      'ISLAS_MARSHALL': 109,
+      'ISLAS_SALOMON': 110,
+      'ISLAS_TURCAS_Y_CAICOS': 111,
+      'ISLAS_VIRGENES_AMERICANAS': 112,
+      'ISLAS_VIRGENES_BRITANICAS': 113,
+      'ISLAS_WALLIS_Y_FUTUNA': 114,
+      'ISRAEL': 115,
+      'ITALIA': 116,
+      'JAMAICA': 117,
+      'JAPON': 118,
+      'JERSEY': 119,
+      'JORDANIA': 120,
+      'KAZAJSTAN': 121,
+      'KENYA': 122,
+      'KIRGUISTAN': 123,
+      'KIRIBATI': 124,
+      'KUWAIT': 125,
+      'LA_EX_REPUBLICA_YUGOSLAVA_DE_MACEDONIA': 126,
+      'LESOTO': 127,
+      'LETONIA': 128,
+      'LIBANO': 129,
+      'LIBERIA': 130,
+      'LIBIA': 131,
+      'LIECHTENSTEIN': 132,
+      'LITUANIA': 133,
+      'LUXEMBURGO': 134,
+      'MACAO': 135,
+      'MADAGASCAR': 136,
+      'MALASIA': 137,
+      'MALAUI': 138,
+      'MALDIVAS': 139,
+      'MALI': 140,
+      'MALTA': 141,
+      'MARRUECOS': 142,
+      'MARTINICA': 143,
+      'MAURICIO': 144,
+      'MAURITANIA': 145,
+      'MAYOTTE': 146,
+      'MEXICO': 147,
+      'MICRONESIA': 148,
+      'MONACO': 149,
+      'MONGOLIA': 150,
+      'MONTENEGRO': 151,
+      'MONTSERRAT': 152,
+      'MOZAMBIQUE': 153,
+      'MYANMAR': 154,
+      'NAMIBIA': 155,
+      'NAURU': 156,
+      'NEPAL': 157,
+      'NICARAGUA': 158,
+      'NIGER': 159,
+      'NIGERIA': 160,
+      'NIUE': 161,
+      'NORUEGA': 162,
+      'NUEVA_CALEDONIA': 163,
+      'NUEVA_ZELANDA': 164,
+      'OMAN': 165,
+      'PAISES_BAJOS': 166,
+      'PAKISTAN': 167,
+      'PALAU': 168,
+      'PANAMA': 169,
+      'PAPUA_NUEVA_GUINEA': 170,
+      'PARAGUAY': 171,
+      'PERU': 172,
+      'PITCAIRN': 173,
+      'POLINESIA_FRANCES': 174,
+      'POLONIA': 175,
+      'PORTUGAL': 176,
+      'PUERTO_RICO': 177,
+      'QATAR': 178,
+      'REINO_UNIDO_DE_GRAN_BRETANA_E_IRLANDA_DEL_NORTE': 179,
+      'REPUBLICA_ARABE_SIRIA': 180,
+      'REPUBLICA_CENTROAFRICANA': 181,
+      'REPUBLICA_CHECA': 182,
+      'REPUBLICA_DE_MOLDAVIA': 183,
+      'REPUBLICA_DEMOCRATICA_DEL_CONGO': 184,
+      'REPUBLICA_DEMOCRATICA_POPULAR_LAO': 185,
+      'REPUBLICA_DOMINICANA': 186,
+      'REPUBLICA_UNIDA_DE_TANZANIA': 187,
+      'REUNION': 188,
+      'RUMANIA': 189,
+      'RUSIA': 190,
+      'RWANDA': 191,
+      'SAHARA_OCCIDENTAL': 192,
+      'SAINT_BARTHELEMY': 193,
+      'SAINT_MARTIN': 194,
+      'SAMOA': 195,
+      'SAMOA_AMERICANA': 196,
+      'SAN_CRISTOBAL_Y_NIEVES': 197,
+      'SAN_MARINO': 198,
+      'SAN_PEDRO_Y_MIQUELON': 199,
+      'SAN_VICENTE_Y_LAS_GRANADINAS': 200,
+      'SANTA_ELENA': 201,
+      'SANTA_LUCIA': 202,
+      'SANTO_TOME_Y_PRINCIPE': 203,
+      'SENEGAL': 205,
+      'SERBIA': 206,
+      'SEYCHELLES': 207,
+      'SIERRA_LEONA': 208,
+      'SINGAPUR': 209,
+      'SINT_MAARTEN': 210,
+      'SOMALIA': 211,
+      'SRI_LANKA': 212,
+      'SUDAFRICA': 213,
+      'SUDAN': 214,
+      'SUDAN_DEL_SUR': 215,
+      'SUECIA': 216,
+      'SUIZA': 217,
+      'SURINAME': 218,
+      'SVALBARD_Y_JAN_MAYEN': 219,
+      'SWAZILANDIA': 220,
+      'TAILANDIA': 221,
+      'TAYIKISTAN': 222,
+      'TIMOR_LESTE': 223,
+      'TOGO': 224,
+      'TOKELAU': 225,
+      'TONGA': 226,
+      'TRINIDAD_Y_TOBAGO': 227,
+      'TUNEZ': 228,
+      'TURKMENISTAN': 229,
+      'TURQUIA': 230,
+      'TUVALU': 231,
+      'UCRANIA': 232,
+      'UGANDA': 233,
+      'URUGUAY': 234,
+      'UZBEKISTAN': 235,
+      'VANUATU': 236,
+      'VENEZUELA': 237,
+      'VIET_NAM': 238,
+      'YEMEN': 239,
+      'ZAMBIA': 240,
+      'ZIMBABWE': 241,
+      'ANTARTIDA': 242,
+      'ISLA_BOUVET': 243,
+      'TERRITORIO_BRITANICO_DE_LA_OCEANO_INDICO': 244,
+      'TAIWAN': 245,
+      'ISLA_DE_NAVIDAD': 246,
+      'ISLAS_COCOS': 247,
+      'GEORGIA_DEL_SUR_Y_LAS_ISLAS_SANDWICH_DEL_SUR': 248,
+      'TERRITORIOS_AUSTRALES_FRANCESES': 249,
+      'NO_REGISTRA': 999
+    };
+    return map[value] || null;
+  }
+
+  // Método para exportar todos los estudiantes a Excel
+  exportToExcel(): void {
+    this.isSubmitting = true;
+    this.submitMessage = 'Descargando datos...';
+    this.submitError = false;
+    this.cdr.detectChanges();
+
+    this.estudianteService.getEstudiantes().subscribe({
+      next: (estudiantes: any[]) => {
+        try {
+          // Mapear los datos del backend a los nombres de columnas solicitados con códigos numéricos
+          const excelData = estudiantes.map(estudiante => ({
+            tipoDocumentoId: this.mapTipoDocumento(estudiante.tipoDocumento) ?? '',
+            numeroIdentificacion: estudiante.numeroIdentificacion || '',
+            primerApellido: estudiante.primerApellido || '',
+            segundoApellido: estudiante.segundoApellido || '',
+            primerNombre: estudiante.primerNombre || '',
+            segundoNombre: estudiante.segundoNombre || '',
+            sexoId: this.mapSexo(estudiante.sexo) ?? '',
+            generoId: this.mapGenero(estudiante.genero) ?? '',
+            estadocivilId: this.mapEstadoCivil(estudiante.estadoCivil) ?? '',
+            etniaId: this.mapEtnia(estudiante.etnia) ?? '',
+            pueblonacionalidadId: this.mapPuebloNacionalidad(estudiante.puebloNacionalidad) ?? '',
+            tipoSangre: this.mapTipoSangre(estudiante.tipoSangre) ?? '',
+            discapacidad: this.mapDiscapacidad(estudiante.discapacidad) ?? '',
+            porcentajeDiscapacidad: estudiante.porcentajeDiscapacidad || '',
+            numCarnetConadis: estudiante.numCarnetConadis || '',
+            tipoDiscapacidad: this.mapTipoDiscapacidad(estudiante.tipoDiscapacidad) ?? '',
+            fechaNacimiento: estudiante.fechaNacimiento || '',
+            paisNacionalidadId: this.mapPais(estudiante.paisNacionalidadId) ?? '',
+            provinciaNacimientoId: this.mapProvincia(estudiante.provinciaNacimientoId) ?? '',
+            cantonNacimientoId: this.mapCanton(estudiante.cantonNacimientoId) ?? '',
+            paisResidenciaId: this.mapPais(estudiante.paisResidenciaId) ?? '',
+            provinciaResidenciaId: this.mapProvincia(estudiante.provinciaResidenciaId) ?? '',
+            cantonResidenciaId: this.mapCanton(estudiante.cantonResidenciaId) ?? '',
+            tipoColegioId: this.mapTipoColegio(estudiante.tipoColegioId) ?? '',
+            modalidadCarrera: this.mapModalidadCarrera(estudiante.modalidadCarrera) ?? '',
+            jornadaCarrera: this.mapJornadaCarrera(estudiante.jornadaCarrera) ?? '',
+            fechaInicioCarrera: estudiante.fechaInicioCarrera || '',
+            fechaMatricula: estudiante.fechaMatricula || '',
+            tipoMatriculaId: this.mapTipoMatricula(estudiante.tipoMatricula) ?? '',
+            nivelAcademicoQueCursa: this.mapNivelAcademico(estudiante.nivelAcademico) ?? '',
+            duracionPeriodoAcademico: estudiante.duracionPeriodoAcademico || 0,
+            haRepetidoAlMenosUnaMateria: this.mapHaRepetido(estudiante.haRepetidoAlMenosUnaMateria) ?? '',
+            paraleloId: this.mapParalelo(estudiante.paralelo) ?? '',
+            haPerdidoLaGratuidad: this.mapHaPerdidoGratuidad(estudiante.haPerdidoLaGratuidad) ?? '',
+            recibePensionDiferenciada: this.mapRecibePensionDiferenciada(estudiante.recibePensionDiferenciada) ?? '',
+            estudianteocupacionId: this.mapEstudianteOcupacion(estudiante.estudianteOcupacion) ?? '',
+            ingresosestudianteId: this.mapIngresosEstudiante(estudiante.ingresosEstudiante) ?? '',
+            bonodesarrolloId: this.mapBonoDesarrollo(estudiante.bonoDesarrollo) ?? '',
+            haRealizadoPracticasPreprofesionales: this.mapHaRealizadoPracticas(estudiante.haRealizadoPracticasPreprofesionales) ?? '',
+            nroHorasPracticasPreprofesionalesPorPeriodo: estudiante.nroHorasPracticasPreprofesionalesPorPeriodo || '',
+            entornoInstitucionalPracticasProfesionales: this.mapEntornoInstitucional(estudiante.entornoInstitucionalPracticasProfesionales) ?? '',
+            sectorEconomicoPracticaProfesional: this.mapSectorEconomico(estudiante.sectorEconomicoPracticaProfesional) ?? '',
+            tipoBecaId: this.mapTipoBeca(estudiante.tipoBeca) ?? '',
+            primeraRazonBecaId: this.mapPrimeraRazonBeca(estudiante.primeraRazonBeca) ?? '',
+            segundaRazonBecaId: this.mapSegundaRazonBeca(estudiante.segundaRazonBeca) ?? '',
+            terceraRazonBecaId: this.mapTerceraRazonBeca(estudiante.terceraRazonBeca) ?? '',
+            cuartaRazonBecaId: this.mapCuartaRazonBeca(estudiante.cuartaRazonBeca) ?? '',
+            quintaRazonBecaId: this.mapQuintaRazonBeca(estudiante.quintaRazonBeca) ?? '',
+            sextaRazonBecaId: this.mapSextaRazonBeca(estudiante.sextaRazonBeca) ?? '',
+            montoBeca: estudiante.montoBeca || '',
+            porcientoBecaCoberturaArancel: estudiante.porcentajeBecaCoberturaArancel || '',
+            porcientoBecaCoberturaManuntencion: estudiante.porcentajeBecaCoberturaManutencion || '',
+            financiamientoBeca: this.mapFinanciamientoBeca(estudiante.financiamientoBeca) ?? '',
+            montoAyudaEconomica: estudiante.montoAyudaEconomica || '',
+            montoCreditoEducativo: estudiante.montoCreditoEducativo || '',
+            participaEnProyectoVinculacionSociedad: this.mapParticipaVinculacion(estudiante.participaEnProyectoVinculacionSociedad) ?? '',
+            tipoAlcanceProyectoVinculacionId: this.mapTipoAlcanceVinculacion(estudiante.tipoAlcanceProyectoVinculacion) ?? '',
+            correoElectronico: estudiante.correoElectronico || '',
+            numeroCelular: estudiante.numeroCelular || '',
+            nivelFormacionPadre: this.mapNivelFormacion(estudiante.nivelFormacionPadre) ?? '',
+            nivelFormacionMadre: this.mapNivelFormacion(estudiante.nivelFormacionMadre) ?? '',
+            ingresoTotalHogar: estudiante.ingresoTotalHogar || '',
+            cantidadMiembrosHogar: estudiante.cantidadMiembrosHogar || 0
+          }));
+
+          // Crear el libro de trabajo de Excel
+          const worksheet = XLSX.utils.json_to_sheet(excelData);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, 'Estudiantes');
+
+          // Generar el nombre del archivo con la fecha actual
+          const fecha = new Date().toISOString().split('T')[0];
+          const fileName = `estudiantes_senecyt_${fecha}.xlsx`;
+
+          // Descargar el archivo
+          XLSX.writeFile(workbook, fileName);
+
+          this.isSubmitting = false;
+          this.submitError = false;
+          this.submitMessage = `✓ Excel exportado exitosamente: ${fileName}`;
+          this.cdr.detectChanges();
+
+          setTimeout(() => {
+            this.submitMessage = '';
+            this.cdr.detectChanges();
+          }, 5000);
+        } catch (error) {
+          console.error('Error al generar Excel:', error);
+          this.isSubmitting = false;
+          this.submitError = true;
+          this.submitMessage = '⚠️ Error al generar el archivo Excel. Por favor, intenta nuevamente.';
+          this.cdr.detectChanges();
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al obtener estudiantes:', error);
+        this.isSubmitting = false;
+        this.submitError = true;
+        this.submitMessage = '⚠️ Error al obtener los datos. Por favor, intenta nuevamente.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 }
