@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { EnumsService, EnumsResponse } from '../../../../services/enums.service';
 import { EstudianteService } from '../../../../services/estudiante.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-student-form',
@@ -10,10 +11,12 @@ import { EstudianteService } from '../../../../services/estudiante.service';
   templateUrl: './student-form.html',
   styleUrl: './student-form.scss',
 })
-export class StudentForm {
+export class StudentForm implements OnInit {
   enumsService = inject(EnumsService);
   estudianteService = inject(EstudianteService);
+  private cdr = inject(ChangeDetectorRef);
   enums: EnumsResponse | null = null;
+  isLoadingEnums = true;
   isSubmitting = false;
   submitMessage = '';
   submitError = false;
@@ -31,6 +34,24 @@ export class StudentForm {
   cantonResidenciaSearch: string = '';
 
   studentForm: FormGroup;
+  
+  // Sistema de navegación por pasos
+  currentStep: number = 0;
+  totalSteps: number = 11;
+  steps: Array<{ id: string; title: string; icon: string; fields: string[] }> = [
+    { id: 'identificacion', title: 'Identificación', icon: '📋', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
+    { id: 'datosPersonales', title: 'Datos Personales', icon: '👤', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'puebloNacionalidad', 'tipoSangre'] },
+    { id: 'discapacidad', title: 'Discapacidad', icon: '♿', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad'] },
+    { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: '🌍', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
+    { id: 'informacionAcademica', title: 'Información Académica', icon: '🎓', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada'] },
+    { id: 'informacionEconomica', title: 'Información Económica', icon: '💰', fields: ['estudianteocupacionId', 'ingresosestudianteId', 'bonoDesarrollo'] },
+    { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: '💼', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
+    { id: 'becasAyudas', title: 'Becas y Ayudas', icon: '🎁', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
+    { id: 'vinculacionSocial', title: 'Vinculación Social', icon: '🤝', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
+    { id: 'contacto', title: 'Contacto', icon: '📧', fields: ['correoElectronico', 'numeroCelular'] },
+    { id: 'datosHogar', title: 'Datos del Hogar', icon: '🏠', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
+  ];
+  
   collapsedSections: { [key: string]: boolean } = {
     identificacion: false,
     datosPersonales: false,
@@ -49,6 +70,9 @@ export class StudentForm {
     this.studentForm = this.createForm();
     this.setupConditionalValidators();
     this.setupAutoUppercase();
+  }
+
+  ngOnInit(): void {
     this.loadEnums();
   }
 
@@ -71,6 +95,10 @@ export class StudentForm {
   }
 
   loadEnums() {
+    this.isLoadingEnums = true;
+    // Deshabilitar todos los controles que dependen de enums
+    this.disableEnumDependentControls();
+    
     this.enumsService.getEnums().subscribe({
       next: (enums: EnumsResponse) => {
         this.enums = enums;
@@ -83,11 +111,106 @@ export class StudentForm {
           this.filteredCantonesNacimiento = [...enums.Canton];
           this.filteredCantonesResidencia = [...enums.Canton];
         }
+        this.isLoadingEnums = false;
+        // Habilitar todos los controles que dependen de enums
+        this.enableEnumDependentControls();
+        // Verificar estado inicial de tipoAlcanceProyectoVinculacionId
+        this.updateTipoAlcanceState();
+        this.cdr.detectChanges(); // Forzar detección de cambios
       },
       error: (err: any) => {
         console.error('Error fetching enums:', err);
+        this.isLoadingEnums = false;
+        this.submitError = true;
+        this.submitMessage = 'Error al cargar las opciones del formulario. Por favor, recarga la página.';
+        this.cdr.detectChanges(); // Forzar detección de cambios
       }
     });
+  }
+
+  // Lista de controles que dependen de enums
+  private getEnumDependentControls(): string[] {
+    return [
+      'tipoDocumentoId', 'sexoId', 'generoId', 'estadocivilId', 'etniaId', 'pueblonacionalidadId',
+      'tipoSangre', 'discapacidad', 'tipoDiscapacidad', 'paisNacionalidadId', 'provinciaNacimientoId',
+      'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId',
+      'tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'tipoMatriculaId', 'nivelAcademicoQueCursa',
+      'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada',
+      'estudianteocupacionId', 'ingresosestudianteId', 'bonodesarrolloId', 'haRealizadoPracticasPreprofesionales',
+      'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional', 'tipoBecaId',
+      'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId',
+      'quintaRazonBecaId', 'sextaRazonBecaId', 'financiamientoBeca', 'participaEnProyectoVinculacionSociedad',
+      // tipoAlcanceProyectoVinculacionId NO se incluye aquí porque tiene su propia lógica condicional
+      'nivelFormacionPadre', 'nivelFormacionMadre'
+    ];
+  }
+
+  private disableEnumDependentControls(): void {
+    this.getEnumDependentControls().forEach(controlName => {
+      const control = this.studentForm.get(controlName);
+      if (control && !control.disabled) {
+        control.disable({ emitEvent: false });
+      }
+    });
+  }
+
+  private enableEnumDependentControls(): void {
+    this.getEnumDependentControls().forEach(controlName => {
+      const control = this.studentForm.get(controlName);
+      // Solo habilitar si no está deshabilitado por otra razón (validación condicional)
+      // Verificamos si el control tiene una condición específica que lo mantiene deshabilitado
+      if (control) {
+        // Verificar si el control debe estar deshabilitado por validación condicional
+        const shouldBeDisabled = this.shouldControlBeDisabled(controlName);
+        if (!shouldBeDisabled && control.disabled) {
+          control.enable({ emitEvent: false });
+        }
+      }
+    });
+  }
+
+  private shouldControlBeDisabled(controlName: string): boolean {
+    // Verificar condiciones específicas que mantienen controles deshabilitados
+    const formValue = this.studentForm.value;
+    
+    // Controles que dependen de discapacidad
+    if (controlName === 'tipoDiscapacidad' && formValue.discapacidad !== 'SI') {
+      return true;
+    }
+    
+    // Controles que dependen de tipoBecaId
+    if (['primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 
+         'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 
+         'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion'].includes(controlName)) {
+      return formValue.tipoBecaId === 'NO_APLICA';
+    }
+    
+    // Controles que dependen de haRealizadoPracticasPreprofesionales
+    if (['entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'].includes(controlName)) {
+      return formValue.haRealizadoPracticasPreprofesionales === 'NO';
+    }
+    
+    // Controles que dependen de participaEnProyectoVinculacionSociedad
+    if (controlName === 'tipoAlcanceProyectoVinculacionId') {
+      return formValue.participaEnProyectoVinculacionSociedad !== 'SI';
+    }
+    
+    // Controles que dependen de provinciaNacimientoId
+    if (controlName === 'cantonNacimientoId') {
+      return !formValue.provinciaNacimientoId;
+    }
+    
+    // Controles que dependen de provinciaResidenciaId
+    if (controlName === 'cantonResidenciaId') {
+      return !formValue.provinciaResidenciaId;
+    }
+    
+    // Controles que dependen de pueblonacionalidadId
+    if (controlName === 'pueblonacionalidadId') {
+      return formValue.etniaId !== 'INDIGENA';
+    }
+    
+    return false;
   }
 
   // Métodos para filtrar provincias
@@ -739,6 +862,28 @@ export class StudentForm {
       porcientoArancel?.updateValueAndValidity({ emitEvent: false });
       porcientoManuntencion?.updateValueAndValidity({ emitEvent: false });
     });
+
+    // Validación condicional para tipoAlcanceProyectoVinculacionId
+    // Solo se habilita si participaEnProyectoVinculacionSociedad = "SI"
+    this.studentForm.get('participaEnProyectoVinculacionSociedad')?.valueChanges.subscribe((value: any) => {
+      this.updateTipoAlcanceState();
+    });
+  }
+
+  // Método auxiliar para actualizar el estado de tipoAlcanceProyectoVinculacionId
+  private updateTipoAlcanceState(): void {
+    const participa = this.studentForm.get('participaEnProyectoVinculacionSociedad')?.value;
+    const tipoAlcance = this.studentForm.get('tipoAlcanceProyectoVinculacionId');
+    
+    if (participa === 'SI') {
+      // Si participa en proyecto, habilitar el campo
+      tipoAlcance?.enable({ emitEvent: false });
+    } else {
+      // Si no participa, deshabilitar y limpiar valor
+      tipoAlcance?.setValue('', { emitEvent: false });
+      tipoAlcance?.disable({ emitEvent: false });
+    }
+    tipoAlcance?.updateValueAndValidity({ emitEvent: false });
   }
 
   createForm(): FormGroup {
@@ -867,10 +1012,7 @@ export class StudentForm {
       // 30. nivelAcademicoQueCursa (Enum) - obligatorio
       nivelAcademicoQueCursa: ['', [Validators.required]],
 
-      // 31. duracionPeriodoAcademico (Entero 2) - obligatorio
-      duracionPeriodoAcademico: ['', [Validators.required, StudentForm.integer2Validator()]],
-
-      // 32. haRepetidoAlMenosUnaMateria (Enum) - obligatorio
+      // 31. haRepetidoAlMenosUnaMateria (Enum) - obligatorio
       haRepetidoAlMenosUnaMateria: ['', [Validators.required]],
 
       // 33. paraleloId (Enum) - obligatorio
@@ -980,8 +1122,8 @@ export class StudentForm {
       // 56. participaEnProyectoVinculacionSociedad (Enum) - obligatorio
       participaEnProyectoVinculacionSociedad: ['', [Validators.required]],
 
-      // 57. tipoAlcanceProyectoVinculacionId (Enum opcional) - opcional según documentación
-      tipoAlcanceProyectoVinculacionId: [''],
+      // 57. tipoAlcanceProyectoVinculacionId (Enum opcional) - solo se habilita si participaEnProyectoVinculacionSociedad = "SI"
+      tipoAlcanceProyectoVinculacionId: [{ value: '', disabled: true }],
 
       // CAMPOS CONTACTO (58-59)
       // 58. correoElectronico (Caracter variable o "NA") - obligatorio
@@ -1081,6 +1223,28 @@ export class StudentForm {
   }
 
   onSubmit(): void {
+    // Validar que estamos en el último paso
+    if (this.currentStep < this.totalSteps - 1) {
+      this.submitError = true;
+      this.submitMessage = 'Por favor, completa todos los pasos antes de enviar el formulario.';
+      setTimeout(() => {
+        this.submitMessage = '';
+        this.submitError = false;
+      }, 5000);
+      return;
+    }
+
+    // Validar el último paso antes de enviar
+    if (!this.validateCurrentStep()) {
+      this.submitError = true;
+      this.submitMessage = 'Por favor, completa todos los campos requeridos correctamente antes de enviar.';
+      setTimeout(() => {
+        this.submitMessage = '';
+        this.submitError = false;
+      }, 5000);
+      return;
+    }
+
     if (this.studentForm.valid) {
       this.isSubmitting = true;
       this.submitMessage = '';
@@ -1089,22 +1253,66 @@ export class StudentForm {
       const formData = this.getFormDataForBackend();
       console.log('Formulario válido, enviando:', formData);
       
-      this.estudianteService.createEstudiante(formData).subscribe({
-        next: (response) => {
-          console.log('Estudiante creado exitosamente:', response);
-          this.submitMessage = 'Estudiante registrado exitosamente';
-          this.submitError = false;
-          this.isSubmitting = false;
-          // Opcional: resetear el formulario
-          // this.studentForm.reset();
-        },
-        error: (error) => {
-          console.error('Error al crear estudiante:', error);
-          this.submitMessage = error.error?.message || 'Error al registrar el estudiante. Por favor, intenta nuevamente.';
-          this.submitError = true;
-          this.isSubmitting = false;
-        }
-      });
+      this.estudianteService.createEstudiante(formData)
+        .pipe(
+          finalize(() => {
+            // Asegurar que isSubmitting se desactive siempre
+            console.log('Finalizando petición, desactivando isSubmitting');
+            this.isSubmitting = false;
+            this.cdr.detectChanges(); // Forzar detección de cambios
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            console.log('Estudiante creado exitosamente:', response);
+            this.isSubmitting = false; // Desactivar inmediatamente
+            this.submitError = false;
+            this.submitMessage = '✓ ¡Estudiante registrado exitosamente!';
+            console.log('Mensaje de éxito establecido:', this.submitMessage);
+            this.cdr.detectChanges(); // Forzar detección de cambios
+            
+            // Scroll al mensaje de éxito
+            setTimeout(() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+            
+            // Mantener el mensaje visible por 8 segundos
+            setTimeout(() => {
+              this.submitMessage = '';
+              this.cdr.detectChanges();
+            }, 8000);
+          },
+          error: (error: any) => {
+            console.error('Error al crear estudiante:', error);
+            this.isSubmitting = false; // Desactivar inmediatamente
+            this.submitError = true;
+            
+            // Manejar diferentes tipos de errores
+            if (error.error && Array.isArray(error.error.message)) {
+              // Si el error es un array de mensajes de validación
+              this.submitMessage = '⚠️ Error de validación:\n' + error.error.message.join('\n');
+            } else if (error.error?.message) {
+              this.submitMessage = '⚠️ ' + error.error.message;
+            } else {
+              this.submitMessage = '⚠️ Error al registrar el estudiante. Por favor, intenta nuevamente.';
+            }
+            
+            console.log('Mensaje de error establecido:', this.submitMessage);
+            this.cdr.detectChanges(); // Forzar detección de cambios
+            
+            // Scroll al mensaje de error
+            setTimeout(() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+            
+            // Mantener el mensaje visible por 8 segundos
+            setTimeout(() => {
+              this.submitMessage = '';
+              this.submitError = false;
+              this.cdr.detectChanges();
+            }, 8000);
+          }
+        });
     } else {
       console.log('Formulario inválido');
       this.markFormGroupTouched(this.studentForm);
@@ -1151,7 +1359,6 @@ export class StudentForm {
       fechaMatricula: 'Fecha Matrícula',
       tipoMatriculaId: 'Tipo Matrícula',
       nivelAcademicoQueCursa: 'Nivel Académico que Cursa',
-      duracionPeriodoAcademico: 'Duración Periodo Académico',
       haRepetidoAlMenosUnaMateria: '¿Ha Repetido al Menos Una Materia?',
       paraleloId: 'Paralelo',
       haPerdidoLaGratuidad: '¿Ha Perdido la Gratuidad?',
@@ -1183,8 +1390,7 @@ export class StudentForm {
       nivelFormacionPadre: 'Nivel Formación Padre',
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
-      cantidadMiembrosHogar: 'Cantidad Miembros Hogar',
-      periodoAcademicoId: 'Periodo Académico'
+      cantidadMiembrosHogar: 'Cantidad Miembros Hogar'
     };
 
     Object.keys(this.studentForm.controls).forEach(key => {
@@ -1291,10 +1497,11 @@ export class StudentForm {
       // Campos de ubicación
       paisNacionalidadId: formValue.paisNacionalidadId || '',
       provinciaNacimientoId: formValue.provinciaNacimientoId || undefined,
-      cantonNacimientoId: formValue.cantonNacimientoId || '',
+      cantonNacimientoId: formValue.cantonNacimientoId || 'NA',
       paisResidenciaId: formValue.paisResidenciaId || '',
-      provinciaResidenciaId: formValue.provinciaResidenciaId || '',
-      cantonResidenciaId: formValue.cantonResidenciaId || '',
+      // provinciaResidenciaId es requerido, solo enviar si tiene valor válido
+      provinciaResidenciaId: formValue.provinciaResidenciaId || undefined,
+      cantonResidenciaId: formValue.cantonResidenciaId || 'NA',
       
       // Campos académicos - convertir a enum si es necesario
       tipoColegioId: formValue.tipoColegioId || '',
@@ -1304,7 +1511,6 @@ export class StudentForm {
       fechaMatricula: formValue.fechaMatricula || '',
       tipoMatricula: formValue.tipoMatriculaId || '',
       nivelAcademico: formValue.nivelAcademicoQueCursa || '',
-      duracionPeriodoAcademico: Number(formValue.duracionPeriodoAcademico) || 0,
       haRepetidoAlMenosUnaMateria: formValue.haRepetidoAlMenosUnaMateria || '',
       paralelo: formValue.paraleloId || '',
       haPerdidoLaGratuidad: formValue.haPerdidoLaGratuidad || '',
@@ -1349,7 +1555,6 @@ export class StudentForm {
       nivelFormacionMadre: formValue.nivelFormacionMadre || '',
       ingresoTotalHogar: formValue.ingresoTotalHogar || 'NA',
       cantidadMiembrosHogar: Number(formValue.cantidadMiembrosHogar) || 0,
-      periodoAcademicoId: formValue.periodoAcademicoId ? Number(formValue.periodoAcademicoId) : 1,
     };
     
     // Campos opcionales - solo agregar si tienen valor
@@ -1360,15 +1565,22 @@ export class StudentForm {
       data.tipoAlcanceProyectoVinculacion = formValue.tipoAlcanceProyectoVinculacionId;
     }
     
-    // Eliminar provinciaNacimientoId si es undefined para que no se envíe
-    if (data.provinciaNacimientoId === undefined) {
+    // Eliminar provinciaNacimientoId si es undefined para que no se envíe (es opcional)
+    if (data.provinciaNacimientoId === undefined || data.provinciaNacimientoId === '') {
       delete data.provinciaNacimientoId;
+    }
+
+    // provinciaResidenciaId es requerido, no eliminarlo si está undefined
+    // El backend validará y mostrará el error si falta
+    // Pero si está vacío o es una cadena vacía, no enviarlo
+    if (data.provinciaResidenciaId === '' || data.provinciaResidenciaId === null) {
+      delete data.provinciaResidenciaId;
     }
 
     // Eliminar campos vacíos que son obligatorios pero no deben enviarse vacíos
     // El backend validará que no estén vacíos
     Object.keys(data).forEach(key => {
-      if (data[key] === '' && key !== 'provinciaNacimientoId') {
+      if (data[key] === '' && key !== 'provinciaNacimientoId' && key !== 'provinciaResidenciaId') {
         // No eliminar campos vacíos, el backend los validará
       }
     });
@@ -1442,5 +1654,396 @@ export class StudentForm {
   hasError(controlName: string): boolean {
     const control = this.studentForm.get(controlName);
     return !!(control && control.invalid && control.touched);
+  }
+
+  // Métodos de navegación por pasos
+  getProgress(): number {
+    return ((this.currentStep + 1) / this.totalSteps) * 100;
+  }
+
+  isStepValid(stepIndex: number): boolean {
+    const step = this.steps[stepIndex];
+    if (!step) return false;
+    
+    let isValid = true;
+    step.fields.forEach(fieldName => {
+      const control = this.studentForm.get(fieldName);
+      if (control && control.invalid) {
+        isValid = false;
+      }
+    });
+    return isValid;
+  }
+
+  validateCurrentStep(): boolean {
+    const step = this.steps[this.currentStep];
+    if (!step) return false;
+
+    // Marcar todos los campos del paso como touched y dirty
+    step.fields.forEach(fieldName => {
+      const control = this.studentForm.get(fieldName);
+      if (control) {
+        control.markAsTouched();
+        control.markAsDirty();
+      }
+    });
+
+    // Verificar si todos los campos requeridos son válidos
+    const isValid = this.isStepValid(this.currentStep);
+    
+    if (!isValid) {
+      // Obtener campos con errores para mostrar mensaje específico
+      const camposConErrores = this.getCamposConErroresForStep(this.currentStep);
+      if (camposConErrores.length > 0) {
+        this.submitMessage = `Por favor, completa correctamente los siguientes campos antes de continuar:\n\n${camposConErrores.join('\n')}`;
+      } else {
+        this.submitMessage = 'Por favor, completa todos los campos requeridos correctamente antes de continuar.';
+      }
+      this.submitError = true;
+    }
+    
+    return isValid;
+  }
+
+  getCamposConErroresForStep(stepIndex: number): string[] {
+    const step = this.steps[stepIndex];
+    if (!step) return [];
+    
+    const camposConErrores: string[] = [];
+    const nombresCampos: { [key: string]: string } = {
+      tipoDocumentoId: 'Tipo de Documento',
+      numeroIdentificacion: 'Número de Identificación',
+      fechaNacimiento: 'Fecha de Nacimiento',
+      primerApellido: 'Primer Apellido',
+      segundoApellido: 'Segundo Apellido',
+      primerNombre: 'Primer Nombre',
+      segundoNombre: 'Segundo Nombre',
+      sexoId: 'Sexo',
+      generoId: 'Género',
+      estadocivilId: 'Estado Civil',
+      etniaId: 'Etnia',
+      pueblonacionalidadId: 'Pueblo y Nacionalidad',
+      tipoSangre: 'Tipo de Sangre',
+      discapacidad: 'Discapacidad',
+      porcentajeDiscapacidad: 'Porcentaje de Discapacidad',
+      numCarnetConadis: 'Número Carnet CONADIS',
+      tipoDiscapacidad: 'Tipo de Discapacidad',
+      paisNacionalidadId: 'País Nacionalidad',
+      provinciaNacimientoId: 'Provincia de Nacimiento',
+      cantonNacimientoId: 'Cantón de Nacimiento',
+      paisResidenciaId: 'País Residencia',
+      provinciaResidenciaId: 'Provincia de Residencia',
+      cantonResidenciaId: 'Cantón de Residencia',
+      tipoColegioId: 'Tipo Colegio',
+      modalidadCarrera: 'Modalidad Carrera',
+      jornadaCarrera: 'Jornada Carrera',
+      fechaInicioCarrera: 'Fecha Inicio Carrera',
+      fechaMatricula: 'Fecha Matrícula',
+      tipoMatriculaId: 'Tipo Matrícula',
+      nivelAcademicoQueCursa: 'Nivel Académico que Cursa',
+      haRepetidoAlMenosUnaMateria: '¿Ha Repetido al Menos Una Materia?',
+      paraleloId: 'Paralelo',
+      haPerdidoLaGratuidad: '¿Ha Perdido la Gratuidad?',
+      recibePensionDiferenciada: '¿Recibe Pensión Diferenciada?',
+      estudianteocupacionId: 'Estudiante Dedicado',
+      ingresosestudianteId: 'Empleación de Ingresos del Estudiante',
+      bonodesarrolloId: 'Bono Desarrollo Humano',
+      haRealizadoPracticasPreprofesionales: '¿Ha Realizado Prácticas Preprofesionales?',
+      nroHorasPracticasPreprofesionalesPorPeriodo: 'Número Horas Prácticas por Periodo',
+      entornoInstitucionalPracticasProfesionales: 'Entorno Institucional Prácticas Profesionales',
+      sectorEconomicoPracticaProfesional: 'Sector Económico Práctica Profesional',
+      tipoBecaId: 'Tipo Beca',
+      primeraRazonBecaId: 'Primera Razón Beca',
+      segundaRazonBecaId: 'Segunda Razón Beca',
+      terceraRazonBecaId: 'Tercera Razón Beca',
+      cuartaRazonBecaId: 'Cuarta Razón Beca',
+      quintaRazonBecaId: 'Quinta Razón Beca',
+      sextaRazonBecaId: 'Sexta Razón Beca',
+      montoBeca: 'Monto Beca',
+      porcientoBecaCoberturaArancel: 'Porciento Beca Cobertura Arancel',
+      porcientoBecaCoberturaManuntencion: 'Porciento Beca Cobertura Manutención',
+      financiamientoBeca: 'Financiamiento Beca',
+      montoAyudaEconomica: 'Monto Ayuda Económica',
+      montoCreditoEducativo: 'Monto Crédito Educativo',
+      participaEnProyectoVinculacionSociedad: '¿Participa en Proyecto Vinculación Sociedad?',
+      tipoAlcanceProyectoVinculacionId: 'Tipo Alcance Proyecto Vinculación',
+      correoElectronico: 'Correo Electrónico',
+      numeroCelular: 'Número Celular',
+      nivelFormacionPadre: 'Nivel Formación Padre',
+      nivelFormacionMadre: 'Nivel Formación Madre',
+      ingresoTotalHogar: 'Ingreso Total Hogar',
+      cantidadMiembrosHogar: 'Cantidad Miembros Hogar'
+    };
+
+    step.fields.forEach(fieldName => {
+      const control = this.studentForm.get(fieldName);
+      if (control && control.invalid) {
+        const nombreCampo = nombresCampos[fieldName] || fieldName;
+        const error = this.getErrorMessageForField(fieldName);
+        if (error) {
+          camposConErrores.push(`• ${nombreCampo}: ${error}`);
+        } else {
+          camposConErrores.push(`• ${nombreCampo}: Este campo es obligatorio`);
+        }
+      }
+    });
+
+    return camposConErrores;
+  }
+
+  nextStep(): void {
+    if (this.validateCurrentStep()) {
+      if (this.currentStep < this.totalSteps - 1) {
+        this.currentStep++;
+        this.submitError = false;
+        this.submitMessage = '';
+        // Scroll al inicio del formulario
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      // El mensaje ya se estableció en validateCurrentStep()
+      // Scroll al primer campo con error
+      this.scrollToFirstError();
+    }
+  }
+
+  scrollToFirstError(): void {
+    const step = this.steps[this.currentStep];
+    if (!step) return;
+
+    for (const fieldName of step.fields) {
+      const control = this.studentForm.get(fieldName);
+      if (control && control.invalid) {
+        const element = document.querySelector(`[formControlName="${fieldName}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          (element as HTMLElement).focus();
+          break;
+        }
+      }
+    }
+  }
+
+  previousStep(): void {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  goToStep(stepIndex: number): void {
+    if (stepIndex >= 0 && stepIndex < this.totalSteps) {
+      // Validar todos los pasos anteriores antes de permitir saltar
+      let canGoToStep = true;
+      for (let i = 0; i < stepIndex; i++) {
+        if (!this.isStepValid(i)) {
+          canGoToStep = false;
+          break;
+        }
+      }
+      
+      if (canGoToStep || stepIndex <= this.currentStep) {
+        this.currentStep = stepIndex;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        this.submitError = true;
+        this.submitMessage = 'Debes completar los pasos anteriores antes de avanzar.';
+        setTimeout(() => {
+          this.submitMessage = '';
+          this.submitError = false;
+        }, 3000);
+      }
+    }
+  }
+
+  getCurrentStepFields(): string[] {
+    return this.steps[this.currentStep]?.fields || [];
+  }
+
+  getStepCompletionStatus(stepIndex: number): 'complete' | 'current' | 'pending' {
+    if (stepIndex < this.currentStep) {
+      return this.isStepValid(stepIndex) ? 'complete' : 'pending';
+    } else if (stepIndex === this.currentStep) {
+      return 'current';
+    } else {
+      return 'pending';
+    }
+  }
+
+  // Método para llenar todos los campos con datos de prueba
+  fillTestData(): void {
+    if (!this.enums) {
+      alert('Por favor, espera a que se carguen las opciones del formulario.');
+      return;
+    }
+
+    // Obtener primeros valores válidos de los enums
+    const tipoDocumento = this.enums.TipoDocumento?.[0] || 'CEDULA';
+    const sexo = this.enums.Sexo?.[0] || 'HOMBRE';
+    const genero = this.enums.Genero?.[0] || 'MASCULINO';
+    const estadoCivil = this.enums.EstadoCivil?.[0] || 'SOLTERO';
+    const etnia = this.enums.Etnia?.[0] || 'MESTIZO';
+    const puebloNacionalidad = this.enums.PuebloNacionalidad?.[0] || 'NO_APLICA';
+    const tipoSangre = this.enums.TipoSangre?.[0] || 'O_POSITIVO';
+    const discapacidad = this.enums.Discapacidad?.[0] || 'NO';
+    const tipoDiscapacidad = this.enums.TipoDiscapacidad?.[0] || 'NO_APLICA';
+    const pais = this.enums.Pais?.find(p => p === 'ECUADOR') || this.enums.Pais?.[0] || 'ECUADOR';
+    const provincia = this.enums.Provincia?.[0] || 'AZUAY';
+    const canton = this.enums.Canton?.[0] || 'CUENCA';
+    const tipoColegio = this.enums.TipoColegio?.[0] || 'FISCAL';
+    const modalidadCarrera = this.enums.ModalidadCarrera?.[0] || 'PRESENCIAL';
+    const jornadaCarrera = this.enums.JornadaCarrera?.[0] || 'MATUTINA';
+    const tipoMatricula = this.enums.TipoMatricula?.[0] || 'ORDINARIA';
+    const nivelAcademico = this.enums.NivelAcademico?.[0] || 'PRIMERO';
+    const haRepetido = this.enums.HaRepetidoAlMenosUnaMateria?.[0] || 'NO';
+    const paralelo = this.enums.Paralelo?.[0] || 'A';
+    const haPerdidoGratuidad = this.enums.HaPerdidoLaGratuidad?.[0] || 'NO';
+    const recibePension = this.enums.RecibePensionDiferenciada?.[0] || 'NO';
+    const estudianteOcupacion = this.enums.EstudianteOcupacion?.[0] || 'SOLO_ESTUDIA';
+    const ingresosEstudiante = this.enums.IngresosEstudiante?.[0] || 'FINANCIAR_ESTUDIOS';
+    const bonoDesarrollo = this.enums.BonoDesarrollo?.[0] || 'NO';
+    const haRealizadoPracticas = this.enums.HaRealizadoPracticasPreprofesionales?.[0] || 'SI';
+    const entornoPracticas = this.enums.EntornoInstitucionalPracticasProfesionales?.[0] || 'PUBLICA';
+    const sectorPracticas = this.enums.SectorEconomicoPracticaProfesional?.[0] || 'SALUD';
+    const tipoBeca = this.enums.TipoBeca?.[0] || 'PARCIAL';
+    const primeraRazonBeca = this.enums.PrimeraRazonBeca?.[0] || 'NO_APLICA';
+    const segundaRazonBeca = this.enums.SegundaRazonBeca?.[0] || 'NO_APLICA';
+    const terceraRazonBeca = this.enums.TerceraRazonBeca?.[0] || 'NO_APLICA';
+    const cuartaRazonBeca = this.enums.CuartaRazonBeca?.[0] || 'NO_APLICA';
+    const quintaRazonBeca = this.enums.QuintaRazonBeca?.[0] || 'NO_APLICA';
+    const sextaRazonBeca = this.enums.SextaRazonBeca?.[0] || 'NO_APLICA';
+    const financiamientoBeca = this.enums.FinanciamientoBeca?.[0] || 'FONDOS_PROPIOS';
+    const participaVinculacion = this.enums.ParticipaEnProyectoVinculacionSociedad?.[0] || 'SI';
+    const tipoAlcance = this.enums.TipoAlcanceProyectoVinculacion?.[0] || 'PROVINCIAL';
+    const nivelFormacionPadre = this.enums.NivelFormacionPadre?.[0] || 'SUPERIOR_UNIVERSITARIA';
+    const nivelFormacionMadre = this.enums.NivelFormacionMadre?.[0] || 'SUPERIOR_UNIVERSITARIA';
+
+    // Llenar todos los campos del formulario
+    this.studentForm.patchValue({
+      // Identificación
+      tipoDocumentoId: tipoDocumento,
+      numeroIdentificacion: '1723456789',
+      
+      // Datos personales
+      primerApellido: 'GARCIA',
+      segundoApellido: 'PEREZ',
+      primerNombre: 'JUAN',
+      segundoNombre: 'CARLOS',
+      sexoId: sexo,
+      generoId: genero,
+      estadocivilId: estadoCivil,
+      etniaId: etnia,
+      pueblonacionalidadId: puebloNacionalidad,
+      tipoSangre: tipoSangre,
+      
+      // Discapacidad
+      discapacidad: discapacidad,
+      porcentajeDiscapacidad: 'NA',
+      numCarnetConadis: 'NA',
+      tipoDiscapacidad: tipoDiscapacidad,
+      
+      // Fechas y ubicación
+      fechaNacimiento: '2000-05-15',
+      paisNacionalidadId: pais,
+      provinciaNacimientoId: provincia,
+      cantonNacimientoId: canton,
+      paisResidenciaId: pais,
+      provinciaResidenciaId: provincia,
+      cantonResidenciaId: canton,
+      
+      // Información académica
+      tipoColegioId: tipoColegio,
+      modalidadCarrera: modalidadCarrera,
+      jornadaCarrera: jornadaCarrera,
+      fechaInicioCarrera: '2020-09-01',
+      fechaMatricula: '2024-09-01',
+      tipoMatriculaId: tipoMatricula,
+      nivelAcademicoQueCursa: nivelAcademico,
+      haRepetidoAlMenosUnaMateria: haRepetido,
+      paraleloId: paralelo,
+      haPerdidoLaGratuidad: haPerdidoGratuidad,
+      recibePensionDiferenciada: recibePension,
+      
+      // Información económica
+      estudianteocupacionId: estudianteOcupacion,
+      ingresosestudianteId: ingresosEstudiante,
+      bonodesarrolloId: bonoDesarrollo,
+      
+      // Prácticas preprofesionales
+      haRealizadoPracticasPreprofesionales: haRealizadoPracticas,
+      nroHorasPracticasPreprofesionalesPorPeriodo: '240',
+      entornoInstitucionalPracticasProfesionales: entornoPracticas,
+      sectorEconomicoPracticaProfesional: sectorPracticas,
+      
+      // Becas
+      tipoBecaId: tipoBeca,
+      primeraRazonBecaId: primeraRazonBeca,
+      segundaRazonBecaId: segundaRazonBeca,
+      terceraRazonBecaId: terceraRazonBeca,
+      cuartaRazonBecaId: cuartaRazonBeca,
+      quintaRazonBecaId: quintaRazonBeca,
+      sextaRazonBecaId: sextaRazonBeca,
+      montoBeca: '500',
+      porcientoBecaCoberturaArancel: '50',
+      porcientoBecaCoberturaManuntencion: '30',
+      financiamientoBeca: financiamientoBeca,
+      
+      // Ayuda económica
+      montoAyudaEconomica: 'NA',
+      montoCreditoEducativo: 'NA',
+      
+      // Vinculación social
+      participaEnProyectoVinculacionSociedad: participaVinculacion,
+      tipoAlcanceProyectoVinculacionId: tipoAlcance,
+      
+      // Contacto
+      correoElectronico: 'juan.garcia@example.com',
+      numeroCelular: '0987654321',
+      
+      // Hogar
+      nivelFormacionPadre: nivelFormacionPadre,
+      nivelFormacionMadre: nivelFormacionMadre,
+      ingresoTotalHogar: '1200',
+      cantidadMiembrosHogar: 4
+    });
+
+    // Habilitar campos condicionales si es necesario
+    if (discapacidad === 'SI') {
+      this.studentForm.get('porcentajeDiscapacidad')?.enable();
+      this.studentForm.get('numCarnetConadis')?.enable();
+      this.studentForm.get('tipoDiscapacidad')?.enable();
+      this.studentForm.patchValue({
+        porcentajeDiscapacidad: '50',
+        numCarnetConadis: '1234567',
+        tipoDiscapacidad: this.enums.TipoDiscapacidad?.[1] || 'FISICA'
+      });
+    }
+
+    // Habilitar campos de provincia y cantón si el país es Ecuador
+    if (pais === 'ECUADOR') {
+      this.studentForm.get('provinciaNacimientoId')?.enable();
+      this.studentForm.get('cantonNacimientoId')?.enable();
+      this.studentForm.get('provinciaResidenciaId')?.enable();
+      this.studentForm.get('cantonResidenciaId')?.enable();
+    }
+
+    // Actualizar búsquedas de provincias y cantones
+    this.provinciaNacimientoSearch = this.getEnumLabel(provincia);
+    this.cantonNacimientoSearch = this.getEnumLabel(canton);
+    this.provinciaResidenciaSearch = this.getEnumLabel(provincia);
+    this.cantonResidenciaSearch = this.getEnumLabel(canton);
+
+    // Marcar todos los campos como touched para mostrar validaciones
+    this.markFormGroupTouched(this.studentForm);
+
+    // Scroll al inicio
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Mostrar mensaje de éxito
+    this.submitError = false;
+    this.submitMessage = '✓ Datos de prueba cargados correctamente';
+    setTimeout(() => {
+      this.submitMessage = '';
+    }, 3000);
   }
 }
