@@ -1581,9 +1581,29 @@ export class StudentForm implements OnInit {
       this.submitMessage = '';
       this.submitError = false;
       
-      const formData = this.getFormDataForBackend();
+      let formData = this.getFormDataForBackend();
+      
+      // Asegurar que los valores numéricos sean realmente números (doble verificación)
+      if (formData.duracionPeriodoAcademico !== undefined && formData.duracionPeriodoAcademico !== null) {
+        formData.duracionPeriodoAcademico = Number(formData.duracionPeriodoAcademico);
+        if (isNaN(formData.duracionPeriodoAcademico) || formData.duracionPeriodoAcademico < 1) {
+          formData.duracionPeriodoAcademico = 1;
+        }
+      }
+      
+      if (formData.cantidadMiembrosHogar !== undefined && formData.cantidadMiembrosHogar !== null) {
+        formData.cantidadMiembrosHogar = Math.floor(Number(formData.cantidadMiembrosHogar));
+        if (isNaN(formData.cantidadMiembrosHogar) || formData.cantidadMiembrosHogar < 1) {
+          formData.cantidadMiembrosHogar = 1;
+        }
+      }
+      
       console.log('Formulario válido, enviando:', formData);
       console.log('Datos completos del formulario:', JSON.stringify(formData, null, 2));
+      console.log('Verificación de tipos numéricos:', {
+        duracionPeriodoAcademico: { valor: formData.duracionPeriodoAcademico, tipo: typeof formData.duracionPeriodoAcademico },
+        cantidadMiembrosHogar: { valor: formData.cantidadMiembrosHogar, tipo: typeof formData.cantidadMiembrosHogar }
+      });
       
       // Si hay una imagen, usar FormData, sino enviar JSON normal
       if (this.selectedImageFile) {
@@ -1662,83 +1682,62 @@ export class StudentForm implements OnInit {
             })
           )
           .subscribe({
-          next: (response: any) => {
-            console.log('Estudiante creado exitosamente:', response);
-            this.isSubmitting = false; // Desactivar inmediatamente
-            this.submitError = false;
-            this.submitMessage = ' ¡Estudiante registrado exitosamente!';
-            console.log('Mensaje de éxito establecido:', this.submitMessage);
-            
-            // Limpiar datos guardados después de un envío exitoso
-            this.clearSavedData();
-            // Resetear formulario
-            this.studentForm.reset();
-            this.currentStep = 0;
-            // Limpiar valores de búsqueda
-            this.paisNacionalidadSearch = '';
-            this.paisResidenciaSearch = '';
-            this.provinciaNacimientoSearch = '';
-            this.cantonNacimientoSearch = '';
-            this.provinciaResidenciaSearch = '';
-            this.cantonResidenciaSearch = '';
-            
-            this.cdr.detectChanges(); // Forzar detección de cambios
-            
-            // Scroll al mensaje de éxito
-            setTimeout(() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-            
-            // Mantener el mensaje visible por 8 segundos
-            setTimeout(() => {
-              this.submitMessage = '';
-              this.cdr.detectChanges();
-            }, 8000);
-          },
-          error: (error: any) => {
-            console.error('Error al crear estudiante:', error);
-            console.error('Error completo:', JSON.stringify(error, null, 2));
-            console.error('Error status:', error.status);
-            console.error('Error error:', error.error);
-            
-            this.isSubmitting = false; // Desactivar inmediatamente
-            this.submitError = true;
-            
-            // Manejar diferentes tipos de errores
-            let errorMessage = '⚠️ Error al registrar el estudiante.';
-            
-            if (error.status === 500) {
-              errorMessage = '⚠️ Error interno del servidor (500).\n\nPor favor, verifica que todos los campos estén completos correctamente.\nSi el problema persiste, contacta al administrador.';
-              if (error.error?.message) {
-                errorMessage += '\n\nDetalle: ' + error.error.message;
-              }
-            } else if (error.error && Array.isArray(error.error.message)) {
-              // Si el error es un array de mensajes de validación
-              errorMessage = '⚠️ Error de validación:\n' + error.error.message.join('\n');
-            } else if (error.error?.message) {
-              errorMessage = '⚠️ ' + error.error.message;
-            } else if (error.message) {
-              errorMessage = '⚠️ ' + error.message;
-            }
-            
-            this.submitMessage = errorMessage;
-            console.log('Mensaje de error establecido:', this.submitMessage);
-            this.cdr.detectChanges(); // Forzar detección de cambios
-            
-            // Scroll al mensaje de error
-            setTimeout(() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-            
-            // Mantener el mensaje visible por más tiempo para errores 500
-            const timeout = error.status === 500 ? 12000 : 8000;
-            setTimeout(() => {
-              this.submitMessage = '';
+            next: (response: any) => {
+              console.log('Estudiante creado exitosamente:', response);
+              this.isSubmitting = false;
               this.submitError = false;
+              this.submitMessage = ' ¡Estudiante registrado exitosamente!';
+              this.clearSavedData();
+              this.studentForm.reset();
+              this.currentStep = 0;
+              this.selectedImageFile = null;
+              this.imagePreview = null;
+              this.paisNacionalidadSearch = '';
+              this.paisResidenciaSearch = '';
+              this.provinciaNacimientoSearch = '';
+              this.cantonNacimientoSearch = '';
+              this.provinciaResidenciaSearch = '';
+              this.cantonResidenciaSearch = '';
               this.cdr.detectChanges();
-            }, timeout);
-          }
-        });
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }, 100);
+              setTimeout(() => {
+                this.submitMessage = '';
+                this.cdr.detectChanges();
+              }, 8000);
+            },
+            error: (error: any) => {
+              console.error('Error al crear estudiante:', error);
+              this.isSubmitting = false;
+              this.submitError = true;
+              let errorMessage = '⚠️ Error al registrar el estudiante.';
+              if (error.status === 500) {
+                errorMessage = '⚠️ Error interno del servidor (500).\n\nPor favor, verifica que todos los campos estén completos correctamente.\nSi el problema persiste, contacta al administrador.';
+                if (error.error?.message) {
+                  errorMessage += '\n\nDetalle: ' + error.error.message;
+                }
+              } else if (error.error && Array.isArray(error.error.message)) {
+                errorMessage = '⚠️ Error de validación:\n' + error.error.message.join('\n');
+              } else if (error.error?.message) {
+                errorMessage = '⚠️ ' + error.error.message;
+              } else if (error.message) {
+                errorMessage = '⚠️ ' + error.message;
+              }
+              this.submitMessage = errorMessage;
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }, 100);
+              const timeout = error.status === 500 ? 12000 : 8000;
+              setTimeout(() => {
+                this.submitMessage = '';
+                this.submitError = false;
+                this.cdr.detectChanges();
+              }, timeout);
+            }
+          });
+      }
     } else {
       console.log('Formulario inválido');
       this.markFormGroupTouched(this.studentForm);
@@ -1846,52 +1845,97 @@ export class StudentForm implements OnInit {
     const control = this.studentForm.get(controlName);
     if (!control || !control.errors) return '';
 
-    if (control.errors['required']) {
+    const errors = control.errors;
+    if (errors['required']) {
       return 'Este campo es obligatorio';
     }
-    if (control.errors['integer'] || control.errors['integer1Range']) {
+    if (errors['integer'] || errors['integer1Range']) {
       return 'Debe ser un número entero válido';
     }
-    if (control.errors['integer2Range']) {
+    if (errors['integer2Range']) {
       return 'Debe ser un número entero de 2 dígitos (1-99)';
     }
-    if (control.errors['integer3Range']) {
+    if (errors['integer3Range']) {
       return 'Debe ser un número entero de 3 dígitos (0-999)';
     }
-    if (control.errors['integer4Range']) {
+    if (errors['integer4Range']) {
       return 'Debe ser un número entero de 4 dígitos (0-9999)';
     }
-    if (control.errors['integer5Range']) {
+    if (errors['integer5Range']) {
       return 'Debe ser un número entero de 5 dígitos (0-99999)';
     }
-    if (control.errors['emailFormat']) {
+    if (errors['emailFormat']) {
       return 'Formato de correo electrónico inválido';
     }
-    if (control.errors['numeric']) {
+    if (errors['numeric']) {
       return 'Debe contener solo números';
     }
-    if (control.errors['maxlength']) {
-      return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
+    if (errors['maxlength']) {
+      return `Máximo ${errors['maxlength'].requiredLength} caracteres`;
     }
-    if (control.errors['minlength']) {
-      return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+    if (errors['minlength']) {
+      return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
     }
-    if (control.errors['uppercase']) {
+    if (errors['uppercase']) {
       return 'Debe estar en MAYÚSCULAS';
     }
-    if (control.errors['cedulaFormat']) {
+    if (errors['cedulaFormat']) {
       return 'La cédula debe tener 10 dígitos numéricos';
     }
-    if (control.errors['pasaporteFormat']) {
+    if (errors['pasaporteFormat']) {
       return 'El pasaporte debe tener 9 caracteres alfanuméricos';
     }
-    if (control.errors['dateFormat'] || control.errors['dateInvalid']) {
+    if (errors['dateFormat'] || errors['dateInvalid']) {
       return 'Formato de fecha inválido (yyyy-mm-dd)';
     }
-    if (control.errors['length']) {
-      return `Debe tener exactamente ${control.errors['length'].requiredLength} caracteres`;
+    if (errors['length']) {
+      return `Debe tener exactamente ${errors['length'].requiredLength} caracteres`;
     }
     return 'Campo inválido';
+  }
+
+  /**
+   * Convierte un valor a número, con un valor mínimo por defecto
+   * @param value - Valor a convertir (puede ser string, number, null, undefined)
+   * @param minValue - Valor mínimo por defecto si el valor es inválido
+   * @returns Número válido >= minValue
+   */
+  parseNumber(value: any, minValue: number = 0): number {
+    if (value === null || value === undefined || value === '' || value === 'NA') {
+      return minValue;
+    }
+    // Convertir a string primero para manejar cualquier tipo, luego a número
+    const strValue = String(value).trim();
+    if (strValue === '') {
+      return minValue;
+    }
+    const num = parseFloat(strValue);
+    if (isNaN(num) || num < minValue) {
+      return minValue;
+    }
+    return num;
+  }
+
+  /**
+   * Convierte un valor a entero, con un valor mínimo por defecto
+   * @param value - Valor a convertir (puede ser string, number, null, undefined)
+   * @param minValue - Valor mínimo por defecto si el valor es inválido
+   * @returns Entero válido >= minValue
+   */
+  parseInt(value: any, minValue: number = 0): number {
+    if (value === null || value === undefined || value === '' || value === 'NA') {
+      return minValue;
+    }
+    // Convertir a string primero para manejar cualquier tipo, luego a entero
+    const strValue = String(value).trim();
+    if (strValue === '') {
+      return minValue;
+    }
+    const num = parseInt(strValue, 10);
+    if (isNaN(num) || num < minValue) {
+      return minValue;
+    }
+    return num;
   }
 
   getFormDataForBackend(): any {
@@ -1939,7 +1983,7 @@ export class StudentForm implements OnInit {
       fechaInicioCarrera: formValue.fechaInicioCarrera || '',
       fechaMatricula: formValue.fechaMatricula || '',
       tipoMatricula: formValue.tipoMatriculaId || '',
-      duracionPeriodoAcademico: Number(formValue.duracionPeriodoAcademico) || 0,
+      duracionPeriodoAcademico: this.parseNumber(formValue.duracionPeriodoAcademico, 1),
       nivelAcademico: formValue.nivelAcademicoQueCursa || '',
       haRepetidoAlMenosUnaMateria: formValue.haRepetidoAlMenosUnaMateria || '',
       paralelo: formValue.paraleloId || '',
@@ -1984,7 +2028,7 @@ export class StudentForm implements OnInit {
       nivelFormacionPadre: formValue.nivelFormacionPadre || '',
       nivelFormacionMadre: formValue.nivelFormacionMadre || '',
       ingresoTotalHogar: formValue.ingresoTotalHogar || 'NA',
-      cantidadMiembrosHogar: Number(formValue.cantidadMiembrosHogar) || 0,
+      cantidadMiembrosHogar: this.parseInt(formValue.cantidadMiembrosHogar, 1),
       
       // Campos de dirección domiciliaria
       direccionDomiciliariaExacta: formValue.direccionDomiciliariaExacta || 'NA',
@@ -2040,6 +2084,35 @@ export class StudentForm implements OnInit {
       console.warn('Campos requeridos vacíos:', emptyRequiredFields);
     }
 
+    // Asegurar que los valores numéricos sean realmente números (no strings)
+    if (data.duracionPeriodoAcademico !== undefined && data.duracionPeriodoAcademico !== null) {
+      data.duracionPeriodoAcademico = Number(data.duracionPeriodoAcademico);
+      if (isNaN(data.duracionPeriodoAcademico) || data.duracionPeriodoAcademico < 1) {
+        data.duracionPeriodoAcademico = 1;
+      }
+    }
+    
+    if (data.cantidadMiembrosHogar !== undefined && data.cantidadMiembrosHogar !== null) {
+      data.cantidadMiembrosHogar = Math.floor(Number(data.cantidadMiembrosHogar));
+      if (isNaN(data.cantidadMiembrosHogar) || data.cantidadMiembrosHogar < 1) {
+        data.cantidadMiembrosHogar = 1;
+      }
+    }
+
+    // Log para verificar tipos antes de enviar
+    console.log('Tipos de datos numéricos:', {
+      duracionPeriodoAcademico: {
+        value: data.duracionPeriodoAcademico,
+        type: typeof data.duracionPeriodoAcademico,
+        isNumber: typeof data.duracionPeriodoAcademico === 'number'
+      },
+      cantidadMiembrosHogar: {
+        value: data.cantidadMiembrosHogar,
+        type: typeof data.cantidadMiembrosHogar,
+        isNumber: typeof data.cantidadMiembrosHogar === 'number'
+      }
+    });
+
     return data;
   }
 
@@ -2058,57 +2131,58 @@ export class StudentForm implements OnInit {
     const control = this.studentForm.get(controlName);
     if (!control || !control.errors || !control.touched) return '';
 
-    if (control.errors['required']) {
+    const errors = control.errors;
+    if (errors['required']) {
       return 'Este campo es obligatorio';
     }
-    if (control.errors['integer'] || control.errors['integer1Range']) {
+    if (errors['integer'] || errors['integer1Range']) {
       return 'Debe ser un número entero válido';
     }
-    if (control.errors['integer2Range']) {
+    if (errors['integer2Range']) {
       return 'Debe ser un número entero de 2 dígitos (1-99)';
     }
-    if (control.errors['integer3Range']) {
+    if (errors['integer3Range']) {
       return 'Debe ser un número entero de 3 dígitos (0-999)';
     }
-    if (control.errors['integer4Range']) {
+    if (errors['integer4Range']) {
       return 'Debe ser un número entero de 4 dígitos (0-9999)';
     }
-    if (control.errors['integer5Range']) {
+    if (errors['integer5Range']) {
       return 'Debe ser un número entero de 5 dígitos (0-99999)';
     }
-    if (control.errors['emailFormat']) {
+    if (errors['emailFormat']) {
       return 'Formato de correo electrónico inválido';
     }
-    if (control.errors['numeric']) {
+    if (errors['numeric']) {
       return 'Debe contener solo números';
     }
-    if (control.errors['maxlength']) {
-      return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
+    if (errors['maxlength']) {
+      return `Máximo ${errors['maxlength'].requiredLength} caracteres`;
     }
-    if (control.errors['minlength']) {
-      return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+    if (errors['minlength']) {
+      return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
     }
-    if (control.errors['uppercase']) {
+    if (errors['uppercase']) {
       return 'Debe estar en MAYÚSCULAS';
     }
-    if (control.errors['cedulaFormat']) {
+    if (errors['cedulaFormat']) {
       return 'La cédula debe tener 10 dígitos numéricos';
     }
-    if (control.errors['pasaporteFormat']) {
+    if (errors['pasaporteFormat']) {
       return 'El pasaporte debe tener 9 caracteres alfanuméricos';
     }
-    if (control.errors['dateFormat'] || control.errors['dateInvalid']) {
+    if (errors['dateFormat'] || errors['dateInvalid']) {
       return 'Formato de fecha inválido (yyyy-mm-dd)';
     }
-    if (control.errors['length']) {
-      return `Debe tener exactamente ${control.errors['length'].requiredLength} caracteres`;
+    if (errors['length']) {
+      return `Debe tener exactamente ${errors['length'].requiredLength} caracteres`;
     }
     return 'Campo inválido';
   }
 
   hasError(controlName: string): boolean {
     const control = this.studentForm.get(controlName);
-    return !!(control && control.invalid && control.touched);
+    return !!(control?.invalid && control?.touched);
   }
 
   // Métodos de navegación por pasos
