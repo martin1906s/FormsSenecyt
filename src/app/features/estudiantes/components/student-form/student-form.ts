@@ -20,7 +20,6 @@ export class StudentForm implements OnInit {
   isSubmitting = false;
   submitMessage = '';
   submitError = false;
-  hasSavedData = false;
 
   // Propiedades para autocompletado de países, provincias y cantones
   filteredPaisesNacionalidad: string[] = [];
@@ -164,7 +163,6 @@ export class StudentForm implements OnInit {
       const savedSearchData = localStorage.getItem('student_form_search_data');
 
       if (savedData) {
-        this.hasSavedData = true;
         const formData = JSON.parse(savedData);
         // Restaurar datos del formulario
         this.studentForm.patchValue(formData, { emitEvent: false });
@@ -187,19 +185,9 @@ export class StudentForm implements OnInit {
             this.currentStep = step;
           }
         }
-
-        // Mostrar mensaje informativo
-        this.submitMessage = '✓ Se han restaurado los datos guardados anteriormente.';
-        this.submitError = false;
-        setTimeout(() => {
-          this.submitMessage = '';
-        }, 5000);
-      } else {
-        this.hasSavedData = false;
       }
     } catch (error) {
       console.error('Error al cargar datos del localStorage:', error);
-      this.hasSavedData = false;
     }
   }
 
@@ -209,32 +197,8 @@ export class StudentForm implements OnInit {
       localStorage.removeItem(this.STORAGE_KEY);
       localStorage.removeItem(this.STORAGE_STEP_KEY);
       localStorage.removeItem('student_form_search_data');
-      this.hasSavedData = false;
     } catch (error) {
       console.error('Error al limpiar datos del localStorage:', error);
-    }
-  }
-
-  // Método para limpiar datos manualmente (llamado desde el botón)
-  clearFormData(): void {
-    if (confirm('¿Estás seguro de que deseas limpiar todos los datos guardados? Esta acción no se puede deshacer.')) {
-      this.clearSavedData();
-      this.studentForm.reset();
-      this.currentStep = 0;
-      // Limpiar valores de búsqueda
-      this.paisNacionalidadSearch = '';
-      this.paisResidenciaSearch = '';
-      this.provinciaNacimientoSearch = '';
-      this.cantonNacimientoSearch = '';
-      this.provinciaResidenciaSearch = '';
-      this.cantonResidenciaSearch = '';
-      
-      this.submitMessage = '✓ Datos limpiados correctamente.';
-      this.submitError = false;
-      setTimeout(() => {
-        this.submitMessage = '';
-      }, 3000);
-      this.cdr.detectChanges();
     }
   }
 
@@ -281,24 +245,6 @@ export class StudentForm implements OnInit {
         }
         if (formValue.cantonResidenciaId) {
           this.cantonResidenciaSearch = this.getEnumLabel(formValue.cantonResidenciaId);
-        }
-        
-        // Si hay datos guardados, restaurar también los valores de búsqueda del localStorage
-        if (this.hasSavedData) {
-          try {
-            const savedSearchData = localStorage.getItem('student_form_search_data');
-            if (savedSearchData) {
-              const searchData = JSON.parse(savedSearchData);
-              if (searchData.paisNacionalidadSearch) this.paisNacionalidadSearch = searchData.paisNacionalidadSearch;
-              if (searchData.paisResidenciaSearch) this.paisResidenciaSearch = searchData.paisResidenciaSearch;
-              if (searchData.provinciaNacimientoSearch) this.provinciaNacimientoSearch = searchData.provinciaNacimientoSearch;
-              if (searchData.cantonNacimientoSearch) this.cantonNacimientoSearch = searchData.cantonNacimientoSearch;
-              if (searchData.provinciaResidenciaSearch) this.provinciaResidenciaSearch = searchData.provinciaResidenciaSearch;
-              if (searchData.cantonResidenciaSearch) this.cantonResidenciaSearch = searchData.cantonResidenciaSearch;
-            }
-          } catch (error) {
-            console.error('Error al restaurar valores de búsqueda:', error);
-          }
         }
         
         this.isLoadingEnums = false;
@@ -698,6 +644,20 @@ export class StudentForm implements OnInit {
   // Método auxiliar para obtener etiquetas más amigables de los enums
   getEnumLabel(enumValue: string): string {
     if (!enumValue) return '';
+    
+    // Formateo especial para tipos de sangre
+    if (enumValue.startsWith('A_POSITIVO') || enumValue.startsWith('A_NEGATIVO') || 
+        enumValue.startsWith('B_POSITIVO') || enumValue.startsWith('B_NEGATIVO') ||
+        enumValue.startsWith('AB_POSITIVO') || enumValue.startsWith('AB_NEGATIVO') ||
+        enumValue.startsWith('O_POSITIVO') || enumValue.startsWith('O_NEGATIVO')) {
+      const parts = enumValue.split('_');
+      const tipo = parts[0]; // A, B, AB, O
+      const rh = parts[1]; // POSITIVO o NEGATIVO
+      const signo = rh === 'POSITIVO' ? '+' : '-';
+      return tipo + signo;
+    }
+    
+    // Formateo normal para otros enums
     return enumValue
       .split('_')
       .map(word => word.charAt(0) + word.slice(1).toLowerCase())
@@ -1631,7 +1591,7 @@ export class StudentForm implements OnInit {
             console.log('Estudiante creado exitosamente:', response);
             this.isSubmitting = false; // Desactivar inmediatamente
             this.submitError = false;
-            this.submitMessage = '✓ ¡Estudiante registrado exitosamente!';
+            this.submitMessage = ' ¡Estudiante registrado exitosamente!';
             console.log('Mensaje de éxito establecido:', this.submitMessage);
             
             // Limpiar datos guardados después de un envío exitoso

@@ -3,9 +3,12 @@
   <header class="header-bar">
     <div class="logo-container">
       <img src="assets/logoKrake.png" alt="Logo Krake" class="logo" />
-      <img src="assets/logoMovilis.jpg" alt="Logo Movilis" class="logo" />
+      <img src="assets/logoMovilis.png" alt="Logo Movilis" class="logo" />
     </div>
-    <h1 class="form-title">Registro SENECYT</h1>
+    <div class="header-titles">
+      <h1 class="form-title">Formulario de Inscripción</h1>
+      <h2 class="form-subtitle">Tecnología en Desarrollo de software y programación</h2>
+    </div>
   </header>
 
   <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="student-form">
@@ -38,19 +41,10 @@
     <!-- Mensajes de estado -->
     <div *ngIf="submitMessage" class="submit-message" [class.success]="!submitError" [class.error]="submitError">
       <span *ngIf="submitError">⚠️</span>
-      <span *ngIf="!submitError">✓</span>
+      <span *ngIf="!submitError"></span>
       <span class="message-text">{{ submitMessage }}</span>
     </div>
 
-    <!-- Botón para limpiar datos guardados -->
-    <div *ngIf="hasSavedData" class="saved-data-notice">
-      <div class="saved-data-info">
-        <span>💾 Tienes datos guardados temporalmente. Si refrescas la página, se restaurarán automáticamente.</span>
-      </div>
-      <button type="button" class="btn-clear-data" (click)="clearFormData()">
-        🗑️ Limpiar datos guardados
-      </button>
-    </div>
 
     <!-- Indicador de carga de enums -->
     <div *ngIf="isLoadingEnums" class="loading-enums">
