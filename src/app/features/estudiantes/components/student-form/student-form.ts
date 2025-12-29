@@ -28,7 +28,7 @@ export class StudentForm implements OnInit {
   filteredPaisesResidencia: string[] = [];
   filteredProvinciasNacimiento: string[] = [];
   filteredCantonesNacimiento: string[] = [];
-  filteredProvinciasResidencia: string[] = [];
+  filteredProvinciasResidencia: string[] = []; 
   filteredCantonesResidencia: string[] = [];
   
   // Propiedades para controlar la visibilidad de los dropdowns
