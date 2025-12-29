@@ -2528,8 +2528,8 @@ export class StudentForm implements OnInit {
     return map[value] || null;
   }
 
-  // Mapeo de Provincia a códigos 01-90 (como números)
-  private mapProvincia(value: string): number | null {
+  // Mapeo de Provincia a códigos 01-90 (como strings con cero inicial)
+  private mapProvincia(value: string): string | null {
     if (!value) return null;
     const map: { [key: string]: number } = {
       'AZUAY': 1,
@@ -2557,11 +2557,12 @@ export class StudentForm implements OnInit {
       'SANTO_DOMINGO_DE_LOS_TSACHILAS': 23,
       'SANTA_ELENA': 24
     };
-    return map[value] || null;
+    const code = map[value];
+    return code ? code.toString().padStart(2, '0') : null;
   }
 
-  // Mapeo de Canton a códigos numéricos (ej: 0110, 0108, etc.)
-  private mapCanton(value: string): number | null {
+  // Mapeo de Canton a códigos numéricos con cero inicial (ej: "0110", "0108", etc.)
+  private mapCanton(value: string): string | null {
     if (!value) return null;
     // Mapeo completo de cantones según los códigos proporcionados
     const map: { [key: string]: number } = {
@@ -2790,7 +2791,9 @@ export class StudentForm implements OnInit {
       'MATILDE_ESTHER': 9008,
       'LAS_GOLONDRINAS': 9001
     };
-    return map[value] || null;
+    const code = map[value];
+    // Formatear con 4 dígitos con cero inicial (ej: "0110", "0108")
+    return code ? code.toString().padStart(4, '0') : null;
   }
 
   // Mapeo de Pais a códigos 1-999
