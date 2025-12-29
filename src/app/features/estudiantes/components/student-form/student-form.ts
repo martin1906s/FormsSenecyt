@@ -1252,6 +1252,7 @@ export class StudentForm implements OnInit {
       
       const formData = this.getFormDataForBackend();
       console.log('Formulario válido, enviando:', formData);
+      console.log('Datos completos del formulario:', JSON.stringify(formData, null, 2));
       
       this.estudianteService.createEstudiante(formData)
         .pipe(
@@ -1284,19 +1285,31 @@ export class StudentForm implements OnInit {
           },
           error: (error: any) => {
             console.error('Error al crear estudiante:', error);
+            console.error('Error completo:', JSON.stringify(error, null, 2));
+            console.error('Error status:', error.status);
+            console.error('Error error:', error.error);
+            
             this.isSubmitting = false; // Desactivar inmediatamente
             this.submitError = true;
             
             // Manejar diferentes tipos de errores
-            if (error.error && Array.isArray(error.error.message)) {
+            let errorMessage = '⚠️ Error al registrar el estudiante.';
+            
+            if (error.status === 500) {
+              errorMessage = '⚠️ Error interno del servidor (500).\n\nPor favor, verifica que todos los campos estén completos correctamente.\nSi el problema persiste, contacta al administrador.';
+              if (error.error?.message) {
+                errorMessage += '\n\nDetalle: ' + error.error.message;
+              }
+            } else if (error.error && Array.isArray(error.error.message)) {
               // Si el error es un array de mensajes de validación
-              this.submitMessage = '⚠️ Error de validación:\n' + error.error.message.join('\n');
+              errorMessage = '⚠️ Error de validación:\n' + error.error.message.join('\n');
             } else if (error.error?.message) {
-              this.submitMessage = '⚠️ ' + error.error.message;
-            } else {
-              this.submitMessage = '⚠️ Error al registrar el estudiante. Por favor, intenta nuevamente.';
+              errorMessage = '⚠️ ' + error.error.message;
+            } else if (error.message) {
+              errorMessage = '⚠️ ' + error.message;
             }
             
+            this.submitMessage = errorMessage;
             console.log('Mensaje de error establecido:', this.submitMessage);
             this.cdr.detectChanges(); // Forzar detección de cambios
             
@@ -1305,12 +1318,13 @@ export class StudentForm implements OnInit {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
             
-            // Mantener el mensaje visible por 8 segundos
+            // Mantener el mensaje visible por más tiempo para errores 500
+            const timeout = error.status === 500 ? 12000 : 8000;
             setTimeout(() => {
               this.submitMessage = '';
               this.submitError = false;
               this.cdr.detectChanges();
-            }, 8000);
+            }, timeout);
           }
         });
     } else {
@@ -1570,20 +1584,41 @@ export class StudentForm implements OnInit {
       delete data.provinciaNacimientoId;
     }
 
-    // provinciaResidenciaId es requerido, no eliminarlo si está undefined
-    // El backend validará y mostrará el error si falta
-    // Pero si está vacío o es una cadena vacía, no enviarlo
-    if (data.provinciaResidenciaId === '' || data.provinciaResidenciaId === null) {
+    // provinciaResidenciaId es requerido según el DTO
+    // Si está undefined, null o vacío, no enviarlo (el backend validará)
+    if (data.provinciaResidenciaId === undefined || data.provinciaResidenciaId === null || data.provinciaResidenciaId === '') {
       delete data.provinciaResidenciaId;
     }
 
-    // Eliminar campos vacíos que son obligatorios pero no deben enviarse vacíos
-    // El backend validará que no estén vacíos
-    Object.keys(data).forEach(key => {
-      if (data[key] === '' && key !== 'provinciaNacimientoId' && key !== 'provinciaResidenciaId') {
-        // No eliminar campos vacíos, el backend los validará
-      }
+    // Validar que los campos requeridos tengan valores válidos
+    const requiredFields = [
+      'tipoDocumento', 'numeroIdentificacion', 'primerApellido', 'segundoApellido',
+      'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia',
+      'puebloNacionalidad', 'tipoSangre', 'discapacidad', 'fechaNacimiento',
+      'paisNacionalidadId', 'cantonNacimientoId', 'paisResidenciaId', 'cantonResidenciaId',
+      'tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera',
+      'fechaMatricula', 'tipoMatricula', 'nivelAcademico', 'haRepetidoAlMenosUnaMateria',
+      'paralelo', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada',
+      'estudianteOcupacion', 'ingresosEstudiante', 'bonoDesarrollo',
+      'haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo',
+      'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional',
+      'tipoBeca', 'primeraRazonBeca', 'segundaRazonBeca', 'terceraRazonBeca',
+      'cuartaRazonBeca', 'quintaRazonBeca', 'sextaRazonBeca', 'montoBeca',
+      'porcentajeBecaCoberturaArancel', 'porcentajeBecaCoberturaManutencion',
+      'montoAyudaEconomica', 'montoCreditoEducativo',
+      'participaEnProyectoVinculacionSociedad', 'correoElectronico', 'numeroCelular',
+      'nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'
+    ];
+
+    // Verificar campos requeridos que están vacíos
+    const emptyRequiredFields = requiredFields.filter(field => {
+      const value = data[field];
+      return value === undefined || value === null || value === '';
     });
+
+    if (emptyRequiredFields.length > 0) {
+      console.warn('Campos requeridos vacíos:', emptyRequiredFields);
+    }
 
     return data;
   }
