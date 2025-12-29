@@ -951,3 +951,48 @@ select.form-control,
     display: block;
   }
 }
+
+// Estilos para notificación de datos guardados
+.saved-data-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .saved-data-info {
+    flex: 1;
+    color: $morado-primario;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-clear-data {
+    padding: 8px 16px;
+    background: $blanco;
+    border: 1px solid $morado-primario;
+    border-radius: 6px;
+    color: $morado-primario;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $morado-primario;
+      color: $blanco;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(136, 31, 128, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}

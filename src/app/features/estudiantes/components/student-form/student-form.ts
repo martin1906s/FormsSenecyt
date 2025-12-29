@@ -20,6 +20,7 @@ export class StudentForm implements OnInit {
   isSubmitting = false;
   submitMessage = '';
   submitError = false;
+  hasSavedData = false;
 
   // Propiedades para autocompletado de países, provincias y cantones
   filteredPaisesNacionalidad: string[] = [];
@@ -78,13 +79,19 @@ export class StudentForm implements OnInit {
     datosHogar: false
   };
 
+  // Clave para localStorage
+  private readonly STORAGE_KEY = 'student_form_data';
+  private readonly STORAGE_STEP_KEY = 'student_form_current_step';
+
   constructor(private fb: FormBuilder) {
     this.studentForm = this.createForm();
     this.setupConditionalValidators();
     this.setupAutoUppercase();
+    this.setupAutoSave();
   }
 
   ngOnInit(): void {
+    this.loadSavedData();
     this.loadEnums();
   }
 
@@ -104,6 +111,131 @@ export class StudentForm implements OnInit {
         }
       });
     });
+  }
+
+  // Configurar guardado automático en localStorage
+  setupAutoSave(): void {
+    // Guardar datos cuando cambia el formulario (con debounce para no saturar el localStorage)
+    let saveTimeout: any;
+    this.studentForm.valueChanges.subscribe(() => {
+      // Limpiar timeout anterior
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+      }
+      // Guardar después de 1 segundo de inactividad
+      saveTimeout = setTimeout(() => {
+        this.saveFormData();
+      }, 1000);
+    });
+
+    // Guardar el paso actual cuando cambia
+    // Necesitamos usar un getter para currentStep o suscribirnos a sus cambios
+    // Por ahora lo guardaremos cuando se cambie de paso
+  }
+
+  // Guardar datos del formulario en localStorage
+  saveFormData(): void {
+    try {
+      const formData = this.studentForm.getRawValue();
+      // Guardar datos del formulario
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(formData));
+      // Guardar paso actual
+      localStorage.setItem(this.STORAGE_STEP_KEY, JSON.stringify(this.currentStep));
+      // Guardar valores de búsqueda
+      const searchData = {
+        paisNacionalidadSearch: this.paisNacionalidadSearch,
+        paisResidenciaSearch: this.paisResidenciaSearch,
+        provinciaNacimientoSearch: this.provinciaNacimientoSearch,
+        cantonNacimientoSearch: this.cantonNacimientoSearch,
+        provinciaResidenciaSearch: this.provinciaResidenciaSearch,
+        cantonResidenciaSearch: this.cantonResidenciaSearch
+      };
+      localStorage.setItem('student_form_search_data', JSON.stringify(searchData));
+    } catch (error) {
+      console.error('Error al guardar datos en localStorage:', error);
+    }
+  }
+
+  // Cargar datos guardados del localStorage
+  loadSavedData(): void {
+    try {
+      const savedData = localStorage.getItem(this.STORAGE_KEY);
+      const savedStep = localStorage.getItem(this.STORAGE_STEP_KEY);
+      const savedSearchData = localStorage.getItem('student_form_search_data');
+
+      if (savedData) {
+        this.hasSavedData = true;
+        const formData = JSON.parse(savedData);
+        // Restaurar datos del formulario
+        this.studentForm.patchValue(formData, { emitEvent: false });
+        
+        // Restaurar valores de búsqueda
+        if (savedSearchData) {
+          const searchData = JSON.parse(savedSearchData);
+          this.paisNacionalidadSearch = searchData.paisNacionalidadSearch || '';
+          this.paisResidenciaSearch = searchData.paisResidenciaSearch || '';
+          this.provinciaNacimientoSearch = searchData.provinciaNacimientoSearch || '';
+          this.cantonNacimientoSearch = searchData.cantonNacimientoSearch || '';
+          this.provinciaResidenciaSearch = searchData.provinciaResidenciaSearch || '';
+          this.cantonResidenciaSearch = searchData.cantonResidenciaSearch || '';
+        }
+
+        // Restaurar paso actual
+        if (savedStep) {
+          const step = parseInt(JSON.parse(savedStep), 10);
+          if (step >= 0 && step < this.totalSteps) {
+            this.currentStep = step;
+          }
+        }
+
+        // Mostrar mensaje informativo
+        this.submitMessage = '✓ Se han restaurado los datos guardados anteriormente.';
+        this.submitError = false;
+        setTimeout(() => {
+          this.submitMessage = '';
+        }, 5000);
+      } else {
+        this.hasSavedData = false;
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del localStorage:', error);
+      this.hasSavedData = false;
+    }
+  }
+
+  // Limpiar datos guardados del localStorage
+  clearSavedData(): void {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      localStorage.removeItem(this.STORAGE_STEP_KEY);
+      localStorage.removeItem('student_form_search_data');
+      this.hasSavedData = false;
+    } catch (error) {
+      console.error('Error al limpiar datos del localStorage:', error);
+    }
+  }
+
+  // Método para limpiar datos manualmente (llamado desde el botón)
+  clearFormData(): void {
+    if (confirm('¿Estás seguro de que deseas limpiar todos los datos guardados? Esta acción no se puede deshacer.')) {
+      this.clearSavedData();
+      this.studentForm.reset();
+      this.currentStep = 0;
+      // Limpiar valores de búsqueda
+      this.paisNacionalidadSearch = '';
+      this.paisResidenciaSearch = '';
+      this.provinciaNacimientoSearch = '';
+      this.cantonNacimientoSearch = '';
+      this.provinciaResidenciaSearch = '';
+      this.cantonResidenciaSearch = '';
+      
+      this.submitMessage = '✓ Datos limpiados correctamente.';
+      this.submitError = false;
+      setTimeout(() => {
+        this.submitMessage = '';
+      }, 3000);
+      this.cdr.detectChanges();
+    }
   }
 
   loadEnums() {
@@ -149,6 +281,24 @@ export class StudentForm implements OnInit {
         }
         if (formValue.cantonResidenciaId) {
           this.cantonResidenciaSearch = this.getEnumLabel(formValue.cantonResidenciaId);
+        }
+        
+        // Si hay datos guardados, restaurar también los valores de búsqueda del localStorage
+        if (this.hasSavedData) {
+          try {
+            const savedSearchData = localStorage.getItem('student_form_search_data');
+            if (savedSearchData) {
+              const searchData = JSON.parse(savedSearchData);
+              if (searchData.paisNacionalidadSearch) this.paisNacionalidadSearch = searchData.paisNacionalidadSearch;
+              if (searchData.paisResidenciaSearch) this.paisResidenciaSearch = searchData.paisResidenciaSearch;
+              if (searchData.provinciaNacimientoSearch) this.provinciaNacimientoSearch = searchData.provinciaNacimientoSearch;
+              if (searchData.cantonNacimientoSearch) this.cantonNacimientoSearch = searchData.cantonNacimientoSearch;
+              if (searchData.provinciaResidenciaSearch) this.provinciaResidenciaSearch = searchData.provinciaResidenciaSearch;
+              if (searchData.cantonResidenciaSearch) this.cantonResidenciaSearch = searchData.cantonResidenciaSearch;
+            }
+          } catch (error) {
+            console.error('Error al restaurar valores de búsqueda:', error);
+          }
         }
         
         this.isLoadingEnums = false;
@@ -1483,6 +1633,20 @@ export class StudentForm implements OnInit {
             this.submitError = false;
             this.submitMessage = '✓ ¡Estudiante registrado exitosamente!';
             console.log('Mensaje de éxito establecido:', this.submitMessage);
+            
+            // Limpiar datos guardados después de un envío exitoso
+            this.clearSavedData();
+            // Resetear formulario
+            this.studentForm.reset();
+            this.currentStep = 0;
+            // Limpiar valores de búsqueda
+            this.paisNacionalidadSearch = '';
+            this.paisResidenciaSearch = '';
+            this.provinciaNacimientoSearch = '';
+            this.cantonNacimientoSearch = '';
+            this.provinciaResidenciaSearch = '';
+            this.cantonResidenciaSearch = '';
+            
             this.cdr.detectChanges(); // Forzar detección de cambios
             
             // Scroll al mensaje de éxito
@@ -2048,6 +2212,8 @@ export class StudentForm implements OnInit {
         this.currentStep++;
         this.submitError = false;
         this.submitMessage = '';
+        // Guardar el paso actual
+        this.saveFormData();
         // Scroll al inicio del formulario
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -2078,6 +2244,8 @@ export class StudentForm implements OnInit {
   previousStep(): void {
     if (this.currentStep > 0) {
       this.currentStep--;
+      // Guardar el paso actual
+      this.saveFormData();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
@@ -2095,6 +2263,8 @@ export class StudentForm implements OnInit {
       
       if (canGoToStep || stepIndex <= this.currentStep) {
         this.currentStep = stepIndex;
+        // Guardar el paso actual
+        this.saveFormData();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         this.submitError = true;

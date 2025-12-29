@@ -42,6 +42,16 @@
       <span class="message-text">{{ submitMessage }}</span>
     </div>
 
+    <!-- Botón para limpiar datos guardados -->
+    <div *ngIf="hasSavedData" class="saved-data-notice">
+      <div class="saved-data-info">
+        <span>💾 Tienes datos guardados temporalmente. Si refrescas la página, se restaurarán automáticamente.</span>
+      </div>
+      <button type="button" class="btn-clear-data" (click)="clearFormData()">
+        🗑️ Limpiar datos guardados
+      </button>
+    </div>
+
     <!-- Indicador de carga de enums -->
     <div *ngIf="isLoadingEnums" class="loading-enums">
       <div class="loading-spinner"></div>
