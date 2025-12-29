@@ -20,6 +20,8 @@ export class StudentForm implements OnInit {
   isSubmitting = false;
   submitMessage = '';
   submitError = false;
+  selectedImageFile: File | null = null;
+  imagePreview: string | null = null;
 
   // Propiedades para autocompletado de países, provincias y cantones
   filteredPaisesNacionalidad: string[] = [];
@@ -61,7 +63,7 @@ export class StudentForm implements OnInit {
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: '🎁', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
     { id: 'vinculacionSocial', title: 'Vinculación Social', icon: '🤝', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
     { id: 'contacto', title: 'Contacto', icon: '📧', fields: ['correoElectronico', 'numeroCelular'] },
-    { id: 'datosHogar', title: 'Datos del Hogar', icon: '🏠', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
+    { id: 'datosHogar', title: 'Datos del Hogar', icon: '🏠', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar', 'direccionDomiciliariaExacta', 'imagenDireccionDomiciliaria'] }
   ];
   
   collapsedSections: { [key: string]: boolean } = {
@@ -1508,6 +1510,12 @@ export class StudentForm implements OnInit {
       // 63. cantidadMiembrosHogar (Entero 2)
       cantidadMiembrosHogar: ['', [Validators.required, StudentForm.integer2Validator()]],
 
+      // 64. direccionDomiciliariaExacta (String, obligatorio)
+      direccionDomiciliariaExacta: ['', [Validators.required]],
+
+      // 65. imagenDireccionDomiciliaria (File, opcional)
+      imagenDireccionDomiciliaria: [null],
+
       // CAMPOS ADICIONALES (sin validaciones estrictas por ahora)
       fechaExpedicion: [''],
       lugarExpedicion: [''],
@@ -1577,16 +1585,83 @@ export class StudentForm implements OnInit {
       console.log('Formulario válido, enviando:', formData);
       console.log('Datos completos del formulario:', JSON.stringify(formData, null, 2));
       
-      this.estudianteService.createEstudiante(formData)
-        .pipe(
-          finalize(() => {
-            // Asegurar que isSubmitting se desactive siempre
-            console.log('Finalizando petición, desactivando isSubmitting');
-            this.isSubmitting = false;
-            this.cdr.detectChanges(); // Forzar detección de cambios
-          })
-        )
-        .subscribe({
+      // Si hay una imagen, usar FormData, sino enviar JSON normal
+      if (this.selectedImageFile) {
+        const formDataToSend = new FormData();
+        Object.keys(formData).forEach(key => {
+          if (key !== 'imagenDireccionDomiciliaria') {
+            const value = formData[key];
+            if (value !== null && value !== undefined) {
+              formDataToSend.append(key, typeof value === 'string' ? value : JSON.stringify(value));
+            }
+          }
+        });
+        formDataToSend.append('imagenDireccionDomiciliaria', this.selectedImageFile);
+        this.estudianteService.createEstudianteWithFile(formDataToSend)
+          .pipe(
+            finalize(() => {
+              console.log('Finalizando petición, desactivando isSubmitting');
+              this.isSubmitting = false;
+              this.cdr.detectChanges();
+            })
+          )
+          .subscribe({
+            next: (response: any) => {
+              console.log('Estudiante creado exitosamente:', response);
+              this.isSubmitting = false;
+              this.submitError = false;
+              this.submitMessage = ' ¡Estudiante registrado exitosamente!';
+              this.clearSavedData();
+              this.studentForm.reset();
+              this.currentStep = 0;
+              this.selectedImageFile = null;
+              this.imagePreview = null;
+              this.paisNacionalidadSearch = '';
+              this.paisResidenciaSearch = '';
+              this.provinciaNacimientoSearch = '';
+              this.cantonNacimientoSearch = '';
+              this.provinciaResidenciaSearch = '';
+              this.cantonResidenciaSearch = '';
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }, 100);
+              setTimeout(() => {
+                this.submitMessage = '';
+                this.cdr.detectChanges();
+              }, 8000);
+            },
+            error: (error: any) => {
+              console.error('Error al crear estudiante:', error);
+              this.isSubmitting = false;
+              this.submitError = true;
+              if (error.error && typeof error.error === 'object') {
+                this.submitMessage = `Error: ${JSON.stringify(error.error)}`;
+              } else if (error.error && typeof error.error === 'string') {
+                this.submitMessage = `Error: ${error.error}`;
+              } else if (error.message) {
+                this.submitMessage = `Error: ${error.message}`;
+              } else {
+                this.submitMessage = 'Error al registrar el estudiante. Por favor, intenta nuevamente.';
+              }
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                this.submitMessage = '';
+                this.submitError = false;
+                this.cdr.detectChanges();
+              }, 10000);
+            }
+          });
+      } else {
+        this.estudianteService.createEstudiante(formData)
+          .pipe(
+            finalize(() => {
+              console.log('Finalizando petición, desactivando isSubmitting');
+              this.isSubmitting = false;
+              this.cdr.detectChanges();
+            })
+          )
+          .subscribe({
           next: (response: any) => {
             console.log('Estudiante creado exitosamente:', response);
             this.isSubmitting = false; // Desactivar inmediatamente
@@ -1742,7 +1817,9 @@ export class StudentForm implements OnInit {
       nivelFormacionPadre: 'Nivel Formación Padre',
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
-      cantidadMiembrosHogar: 'Cantidad Miembros Hogar'
+      cantidadMiembrosHogar: 'Cantidad Miembros Hogar',
+      direccionDomiciliariaExacta: 'Dirección Domiciliaria Exacta',
+      imagenDireccionDomiciliaria: 'Imagen Dirección Domiciliaria'
     };
 
     Object.keys(this.studentForm.controls).forEach(key => {
@@ -1908,6 +1985,9 @@ export class StudentForm implements OnInit {
       nivelFormacionMadre: formValue.nivelFormacionMadre || '',
       ingresoTotalHogar: formValue.ingresoTotalHogar || 'NA',
       cantidadMiembrosHogar: Number(formValue.cantidadMiembrosHogar) || 0,
+      
+      // Campos de dirección domiciliaria
+      direccionDomiciliariaExacta: formValue.direccionDomiciliariaExacta || 'NA',
     };
     
     // Campos opcionales - solo agregar si tienen valor
@@ -1946,7 +2026,8 @@ export class StudentForm implements OnInit {
       'porcentajeBecaCoberturaArancel', 'porcentajeBecaCoberturaManutencion',
       'montoAyudaEconomica', 'montoCreditoEducativo',
       'participaEnProyectoVinculacionSociedad', 'correoElectronico', 'numeroCelular',
-      'nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'
+      'nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar',
+      'direccionDomiciliariaExacta'
     ];
 
     // Verificar campos requeridos que están vacíos
@@ -2147,7 +2228,9 @@ export class StudentForm implements OnInit {
       nivelFormacionPadre: 'Nivel Formación Padre',
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
-      cantidadMiembrosHogar: 'Cantidad Miembros Hogar'
+      cantidadMiembrosHogar: 'Cantidad Miembros Hogar',
+      direccionDomiciliariaExacta: 'Dirección Domiciliaria Exacta',
+      imagenDireccionDomiciliaria: 'Imagen Dirección Domiciliaria'
     };
 
     step.fields.forEach(fieldName => {
@@ -2249,5 +2332,49 @@ export class StudentForm implements OnInit {
     } else {
       return 'pending';
     }
+  }
+
+  onImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Validar tipo de archivo
+      if (!file.type.match(/image\/(jpg|jpeg|png|gif|webp)/)) {
+        this.submitError = true;
+        this.submitMessage = 'Por favor, selecciona una imagen válida (JPG, JPEG, PNG, GIF o WEBP).';
+        setTimeout(() => {
+          this.submitMessage = '';
+          this.submitError = false;
+        }, 5000);
+        return;
+      }
+      
+      // Validar tamaño (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        this.submitError = true;
+        this.submitMessage = 'La imagen no debe exceder 5MB.';
+        setTimeout(() => {
+          this.submitMessage = '';
+          this.submitError = false;
+        }, 5000);
+        return;
+      }
+
+      this.selectedImageFile = file;
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage(): void {
+    this.selectedImageFile = null;
+    this.imagePreview = null;
+    this.studentForm.get('imagenDireccionDomiciliaria')?.setValue(null);
+    this.cdr.detectChanges();
   }
 }

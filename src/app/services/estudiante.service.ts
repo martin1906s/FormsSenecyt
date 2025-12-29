@@ -13,6 +13,10 @@ export class EstudianteService {
     return this.http.post(`${this.apiUrl}`, data);
   }
 
+  createEstudianteWithFile(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}`, formData);
+  }
+
   getEstudiantes(): Observable<any> {
     return this.http.get(`${this.apiUrl}`);
   }
