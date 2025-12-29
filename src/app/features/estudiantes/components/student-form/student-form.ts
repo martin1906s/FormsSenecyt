@@ -1553,6 +1553,158 @@ export class StudentForm implements OnInit {
     this.collapsedSections[section] = !this.collapsedSections[section];
   }
 
+  /**
+   * Llena el formulario con datos de prueba (sin imagen)
+   */
+  fillTestData(): void {
+    // Habilitar campos condicionales antes de establecer valores
+    const provinciaNacimiento = this.studentForm.get('provinciaNacimientoId');
+    const cantonNacimiento = this.studentForm.get('cantonNacimientoId');
+    const provinciaResidencia = this.studentForm.get('provinciaResidenciaId');
+    const cantonResidencia = this.studentForm.get('cantonResidenciaId');
+    const tipoAlcance = this.studentForm.get('tipoAlcanceProyectoVinculacionId');
+    
+    if (provinciaNacimiento && !provinciaNacimiento.enabled) {
+      provinciaNacimiento.enable({ emitEvent: false });
+    }
+    if (cantonNacimiento && !cantonNacimiento.enabled) {
+      cantonNacimiento.enable({ emitEvent: false });
+    }
+    if (provinciaResidencia && !provinciaResidencia.enabled) {
+      provinciaResidencia.enable({ emitEvent: false });
+    }
+    if (cantonResidencia && !cantonResidencia.enabled) {
+      cantonResidencia.enable({ emitEvent: false });
+    }
+    if (tipoAlcance && !tipoAlcance.enabled) {
+      tipoAlcance.enable({ emitEvent: false });
+    }
+
+    // Datos de identificación
+    this.studentForm.patchValue({
+      tipoDocumentoId: 'CEDULA',
+      numeroIdentificacion: '1751234567',
+      primerApellido: 'PEREZ',
+      segundoApellido: 'GARCIA',
+      primerNombre: 'JUAN',
+      segundoNombre: 'CARLOS',
+      fechaNacimiento: '2000-01-15',
+      
+      // Datos personales
+      sexoId: 'HOMBRE',
+      generoId: 'MASCULINO',
+      estadocivilId: 'SOLTERO',
+      etniaId: 'MESTIZO',
+      pueblonacionalidadId: 'NO_APLICA',
+      tipoSangre: 'O_POSITIVO',
+      
+      // Discapacidad
+      discapacidad: 'NO',
+      porcentajeDiscapacidad: 'NA',
+      numCarnetConadis: 'NA',
+      tipoDiscapacidad: 'NO_APLICA',
+      
+      // Nacionalidad y residencia
+      paisNacionalidadId: 'ECUADOR',
+      provinciaNacimientoId: 'PICHINCHA',
+      cantonNacimientoId: 'DISTRITO_METROPOLITANO_DE_QUITO',
+      paisResidenciaId: 'ECUADOR',
+      provinciaResidenciaId: 'PICHINCHA',
+      cantonResidenciaId: 'DISTRITO_METROPOLITANO_DE_QUITO',
+      
+      // Información académica
+      tipoColegioId: 'FISCAL',
+      modalidadCarrera: 'PRESENCIAL',
+      jornadaCarrera: 'MATUTINA',
+      fechaInicioCarrera: '2020-09-01',
+      fechaMatricula: '2020-09-15',
+      tipoMatriculaId: 'ORDINARIA',
+      duracionPeriodoAcademico: 16,
+      nivelAcademicoQueCursa: 'PRIMERO',
+      haRepetidoAlMenosUnaMateria: 'NO',
+      paraleloId: 'A',
+      haPerdidoLaGratuidad: 'NO_APLICA',
+      recibePensionDiferenciada: 'NO_APLICA',
+      
+      // Información económica
+      estudianteocupacionId: 'SOLO_ESTUDIA',
+      ingresosestudianteId: 'NO_APLICA',
+      bonodesarrolloId: 'SI',
+      
+      // Prácticas preprofesionales
+      haRealizadoPracticasPreprofesionales: 'NO',
+      nroHorasPracticasPreprofesionalesPorPeriodo: 'NA',
+      entornoInstitucionalPracticasProfesionales: 'NO_APLICA',
+      sectorEconomicoPracticaProfesional: 'NO_APLICA',
+      
+      // Becas
+      tipoBecaId: 'NO_APLICA',
+      primeraRazonBecaId: 'NO_APLICA',
+      segundaRazonBecaId: 'NO_APLICA',
+      terceraRazonBecaId: 'NO_APLICA',
+      cuartaRazonBecaId: 'NO_APLICA',
+      quintaRazonBecaId: 'NO_APLICA',
+      sextaRazonBecaId: 'NO_APLICA',
+      montoBeca: 'NA',
+      porcientoBecaCoberturaArancel: '0',
+      porcientoBecaCoberturaManuntencion: '0',
+      financiamientoBeca: 'NO_APLICA',
+      
+      // Ayudas económicas
+      montoAyudaEconomica: 'NA',
+      montoCreditoEducativo: 'NA',
+      
+      // Vinculación social
+      participaEnProyectoVinculacionSociedad: 'NO',
+      tipoAlcanceProyectoVinculacionId: '',
+      
+      // Contacto
+      correoElectronico: 'juan.perez@test.com',
+      numeroCelular: '0987654321',
+      
+      // Datos del hogar
+      nivelFormacionPadre: 'SECUNDARIA',
+      nivelFormacionMadre: 'SECUNDARIA',
+      ingresoTotalHogar: '1200',
+      cantidadMiembrosHogar: 4,
+      direccionDomiciliariaExacta: 'AV. AMAZONAS N12-45 Y REPÚBLICA, QUITO, PICHINCHA'
+    }, { emitEvent: false });
+
+    // Actualizar los valores de búsqueda para los dropdowns
+    this.paisNacionalidadSearch = 'ECUADOR';
+    this.paisResidenciaSearch = 'ECUADOR';
+    this.provinciaNacimientoSearch = 'PICHINCHA';
+    this.cantonNacimientoSearch = 'DISTRITO_METROPOLITANO_DE_QUITO';
+    this.provinciaResidenciaSearch = 'PICHINCHA';
+    this.cantonResidenciaSearch = 'DISTRITO_METROPOLITANO_DE_QUITO';
+
+    // Actualizar validaciones de campos condicionales
+    this.studentForm.get('discapacidad')?.updateValueAndValidity({ emitEvent: false });
+    this.studentForm.get('etniaId')?.updateValueAndValidity({ emitEvent: false });
+    this.studentForm.get('paisNacionalidadId')?.updateValueAndValidity({ emitEvent: false });
+    this.studentForm.get('paisResidenciaId')?.updateValueAndValidity({ emitEvent: false });
+    this.studentForm.get('haRealizadoPracticasPreprofesionales')?.updateValueAndValidity({ emitEvent: false });
+    this.studentForm.get('tipoBecaId')?.updateValueAndValidity({ emitEvent: false });
+    this.studentForm.get('participaEnProyectoVinculacionSociedad')?.updateValueAndValidity({ emitEvent: false });
+
+    // Limpiar la imagen si existe
+    this.selectedImageFile = null;
+    this.imagePreview = null;
+
+    // Ir al último paso para ver los datos completos
+    this.currentStep = this.totalSteps - 1;
+
+    // Mostrar mensaje de éxito
+    this.submitMessage = '✅ Datos de prueba cargados exitosamente';
+    this.submitError = false;
+    setTimeout(() => {
+      this.submitMessage = '';
+      this.cdr.detectChanges();
+    }, 3000);
+
+    this.cdr.detectChanges();
+  }
+
   onSubmit(): void {
     // Validar que estamos en el último paso
     if (this.currentStep < this.totalSteps - 1) {
@@ -1584,18 +1736,33 @@ export class StudentForm implements OnInit {
       let formData = this.getFormDataForBackend();
       
       // Asegurar que los valores numéricos sean realmente números (doble verificación)
+      // Manejar valores "NA" o strings inválidos
       if (formData.duracionPeriodoAcademico !== undefined && formData.duracionPeriodoAcademico !== null) {
-        formData.duracionPeriodoAcademico = Number(formData.duracionPeriodoAcademico);
-        if (isNaN(formData.duracionPeriodoAcademico) || formData.duracionPeriodoAcademico < 1) {
+        const strValue = String(formData.duracionPeriodoAcademico).trim().toUpperCase();
+        if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
           formData.duracionPeriodoAcademico = 1;
+        } else {
+          formData.duracionPeriodoAcademico = Number(formData.duracionPeriodoAcademico);
+          if (isNaN(formData.duracionPeriodoAcademico) || formData.duracionPeriodoAcademico < 1) {
+            formData.duracionPeriodoAcademico = 1;
+          }
         }
+      } else {
+        formData.duracionPeriodoAcademico = 1;
       }
       
       if (formData.cantidadMiembrosHogar !== undefined && formData.cantidadMiembrosHogar !== null) {
-        formData.cantidadMiembrosHogar = Math.floor(Number(formData.cantidadMiembrosHogar));
-        if (isNaN(formData.cantidadMiembrosHogar) || formData.cantidadMiembrosHogar < 1) {
+        const strValue = String(formData.cantidadMiembrosHogar).trim().toUpperCase();
+        if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
           formData.cantidadMiembrosHogar = 1;
+        } else {
+          formData.cantidadMiembrosHogar = Math.floor(Number(formData.cantidadMiembrosHogar));
+          if (isNaN(formData.cantidadMiembrosHogar) || formData.cantidadMiembrosHogar < 1) {
+            formData.cantidadMiembrosHogar = 1;
+          }
         }
+      } else {
+        formData.cantidadMiembrosHogar = 1;
       }
       
       console.log('Formulario válido, enviando:', formData);
@@ -1612,7 +1779,24 @@ export class StudentForm implements OnInit {
           if (key !== 'imagenDireccionDomiciliaria') {
             const value = formData[key];
             if (value !== null && value !== undefined) {
-              formDataToSend.append(key, typeof value === 'string' ? value : JSON.stringify(value));
+              // Para campos numéricos, convertir explícitamente a string numérico válido
+              if (key === 'duracionPeriodoAcademico') {
+                // Ya está validado arriba, asegurar que sea un número válido
+                const numValue = typeof value === 'number' ? value : Number(value);
+                formDataToSend.append(key, (!isNaN(numValue) && numValue >= 1 ? numValue : 1).toString());
+              } else if (key === 'cantidadMiembrosHogar') {
+                // Ya está validado arriba, asegurar que sea un número válido
+                const numValue = typeof value === 'number' ? value : Number(value);
+                formDataToSend.append(key, (!isNaN(numValue) && numValue >= 1 ? Math.floor(numValue) : 1).toString());
+              } else if (typeof value === 'string') {
+                formDataToSend.append(key, value);
+              } else if (typeof value === 'number') {
+                formDataToSend.append(key, value.toString());
+              } else if (typeof value === 'boolean') {
+                formDataToSend.append(key, value.toString());
+              } else {
+                formDataToSend.append(key, JSON.stringify(value));
+              }
             }
           }
         });
@@ -1673,7 +1857,40 @@ export class StudentForm implements OnInit {
             }
           });
       } else {
-        this.estudianteService.createEstudiante(formData)
+        // Asegurar que los valores numéricos sean realmente números (no strings) cuando se envía JSON
+        // Crear una copia del objeto para evitar mutar el original
+        const jsonData = { ...formData };
+        
+        // Convertir explícitamente los campos numéricos a números
+        if (jsonData.duracionPeriodoAcademico !== undefined && jsonData.duracionPeriodoAcademico !== null) {
+          jsonData.duracionPeriodoAcademico = Number(jsonData.duracionPeriodoAcademico);
+          if (isNaN(jsonData.duracionPeriodoAcademico) || jsonData.duracionPeriodoAcademico < 1) {
+            jsonData.duracionPeriodoAcademico = 1;
+          }
+        }
+        
+        if (jsonData.cantidadMiembrosHogar !== undefined && jsonData.cantidadMiembrosHogar !== null) {
+          jsonData.cantidadMiembrosHogar = Math.floor(Number(jsonData.cantidadMiembrosHogar));
+          if (isNaN(jsonData.cantidadMiembrosHogar) || jsonData.cantidadMiembrosHogar < 1) {
+            jsonData.cantidadMiembrosHogar = 1;
+          }
+        }
+        
+        // Log final para verificar
+        console.log('Enviando JSON - Tipos finales:', {
+          duracionPeriodoAcademico: { 
+            valor: jsonData.duracionPeriodoAcademico, 
+            tipo: typeof jsonData.duracionPeriodoAcademico,
+            esNumber: typeof jsonData.duracionPeriodoAcademico === 'number'
+          },
+          cantidadMiembrosHogar: { 
+            valor: jsonData.cantidadMiembrosHogar, 
+            tipo: typeof jsonData.cantidadMiembrosHogar,
+            esNumber: typeof jsonData.cantidadMiembrosHogar === 'number'
+          }
+        });
+        
+        this.estudianteService.createEstudiante(jsonData)
           .pipe(
             finalize(() => {
               console.log('Finalizando petición, desactivando isSubmitting');
@@ -1901,12 +2118,13 @@ export class StudentForm implements OnInit {
    * @returns Número válido >= minValue
    */
   parseNumber(value: any, minValue: number = 0): number {
-    if (value === null || value === undefined || value === '' || value === 'NA') {
+    if (value === null || value === undefined || value === '') {
       return minValue;
     }
     // Convertir a string primero para manejar cualquier tipo, luego a número
-    const strValue = String(value).trim();
-    if (strValue === '') {
+    const strValue = String(value).trim().toUpperCase();
+    // Verificar si es "NA" o un string que no puede ser parseado
+    if (strValue === '' || strValue === 'NA' || strValue === 'NULL' || strValue === 'UNDEFINED') {
       return minValue;
     }
     const num = parseFloat(strValue);
@@ -1923,12 +2141,13 @@ export class StudentForm implements OnInit {
    * @returns Entero válido >= minValue
    */
   parseInt(value: any, minValue: number = 0): number {
-    if (value === null || value === undefined || value === '' || value === 'NA') {
+    if (value === null || value === undefined || value === '') {
       return minValue;
     }
     // Convertir a string primero para manejar cualquier tipo, luego a entero
-    const strValue = String(value).trim();
-    if (strValue === '') {
+    const strValue = String(value).trim().toUpperCase();
+    // Verificar si es "NA" o un string que no puede ser parseado
+    if (strValue === '' || strValue === 'NA' || strValue === 'NULL' || strValue === 'UNDEFINED') {
       return minValue;
     }
     const num = parseInt(strValue, 10);
@@ -2085,18 +2304,33 @@ export class StudentForm implements OnInit {
     }
 
     // Asegurar que los valores numéricos sean realmente números (no strings)
+    // Manejar valores "NA" o strings inválidos
     if (data.duracionPeriodoAcademico !== undefined && data.duracionPeriodoAcademico !== null) {
-      data.duracionPeriodoAcademico = Number(data.duracionPeriodoAcademico);
-      if (isNaN(data.duracionPeriodoAcademico) || data.duracionPeriodoAcademico < 1) {
+      const strValue = String(data.duracionPeriodoAcademico).trim().toUpperCase();
+      if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
         data.duracionPeriodoAcademico = 1;
+      } else {
+        data.duracionPeriodoAcademico = Number(data.duracionPeriodoAcademico);
+        if (isNaN(data.duracionPeriodoAcademico) || data.duracionPeriodoAcademico < 1) {
+          data.duracionPeriodoAcademico = 1;
+        }
       }
+    } else {
+      data.duracionPeriodoAcademico = 1;
     }
     
     if (data.cantidadMiembrosHogar !== undefined && data.cantidadMiembrosHogar !== null) {
-      data.cantidadMiembrosHogar = Math.floor(Number(data.cantidadMiembrosHogar));
-      if (isNaN(data.cantidadMiembrosHogar) || data.cantidadMiembrosHogar < 1) {
+      const strValue = String(data.cantidadMiembrosHogar).trim().toUpperCase();
+      if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
         data.cantidadMiembrosHogar = 1;
+      } else {
+        data.cantidadMiembrosHogar = Math.floor(Number(data.cantidadMiembrosHogar));
+        if (isNaN(data.cantidadMiembrosHogar) || data.cantidadMiembrosHogar < 1) {
+          data.cantidadMiembrosHogar = 1;
+        }
       }
+    } else {
+      data.cantidadMiembrosHogar = 1;
     }
 
     // Log para verificar tipos antes de enviar
