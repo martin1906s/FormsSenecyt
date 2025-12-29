@@ -6,17 +6,6 @@
       <img src="assets/logoMovilis.jpg" alt="Logo Movilis" class="logo" />
     </div>
     <h1 class="form-title">Registro SENECYT</h1>
-    <div class="header-actions">
-      <button 
-        type="button" 
-        class="btn-export-excel" 
-        (click)="exportToExcel()"
-        [disabled]="isSubmitting"
-        title="Exportar todos los estudiantes a Excel"
-      >
-        📊 Exportar Excel
-      </button>
-    </div>
   </header>
 
   <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="student-form">
@@ -392,15 +381,27 @@
           <div class="form-grid">
             <div class="form-group">
               <label>País Nacionalidad <span class="required">*</span></label>
-              <div class="select-wrapper">
-                <select formControlName="paisNacionalidadId" class="form-control select-enhanced" [class.error]="hasError('paisNacionalidadId')" >
-                  <option value="">Seleccione el país de nacionalidad</option>
-                  @if (enums?.Pais) {
-                    @for (item of enums.Pais; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="paisNacionalidadSearch"
+                  (input)="onPaisNacionalidadInput($event)"
+                  (blur)="onPaisNacionalidadBlur()"
+                  (focus)="onPaisNacionalidadFocus()"
+                  class="form-control"
+                  [class.error]="hasError('paisNacionalidadId')"
+                  placeholder="Buscar país de nacionalidad..."
+                  autocomplete="off"
+                />
+                @if (showPaisesNacionalidad && filteredPaisesNacionalidad.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (item of filteredPaisesNacionalidad; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectPaisNacionalidad(item)">
+                        {{ getEnumLabel(item) }}
+                      </div>
                     }
-                  }
-                </select>
+                  </div>
+                }
               </div>
               <small class="error-message" *ngIf="hasError('paisNacionalidadId')">
                 {{ getErrorMessage('paisNacionalidadId') }}
@@ -409,15 +410,27 @@
 
             <div class="form-group">
               <label>Provincia de Nacimiento</label>
-              <div class="select-wrapper">
-                <select formControlName="provinciaNacimientoId" class="form-control select-enhanced" [class.error]="hasError('provinciaNacimientoId')">
-                  <option value="">Seleccione la provincia</option>
-                  @if (enums?.Provincia) {
-                    @for (item of enums.Provincia; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="provinciaNacimientoSearch"
+                  (input)="onProvinciaNacimientoInput($event)"
+                  (blur)="onProvinciaNacimientoBlur()"
+                  (focus)="onProvinciaNacimientoFocus()"
+                  class="form-control"
+                  [class.error]="hasError('provinciaNacimientoId')"
+                  placeholder="Buscar provincia..."
+                  autocomplete="off"
+                />
+                @if (showProvinciasNacimiento && filteredProvinciasNacimiento.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (item of filteredProvinciasNacimiento; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectProvinciaNacimiento(item)">
+                        {{ getEnumLabel(item) }}
+                      </div>
                     }
-                  }
-                </select>
+                  </div>
+                }
               </div>
               <small class="error-message" *ngIf="hasError('provinciaNacimientoId')">
                 {{ getErrorMessage('provinciaNacimientoId') }}
@@ -426,15 +439,27 @@
 
             <div class="form-group">
               <label>Cantón de Nacimiento</label>
-              <div class="select-wrapper">
-                <select formControlName="cantonNacimientoId" class="form-control select-enhanced" [class.error]="hasError('cantonNacimientoId')">
-                  <option value="">Seleccione el cantón</option>
-                  @if (enums?.Canton) {
-                    @for (item of enums.Canton; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="cantonNacimientoSearch"
+                  (input)="onCantonNacimientoInput($event)"
+                  (blur)="onCantonNacimientoBlur()"
+                  (focus)="onCantonNacimientoFocus()"
+                  class="form-control"
+                  [class.error]="hasError('cantonNacimientoId')"
+                  placeholder="Buscar cantón..."
+                  autocomplete="off"
+                />
+                @if (showCantonesNacimiento && filteredCantonesNacimiento.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (item of filteredCantonesNacimiento; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectCantonNacimiento(item)">
+                        {{ getEnumLabel(item) }}
+                      </div>
                     }
-                  }
-                </select>
+                  </div>
+                }
               </div>
               <small class="error-message" *ngIf="hasError('cantonNacimientoId')">
                 {{ getErrorMessage('cantonNacimientoId') }}
@@ -443,15 +468,27 @@
 
             <div class="form-group">
               <label>País de Residencia <span class="required">*</span></label>
-              <div class="select-wrapper">
-                <select formControlName="paisResidenciaId" class="form-control select-enhanced" [class.error]="hasError('paisResidenciaId')" >
-                  <option value="">Seleccione el país de residencia</option>
-                  @if (enums?.Pais) {
-                    @for (item of enums.Pais; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="paisResidenciaSearch"
+                  (input)="onPaisResidenciaInput($event)"
+                  (blur)="onPaisResidenciaBlur()"
+                  (focus)="onPaisResidenciaFocus()"
+                  class="form-control"
+                  [class.error]="hasError('paisResidenciaId')"
+                  placeholder="Buscar país de residencia..."
+                  autocomplete="off"
+                />
+                @if (showPaisesResidencia && filteredPaisesResidencia.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (item of filteredPaisesResidencia; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectPaisResidencia(item)">
+                        {{ getEnumLabel(item) }}
+                      </div>
                     }
-                  }
-                </select>
+                  </div>
+                }
               </div>
               <small class="error-message" *ngIf="hasError('paisResidenciaId')">
                 {{ getErrorMessage('paisResidenciaId') }}
@@ -460,15 +497,27 @@
 
             <div class="form-group">
               <label>Provincia de Residencia</label>
-              <div class="select-wrapper">
-                <select formControlName="provinciaResidenciaId" class="form-control select-enhanced" [class.error]="hasError('provinciaResidenciaId')">
-                  <option value="">Seleccione la provincia</option>
-                  @if (enums?.Provincia) {
-                    @for (item of enums.Provincia; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="provinciaResidenciaSearch"
+                  (input)="onProvinciaResidenciaInput($event)"
+                  (blur)="onProvinciaResidenciaBlur()"
+                  (focus)="onProvinciaResidenciaFocus()"
+                  class="form-control"
+                  [class.error]="hasError('provinciaResidenciaId')"
+                  placeholder="Buscar provincia..."
+                  autocomplete="off"
+                />
+                @if (showProvinciasResidencia && filteredProvinciasResidencia.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (item of filteredProvinciasResidencia; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectProvinciaResidencia(item)">
+                        {{ getEnumLabel(item) }}
+                      </div>
                     }
-                  }
-                </select>
+                  </div>
+                }
               </div>
               <small class="error-message" *ngIf="hasError('provinciaResidenciaId')">
                 {{ getErrorMessage('provinciaResidenciaId') }}
@@ -477,15 +526,27 @@
 
             <div class="form-group">
               <label>Cantón de Residencia</label>
-              <div class="select-wrapper">
-                <select formControlName="cantonResidenciaId" class="form-control select-enhanced" [class.error]="hasError('cantonResidenciaId')">
-                  <option value="">Seleccione el cantón</option>
-                  @if (enums?.Canton) {
-                    @for (item of enums.Canton; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="cantonResidenciaSearch"
+                  (input)="onCantonResidenciaInput($event)"
+                  (blur)="onCantonResidenciaBlur()"
+                  (focus)="onCantonResidenciaFocus()"
+                  class="form-control"
+                  [class.error]="hasError('cantonResidenciaId')"
+                  placeholder="Buscar cantón..."
+                  autocomplete="off"
+                />
+                @if (showCantonesResidencia && filteredCantonesResidencia.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (item of filteredCantonesResidencia; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectCantonResidencia(item)">
+                        {{ getEnumLabel(item) }}
+                      </div>
                     }
-                  }
-                </select>
+                  </div>
+                }
               </div>
               <small class="error-message" *ngIf="hasError('cantonResidenciaId')">
                 {{ getErrorMessage('cantonResidenciaId') }}

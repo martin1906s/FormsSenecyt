@@ -264,7 +264,6 @@ Content-Type: application/json
 - `AB_NEGATIVO`
 - `O_POSITIVO`
 - `O_NEGATIVO`
-- `NO_REGISTRA`
 
 ### discapacidad
 - `SI`
