@@ -352,14 +352,15 @@ export class StudentForm implements OnInit {
   // Métodos para filtrar países
   filterPaisesNacionalidad(searchTerm: string) {
     if (!this.enums?.Pais) return;
-    const term = searchTerm.toLowerCase().trim();
+    const term = this.normalizeText(searchTerm).trim();
     if (!term) {
       this.filteredPaisesNacionalidad = [...this.enums.Pais];
     } else {
-      this.filteredPaisesNacionalidad = this.enums.Pais.filter(pais =>
-        this.getEnumLabel(pais).toLowerCase().includes(term) ||
-        pais.toLowerCase().includes(term)
-      );
+      this.filteredPaisesNacionalidad = this.enums.Pais.filter(pais => {
+        const label = this.getEnumLabel(pais);
+        return this.normalizeText(label).includes(term) ||
+               this.normalizeText(pais).includes(term);
+      });
     }
     // Mostrar dropdown solo si hay texto
     this.showPaisesNacionalidad = term.length > 0;
@@ -367,14 +368,15 @@ export class StudentForm implements OnInit {
 
   filterPaisesResidencia(searchTerm: string) {
     if (!this.enums?.Pais) return;
-    const term = searchTerm.toLowerCase().trim();
+    const term = this.normalizeText(searchTerm).trim();
     if (!term) {
       this.filteredPaisesResidencia = [...this.enums.Pais];
     } else {
-      this.filteredPaisesResidencia = this.enums.Pais.filter(pais =>
-        this.getEnumLabel(pais).toLowerCase().includes(term) ||
-        pais.toLowerCase().includes(term)
-      );
+      this.filteredPaisesResidencia = this.enums.Pais.filter(pais => {
+        const label = this.getEnumLabel(pais);
+        return this.normalizeText(label).includes(term) ||
+               this.normalizeText(pais).includes(term);
+      });
     }
     // Mostrar dropdown solo si hay texto
     this.showPaisesResidencia = term.length > 0;
@@ -383,14 +385,15 @@ export class StudentForm implements OnInit {
   // Métodos para filtrar provincias
   filterProvinciasNacimiento(searchTerm: string) {
     if (!this.enums?.Provincia) return;
-    const term = searchTerm.toLowerCase().trim();
+    const term = this.normalizeText(searchTerm).trim();
     if (!term) {
       this.filteredProvinciasNacimiento = [...this.enums.Provincia];
     } else {
-      this.filteredProvinciasNacimiento = this.enums.Provincia.filter(provincia =>
-        this.getEnumLabel(provincia).toLowerCase().includes(term) ||
-        provincia.toLowerCase().includes(term)
-      );
+      this.filteredProvinciasNacimiento = this.enums.Provincia.filter(provincia => {
+        const label = this.getEnumLabel(provincia);
+        return this.normalizeText(label).includes(term) ||
+               this.normalizeText(provincia).includes(term);
+      });
     }
     // Mostrar dropdown solo si hay texto
     this.showProvinciasNacimiento = term.length > 0;
@@ -398,14 +401,15 @@ export class StudentForm implements OnInit {
 
   filterProvinciasResidencia(searchTerm: string) {
     if (!this.enums?.Provincia) return;
-    const term = searchTerm.toLowerCase().trim();
+    const term = this.normalizeText(searchTerm).trim();
     if (!term) {
       this.filteredProvinciasResidencia = [...this.enums.Provincia];
     } else {
-      this.filteredProvinciasResidencia = this.enums.Provincia.filter(provincia =>
-        this.getEnumLabel(provincia).toLowerCase().includes(term) ||
-        provincia.toLowerCase().includes(term)
-      );
+      this.filteredProvinciasResidencia = this.enums.Provincia.filter(provincia => {
+        const label = this.getEnumLabel(provincia);
+        return this.normalizeText(label).includes(term) ||
+               this.normalizeText(provincia).includes(term);
+      });
     }
     // Mostrar dropdown solo si hay texto
     this.showProvinciasResidencia = term.length > 0;
@@ -414,14 +418,15 @@ export class StudentForm implements OnInit {
   // Métodos para filtrar cantones
   filterCantonesNacimiento(searchTerm: string) {
     if (!this.enums?.Canton) return;
-    const term = searchTerm.toLowerCase().trim();
+    const term = this.normalizeText(searchTerm).trim();
     if (!term) {
       this.filteredCantonesNacimiento = [...this.enums.Canton];
     } else {
-      this.filteredCantonesNacimiento = this.enums.Canton.filter(canton =>
-        this.getEnumLabel(canton).toLowerCase().includes(term) ||
-        canton.toLowerCase().includes(term)
-      );
+      this.filteredCantonesNacimiento = this.enums.Canton.filter(canton => {
+        const label = this.getEnumLabel(canton);
+        return this.normalizeText(label).includes(term) ||
+               this.normalizeText(canton).includes(term);
+      });
     }
     // Mostrar dropdown solo si hay texto
     this.showCantonesNacimiento = term.length > 0;
@@ -429,14 +434,15 @@ export class StudentForm implements OnInit {
 
   filterCantonesResidencia(searchTerm: string) {
     if (!this.enums?.Canton) return;
-    const term = searchTerm.toLowerCase().trim();
+    const term = this.normalizeText(searchTerm).trim();
     if (!term) {
       this.filteredCantonesResidencia = [...this.enums.Canton];
     } else {
-      this.filteredCantonesResidencia = this.enums.Canton.filter(canton =>
-        this.getEnumLabel(canton).toLowerCase().includes(term) ||
-        canton.toLowerCase().includes(term)
-      );
+      this.filteredCantonesResidencia = this.enums.Canton.filter(canton => {
+        const label = this.getEnumLabel(canton);
+        return this.normalizeText(label).includes(term) ||
+               this.normalizeText(canton).includes(term);
+      });
     }
     // Mostrar dropdown solo si hay texto
     this.showCantonesResidencia = term.length > 0;
@@ -642,6 +648,15 @@ export class StudentForm implements OnInit {
   }
 
   // Método auxiliar para obtener etiquetas más amigables de los enums
+  // Función para normalizar texto removiendo tildes y convirtiendo a minúsculas
+  normalizeText(text: string): string {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // Remueve tildes y diacríticos
+  }
+
   getEnumLabel(enumValue: string): string {
     if (!enumValue) return '';
     
@@ -1926,7 +1941,7 @@ export class StudentForm implements OnInit {
       discapacidad: formValue.discapacidad || '',
       
       // Campos de discapacidad
-      porcentajeDiscapacidad: formValue.porcentajeDiscapacidad || 'NA',
+      porcentajeDiscapacidad: String(formValue.porcentajeDiscapacidad || 'NA'),
       numCarnetConadis: formValue.numCarnetConadis || 'NA',
       tipoDiscapacidad: formValue.tipoDiscapacidad || 'NO_APLICA',
       
@@ -1941,20 +1956,24 @@ export class StudentForm implements OnInit {
       // Campos de ubicación
       paisNacionalidadId: formValue.paisNacionalidadId || '',
       // Provincia y cantón de nacimiento: 
-      // Si país != ECUADOR, ya está establecido como 'NA' en la lógica condicional
+      // Si país != ECUADOR, provincia debe ser undefined (null en DB) y cantón debe ser 'NA'
       // Si país == ECUADOR, usar el valor del formulario o undefined si está vacío
       provinciaNacimientoId: formValue.paisNacionalidadId === 'ECUADOR'
         ? (formValue.provinciaNacimientoId || undefined)
+        : undefined,
+      cantonNacimientoId: formValue.paisNacionalidadId === 'ECUADOR'
+        ? (formValue.cantonNacimientoId || 'NA')
         : 'NA',
-      cantonNacimientoId: formValue.cantonNacimientoId || 'NA',
       paisResidenciaId: formValue.paisResidenciaId || '',
       // Provincia y cantón de residencia:
-      // Si país != ECUADOR, no enviar provinciaResidenciaId (es opcional, el backend usará 'NA' por defecto)
+      // Si país != ECUADOR, provincia debe ser undefined (null en DB) y cantón debe ser 'NA'
       // Si país == ECUADOR, usar el valor del formulario o undefined si está vacío
       provinciaResidenciaId: formValue.paisResidenciaId === 'ECUADOR'
         ? (formValue.provinciaResidenciaId || undefined)
         : undefined,
-      cantonResidenciaId: formValue.cantonResidenciaId || 'NA',
+      cantonResidenciaId: formValue.paisResidenciaId === 'ECUADOR'
+        ? (formValue.cantonResidenciaId || 'NA')
+        : 'NA',
       
       // Campos académicos - convertir a enum si es necesario
       tipoColegioId: formValue.tipoColegioId || '',
@@ -2020,14 +2039,14 @@ export class StudentForm implements OnInit {
       data.tipoAlcanceProyectoVinculacion = formValue.tipoAlcanceProyectoVinculacionId;
     }
     
-    // Eliminar provinciaNacimientoId solo si es undefined (cuando país es Ecuador pero no se seleccionó provincia)
-    // Si el país no es Ecuador, ya se estableció como 'NA' y debe enviarse
-    if (data.provinciaNacimientoId === undefined || data.provinciaNacimientoId === '') {
+    // Eliminar provinciaNacimientoId si es undefined (cuando país no es Ecuador o cuando país es Ecuador pero no se seleccionó provincia)
+    // Las provincias son opcionales (Provincia?) en el schema, así que undefined se guardará como null en la DB
+    if (data.provinciaNacimientoId === undefined || data.provinciaNacimientoId === '' || data.provinciaNacimientoId === 'NA') {
       delete data.provinciaNacimientoId;
     }
 
-    // provinciaResidenciaId: Si el país no es Ecuador, no enviar (es opcional, backend usará 'NA' por defecto)
-    // Solo eliminar si es undefined (cuando país es Ecuador pero no se seleccionó provincia, o cuando país no es Ecuador)
+    // Eliminar provinciaResidenciaId si es undefined (cuando país no es Ecuador o cuando país es Ecuador pero no se seleccionó provincia)
+    // Las provincias son opcionales (Provincia?) en el schema, así que undefined se guardará como null en la DB
     if (data.provinciaResidenciaId === undefined || data.provinciaResidenciaId === '' || data.provinciaResidenciaId === 'NA') {
       delete data.provinciaResidenciaId;
     }
