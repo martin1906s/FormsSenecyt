@@ -20,8 +20,6 @@ export class StudentForm implements OnInit {
   isSubmitting = false;
   submitMessage = '';
   submitError = false;
-  selectedImageFile: File | null = null;
-  imagePreview: string | null = null;
 
   // Propiedades para autocompletado de países, provincias y cantones
   filteredPaisesNacionalidad: string[] = [];
@@ -63,7 +61,7 @@ export class StudentForm implements OnInit {
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: '🎁', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
     { id: 'vinculacionSocial', title: 'Vinculación Social', icon: '🤝', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
     { id: 'contacto', title: 'Contacto', icon: '📧', fields: ['correoElectronico', 'numeroCelular'] },
-    { id: 'datosHogar', title: 'Datos del Hogar', icon: '🏠', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar', 'direccionDomiciliariaExacta', 'imagenDireccionDomiciliaria'] }
+    { id: 'datosHogar', title: 'Datos del Hogar', icon: '🏠', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
   ];
   
   collapsedSections: { [key: string]: boolean } = {
@@ -915,9 +913,9 @@ export class StudentForm implements OnInit {
         provinciaNacimiento?.enable({ emitEvent: false });
         cantonNacimiento?.enable({ emitEvent: false });
       } else {
-        // Si el país no es Ecuador, deshabilitar y limpiar valores
-        provinciaNacimiento?.setValue('', { emitEvent: false });
-        cantonNacimiento?.setValue('', { emitEvent: false });
+        // Si el país no es Ecuador, deshabilitar y establecer valores como NA
+        provinciaNacimiento?.setValue('NA', { emitEvent: false });
+        cantonNacimiento?.setValue('NA', { emitEvent: false });
         provinciaNacimiento?.disable({ emitEvent: false });
         cantonNacimiento?.disable({ emitEvent: false });
         provinciaNacimiento?.clearValidators();
@@ -952,9 +950,9 @@ export class StudentForm implements OnInit {
         provinciaResidencia?.setValidators([Validators.required]);
         cantonResidencia?.setValidators([Validators.required]);
       } else {
-        // Si el país no es Ecuador, deshabilitar y limpiar valores
-        provinciaResidencia?.setValue('', { emitEvent: false });
-        cantonResidencia?.setValue('', { emitEvent: false });
+        // Si el país no es Ecuador, deshabilitar y establecer valores como NA
+        provinciaResidencia?.setValue('NA', { emitEvent: false });
+        cantonResidencia?.setValue('NA', { emitEvent: false });
         provinciaResidencia?.disable({ emitEvent: false });
         cantonResidencia?.disable({ emitEvent: false });
         provinciaResidencia?.clearValidators();
@@ -1510,11 +1508,6 @@ export class StudentForm implements OnInit {
       // 63. cantidadMiembrosHogar (Entero 2)
       cantidadMiembrosHogar: ['', [Validators.required, StudentForm.integer2Validator()]],
 
-      // 64. direccionDomiciliariaExacta (String, obligatorio)
-      direccionDomiciliariaExacta: ['', [Validators.required]],
-
-      // 65. imagenDireccionDomiciliaria (File, opcional)
-      imagenDireccionDomiciliaria: [null],
 
       // CAMPOS ADICIONALES (sin validaciones estrictas por ahora)
       fechaExpedicion: [''],
@@ -1621,36 +1614,40 @@ export class StudentForm implements OnInit {
         cantidadMiembrosHogar: { valor: formData.cantidadMiembrosHogar, tipo: typeof formData.cantidadMiembrosHogar }
       });
       
-      // Si hay una imagen, usar FormData, sino enviar JSON normal
-      if (this.selectedImageFile) {
-        const formDataToSend = new FormData();
-        Object.keys(formData).forEach(key => {
-          if (key !== 'imagenDireccionDomiciliaria') {
-            const value = formData[key];
-            if (value !== null && value !== undefined) {
-              // Para campos numéricos, convertir explícitamente a string numérico válido
-              if (key === 'duracionPeriodoAcademico') {
-                // Ya está validado arriba, asegurar que sea un número válido
-                const numValue = typeof value === 'number' ? value : Number(value);
-                formDataToSend.append(key, (!isNaN(numValue) && numValue >= 1 ? numValue : 1).toString());
-              } else if (key === 'cantidadMiembrosHogar') {
-                // Ya está validado arriba, asegurar que sea un número válido
-                const numValue = typeof value === 'number' ? value : Number(value);
-                formDataToSend.append(key, (!isNaN(numValue) && numValue >= 1 ? Math.floor(numValue) : 1).toString());
-              } else if (typeof value === 'string') {
-                formDataToSend.append(key, value);
-              } else if (typeof value === 'number') {
-                formDataToSend.append(key, value.toString());
-              } else if (typeof value === 'boolean') {
-                formDataToSend.append(key, value.toString());
-              } else {
-                formDataToSend.append(key, JSON.stringify(value));
-              }
-            }
-          }
-        });
-        formDataToSend.append('imagenDireccionDomiciliaria', this.selectedImageFile);
-        this.estudianteService.createEstudianteWithFile(formDataToSend)
+      // Asegurar que los valores numéricos sean realmente números (no strings) cuando se envía JSON
+      // Crear una copia del objeto para evitar mutar el original
+      const jsonData = { ...formData };
+      
+      // Convertir explícitamente los campos numéricos a números
+      if (jsonData.duracionPeriodoAcademico !== undefined && jsonData.duracionPeriodoAcademico !== null) {
+        jsonData.duracionPeriodoAcademico = Number(jsonData.duracionPeriodoAcademico);
+        if (isNaN(jsonData.duracionPeriodoAcademico) || jsonData.duracionPeriodoAcademico < 1) {
+          jsonData.duracionPeriodoAcademico = 1;
+        }
+      }
+      
+      if (jsonData.cantidadMiembrosHogar !== undefined && jsonData.cantidadMiembrosHogar !== null) {
+        jsonData.cantidadMiembrosHogar = Math.floor(Number(jsonData.cantidadMiembrosHogar));
+        if (isNaN(jsonData.cantidadMiembrosHogar) || jsonData.cantidadMiembrosHogar < 1) {
+          jsonData.cantidadMiembrosHogar = 1;
+        }
+      }
+      
+      // Log final para verificar
+      console.log('Enviando JSON - Tipos finales:', {
+        duracionPeriodoAcademico: { 
+          valor: jsonData.duracionPeriodoAcademico, 
+          tipo: typeof jsonData.duracionPeriodoAcademico,
+          esNumber: typeof jsonData.duracionPeriodoAcademico === 'number'
+        },
+        cantidadMiembrosHogar: { 
+          valor: jsonData.cantidadMiembrosHogar, 
+          tipo: typeof jsonData.cantidadMiembrosHogar,
+          esNumber: typeof jsonData.cantidadMiembrosHogar === 'number'
+        }
+      });
+      
+      this.estudianteService.createEstudiante(jsonData)
           .pipe(
             finalize(() => {
               console.log('Finalizando petición, desactivando isSubmitting');
@@ -1667,97 +1664,6 @@ export class StudentForm implements OnInit {
               this.clearSavedData();
               this.studentForm.reset();
               this.currentStep = 0;
-              this.selectedImageFile = null;
-              this.imagePreview = null;
-              this.paisNacionalidadSearch = '';
-              this.paisResidenciaSearch = '';
-              this.provinciaNacimientoSearch = '';
-              this.cantonNacimientoSearch = '';
-              this.provinciaResidenciaSearch = '';
-              this.cantonResidenciaSearch = '';
-              this.cdr.detectChanges();
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }, 100);
-              setTimeout(() => {
-                this.submitMessage = '';
-                this.cdr.detectChanges();
-              }, 8000);
-            },
-            error: (error: any) => {
-              console.error('Error al crear estudiante:', error);
-              this.isSubmitting = false;
-              this.submitError = true;
-              if (error.error && typeof error.error === 'object') {
-                this.submitMessage = `Error: ${JSON.stringify(error.error)}`;
-              } else if (error.error && typeof error.error === 'string') {
-                this.submitMessage = `Error: ${error.error}`;
-              } else if (error.message) {
-                this.submitMessage = `Error: ${error.message}`;
-              } else {
-                this.submitMessage = 'Error al registrar el estudiante. Por favor, intenta nuevamente.';
-              }
-              this.cdr.detectChanges();
-              setTimeout(() => {
-                this.submitMessage = '';
-                this.submitError = false;
-                this.cdr.detectChanges();
-              }, 10000);
-            }
-          });
-      } else {
-        // Asegurar que los valores numéricos sean realmente números (no strings) cuando se envía JSON
-        // Crear una copia del objeto para evitar mutar el original
-        const jsonData = { ...formData };
-        
-        // Convertir explícitamente los campos numéricos a números
-        if (jsonData.duracionPeriodoAcademico !== undefined && jsonData.duracionPeriodoAcademico !== null) {
-          jsonData.duracionPeriodoAcademico = Number(jsonData.duracionPeriodoAcademico);
-          if (isNaN(jsonData.duracionPeriodoAcademico) || jsonData.duracionPeriodoAcademico < 1) {
-            jsonData.duracionPeriodoAcademico = 1;
-          }
-        }
-        
-        if (jsonData.cantidadMiembrosHogar !== undefined && jsonData.cantidadMiembrosHogar !== null) {
-          jsonData.cantidadMiembrosHogar = Math.floor(Number(jsonData.cantidadMiembrosHogar));
-          if (isNaN(jsonData.cantidadMiembrosHogar) || jsonData.cantidadMiembrosHogar < 1) {
-            jsonData.cantidadMiembrosHogar = 1;
-          }
-        }
-        
-        // Log final para verificar
-        console.log('Enviando JSON - Tipos finales:', {
-          duracionPeriodoAcademico: { 
-            valor: jsonData.duracionPeriodoAcademico, 
-            tipo: typeof jsonData.duracionPeriodoAcademico,
-            esNumber: typeof jsonData.duracionPeriodoAcademico === 'number'
-          },
-          cantidadMiembrosHogar: { 
-            valor: jsonData.cantidadMiembrosHogar, 
-            tipo: typeof jsonData.cantidadMiembrosHogar,
-            esNumber: typeof jsonData.cantidadMiembrosHogar === 'number'
-          }
-        });
-        
-        this.estudianteService.createEstudiante(jsonData)
-          .pipe(
-            finalize(() => {
-              console.log('Finalizando petición, desactivando isSubmitting');
-              this.isSubmitting = false;
-              this.cdr.detectChanges();
-            })
-          )
-          .subscribe({
-            next: (response: any) => {
-              console.log('Estudiante creado exitosamente:', response);
-              this.isSubmitting = false;
-              this.submitError = false;
-              this.submitMessage = ' ¡Estudiante registrado exitosamente!';
-              this.clearSavedData();
-              this.studentForm.reset();
-              this.currentStep = 0;
-              this.selectedImageFile = null;
-              this.imagePreview = null;
               this.paisNacionalidadSearch = '';
               this.paisResidenciaSearch = '';
               this.provinciaNacimientoSearch = '';
@@ -1803,7 +1709,6 @@ export class StudentForm implements OnInit {
               }, timeout);
             }
           });
-      }
     } else {
       console.log('Formulario inválido');
       this.markFormGroupTouched(this.studentForm);
@@ -1883,8 +1788,6 @@ export class StudentForm implements OnInit {
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
       cantidadMiembrosHogar: 'Cantidad Miembros Hogar',
-      direccionDomiciliariaExacta: 'Dirección Domiciliaria Exacta',
-      imagenDireccionDomiciliaria: 'Imagen Dirección Domiciliaria'
     };
 
     Object.keys(this.studentForm.controls).forEach(key => {
@@ -2037,11 +1940,20 @@ export class StudentForm implements OnInit {
       
       // Campos de ubicación
       paisNacionalidadId: formValue.paisNacionalidadId || '',
-      provinciaNacimientoId: formValue.provinciaNacimientoId || undefined,
+      // Provincia y cantón de nacimiento: 
+      // Si país != ECUADOR, ya está establecido como 'NA' en la lógica condicional
+      // Si país == ECUADOR, usar el valor del formulario o undefined si está vacío
+      provinciaNacimientoId: formValue.paisNacionalidadId === 'ECUADOR'
+        ? (formValue.provinciaNacimientoId || undefined)
+        : 'NA',
       cantonNacimientoId: formValue.cantonNacimientoId || 'NA',
       paisResidenciaId: formValue.paisResidenciaId || '',
-      // provinciaResidenciaId es requerido, solo enviar si tiene valor válido
-      provinciaResidenciaId: formValue.provinciaResidenciaId || undefined,
+      // Provincia y cantón de residencia:
+      // Si país != ECUADOR, no enviar provinciaResidenciaId (es opcional, el backend usará 'NA' por defecto)
+      // Si país == ECUADOR, usar el valor del formulario o undefined si está vacío
+      provinciaResidenciaId: formValue.paisResidenciaId === 'ECUADOR'
+        ? (formValue.provinciaResidenciaId || undefined)
+        : undefined,
       cantonResidenciaId: formValue.cantonResidenciaId || 'NA',
       
       // Campos académicos - convertir a enum si es necesario
@@ -2098,8 +2010,6 @@ export class StudentForm implements OnInit {
       ingresoTotalHogar: formValue.ingresoTotalHogar || 'NA',
       cantidadMiembrosHogar: this.parseInt(formValue.cantidadMiembrosHogar, 1),
       
-      // Campos de dirección domiciliaria
-      direccionDomiciliariaExacta: formValue.direccionDomiciliariaExacta || 'NA',
     };
     
     // Campos opcionales - solo agregar si tienen valor
@@ -2110,14 +2020,15 @@ export class StudentForm implements OnInit {
       data.tipoAlcanceProyectoVinculacion = formValue.tipoAlcanceProyectoVinculacionId;
     }
     
-    // Eliminar provinciaNacimientoId si es undefined para que no se envíe (es opcional)
+    // Eliminar provinciaNacimientoId solo si es undefined (cuando país es Ecuador pero no se seleccionó provincia)
+    // Si el país no es Ecuador, ya se estableció como 'NA' y debe enviarse
     if (data.provinciaNacimientoId === undefined || data.provinciaNacimientoId === '') {
       delete data.provinciaNacimientoId;
     }
 
-    // provinciaResidenciaId es requerido según el DTO
-    // Si está undefined, null o vacío, no enviarlo (el backend validará)
-    if (data.provinciaResidenciaId === undefined || data.provinciaResidenciaId === null || data.provinciaResidenciaId === '') {
+    // provinciaResidenciaId: Si el país no es Ecuador, no enviar (es opcional, backend usará 'NA' por defecto)
+    // Solo eliminar si es undefined (cuando país es Ecuador pero no se seleccionó provincia, o cuando país no es Ecuador)
+    if (data.provinciaResidenciaId === undefined || data.provinciaResidenciaId === '' || data.provinciaResidenciaId === 'NA') {
       delete data.provinciaResidenciaId;
     }
 
@@ -2139,7 +2050,6 @@ export class StudentForm implements OnInit {
       'montoAyudaEconomica', 'montoCreditoEducativo',
       'participaEnProyectoVinculacionSociedad', 'correoElectronico', 'numeroCelular',
       'nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar',
-      'direccionDomiciliariaExacta'
     ];
 
     // Verificar campos requeridos que están vacíos
@@ -2386,8 +2296,6 @@ export class StudentForm implements OnInit {
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
       cantidadMiembrosHogar: 'Cantidad Miembros Hogar',
-      direccionDomiciliariaExacta: 'Dirección Domiciliaria Exacta',
-      imagenDireccionDomiciliaria: 'Imagen Dirección Domiciliaria'
     };
 
     step.fields.forEach(fieldName => {
@@ -2491,47 +2399,4 @@ export class StudentForm implements OnInit {
     }
   }
 
-  onImageSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      // Validar tipo de archivo
-      if (!file.type.match(/image\/(jpg|jpeg|png|gif|webp)/)) {
-        this.submitError = true;
-        this.submitMessage = 'Por favor, selecciona una imagen válida (JPG, JPEG, PNG, GIF o WEBP).';
-        setTimeout(() => {
-          this.submitMessage = '';
-          this.submitError = false;
-        }, 5000);
-        return;
-      }
-      
-      // Validar tamaño (5MB máximo)
-      if (file.size > 5 * 1024 * 1024) {
-        this.submitError = true;
-        this.submitMessage = 'La imagen no debe exceder 5MB.';
-        setTimeout(() => {
-          this.submitMessage = '';
-          this.submitError = false;
-        }, 5000);
-        return;
-      }
-
-      this.selectedImageFile = file;
-      
-      // Crear preview
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagePreview = e.target.result;
-        this.cdr.detectChanges();
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  removeImage(): void {
-    this.selectedImageFile = null;
-    this.imagePreview = null;
-    this.studentForm.get('imagenDireccionDomiciliaria')?.setValue(null);
-    this.cdr.detectChanges();
-  }
 }

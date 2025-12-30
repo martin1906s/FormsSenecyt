@@ -1325,40 +1325,6 @@
               <small class="hint">Entero de 2 dígitos (1-99)</small>
             </div>
 
-            <div class="form-group">
-              <label>Dirección Domiciliaria Exacta <span class="required">*</span></label>
-              <textarea
-                formControlName="direccionDomiciliariaExacta"
-                class="form-control"
-                rows="3"
-                [class.error]="hasError('direccionDomiciliariaExacta')"
-                placeholder="Ingrese la dirección completa de su domicilio"
-              ></textarea>
-              <small class="error-message" *ngIf="hasError('direccionDomiciliariaExacta')">
-                {{ getErrorMessage('direccionDomiciliariaExacta') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Imagen de Dirección Domiciliaria</label>
-              <input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                (change)="onImageSelected($event)"
-                class="form-control"
-                style="padding: 8px;"
-              />
-              <small class="hint">Formatos permitidos: JPG, JPEG, PNG, GIF, WEBP. Tamaño máximo: 5MB</small>
-              
-              @if (imagePreview) {
-                <div style="margin-top: 15px;">
-                  <img [src]="imagePreview" alt="Vista previa" style="max-width: 100%; max-height: 300px; border-radius: 8px; border: 2px solid #f3f4f6;" />
-                  <button type="button" (click)="removeImage()" style="margin-top: 10px; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                    Eliminar Imagen
-                  </button>
-                </div>
-              }
-            </div>
           </div>
         </div>
       }
