@@ -150,7 +150,7 @@ Content-Type: application/json
 }
 ```
 
-## Ejemplo con Etnia = INDIGENA (requiere puebloNacionalidad)
+## Ejemplo con Etnia = INDÍGENA (requiere puebloNacionalidad)
 
 ```json
 {
@@ -163,7 +163,7 @@ Content-Type: application/json
   "sexo": "HOMBRE",
   "genero": "MASCULINO",
   "estadoCivil": "SOLTERO",
-  "etnia": "INDIGENA",
+  "etnia": "INDÍGENA",
   "puebloNacionalidad": "KICHWA",
   "tipoSangre": "O_POSITIVO",
   "discapacidad": "NO",
@@ -241,7 +241,7 @@ Content-Type: application/json
 - `VIUDO`
 
 ### etnia
-- `INDIGENA`
+- `INDÍGENA`
 - `AFROECUATORIANO`
 - `NEGRO`
 - `MULATO`
@@ -252,7 +252,7 @@ Content-Type: application/json
 - `NO_REGISTRA`
 
 ### puebloNacionalidad
-- Solo requerido si `etnia = "INDIGENA"`
+- Solo requerido si `etnia = "INDÍGENA"`
 - Valores: `KICHWA`, `CHACHI`, `ACHUAR`, `SECOYA`, `SHIWIAR`, `SHUAR`, `WAORANI`, `MANTA`, `PALTA`, `CHIBULEO`, `KARANKI`, `KAYAMPI`, `KISAPINCHA`, `KITU_KARA`, `NATABUELA`, `OTAVALO`, `PANZALEO`, `SALASACA`, `SARAGURO`, `TOMABELA`, `WARANKA`, `QUIJOS`, `PASTO`, `NO_APLICA`
 
 ### tipoSangre
@@ -327,5 +327,5 @@ Content-Type: application/json
 
 5. **provinciaNacimientoId** es opcional y solo se envía si el país de nacionalidad es Ecuador
 
-6. **puebloNacionalidad** debe ser `"NO_APLICA"` si la etnia no es `"INDIGENA"`, y un valor específico si es `"INDIGENA"`
+6. **puebloNacionalidad** debe ser `"NO_APLICA"` si la etnia no es `"INDÍGENA"`, y un valor específico si es `"INDÍGENA"`
 

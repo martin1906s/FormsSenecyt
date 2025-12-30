@@ -180,3 +180,4 @@ Cuando tengas tu dominio, actualiza en `index.html`:
 <meta name="twitter:image" content="https://tu-dominio-real.com/assets/twitter-image.jpg">
 ```
 
+

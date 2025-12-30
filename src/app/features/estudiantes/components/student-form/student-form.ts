@@ -343,7 +343,7 @@ export class StudentForm implements OnInit {
     
     // Controles que dependen de pueblonacionalidadId
     if (controlName === 'pueblonacionalidadId') {
-      return formValue.etniaId !== 'INDIGENA';
+      return formValue.etniaId !== 'INDÍGENA';
     }
     
     return false;
@@ -878,10 +878,10 @@ export class StudentForm implements OnInit {
     });
 
     // Validación condicional para pueblonacionalidadId
-    // Solo se habilita si etniaId = "INDIGENA", si no se establece automáticamente "NO_APLICA"
+    // Solo se habilita si etniaId = "INDÍGENA", si no se establece automáticamente "NO_APLICA"
     this.studentForm.get('etniaId')?.valueChanges.subscribe((value: any) => {
       const pueblo = this.studentForm.get('pueblonacionalidadId');
-      if (value === 'INDIGENA') {
+      if (value === 'INDÍGENA') {
         // Si es indígena, habilitar el campo y requerir selección
         pueblo?.enable({ emitEvent: false });
         pueblo?.setValidators([Validators.required]);
@@ -1255,7 +1255,7 @@ export class StudentForm implements OnInit {
       // 10. etniaId (Enum, obligatorio)
       etniaId: ['', [Validators.required]],
 
-      // 11. pueblonacionalidadId (Enum, obligatorio SOLO si etniaId = "INDIGENA", si no "NO_APLICA")
+      // 11. pueblonacionalidadId (Enum, obligatorio SOLO si etniaId = "INDÍGENA", si no "NO_APLICA")
       pueblonacionalidadId: [{ value: '', disabled: false }],
 
       // 12. tipoSangre (Enum, obligatorio)

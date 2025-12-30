@@ -253,7 +253,7 @@
             <div class="form-group">
               <label>
                 Pueblo Nacionalidad
-                <span class="required" *ngIf="studentForm.get('etniaId')?.value === 'INDIGENA'">*</span>
+                <span class="required" *ngIf="studentForm.get('etniaId')?.value === 'INDÍGENA'">*</span>
               </label>
               <div class="select-wrapper">
                 <select formControlName="pueblonacionalidadId" class="form-control select-enhanced" [class.error]="hasError('pueblonacionalidadId')">
@@ -268,7 +268,7 @@
               <small class="error-message" *ngIf="hasError('pueblonacionalidadId')">
                 {{ getErrorMessage('pueblonacionalidadId') }}
               </small>
-              <small class="hint" *ngIf="studentForm.get('etniaId')?.value !== 'INDIGENA'">
+              <small class="hint" *ngIf="studentForm.get('etniaId')?.value !== 'INDÍGENA'">
                 Se establece automáticamente como "NO_APLICA"
               </small>
             </div>
