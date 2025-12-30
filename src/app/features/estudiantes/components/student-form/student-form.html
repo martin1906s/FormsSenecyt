@@ -45,17 +45,6 @@
       <span class="message-text">{{ submitMessage }}</span>
     </div>
 
-    <!-- Botón de datos de prueba -->
-    <div class="test-button-container" style="text-align: center; margin: 10px 0;">
-      <button 
-        type="button" 
-        class="btn btn-test" 
-        (click)="fillTestData()"
-        style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;"
-      >
-        🧪 Cargar Datos de Prueba
-      </button>
-    </div>
 
     <!-- Indicador de carga de enums -->
     <div *ngIf="isLoadingEnums" class="loading-enums">
