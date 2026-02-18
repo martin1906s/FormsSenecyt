@@ -360,8 +360,12 @@ export class StudentForm implements OnInit {
     this.estudianteService.getEstudianteByCedula(tipo, num).subscribe({
       next: (estudiante: any) => {
         this.isSearchingByCedula = false;
-        this.patchFormFromEstudiante(estudiante);
-        this.cedulaSearchMessage = 'Datos cargados. Puede editar y guardar.';
+        if (estudiante != null) {
+          this.patchFormFromEstudiante(estudiante);
+          this.cedulaSearchMessage = 'Datos cargados. Puede editar y guardar.';
+        } else {
+          this.cedulaSearchMessage = 'No hay registro. Complete todos los campos del formulario.';
+        }
         this.cdr.detectChanges();
         setTimeout(() => {
           this.cedulaSearchMessage = '';
@@ -370,15 +374,11 @@ export class StudentForm implements OnInit {
       },
       error: (err: any) => {
         this.isSearchingByCedula = false;
-        if (err?.status === 404) {
+        this.cedulaSearchMessage = err?.error?.message || err?.message || 'Error al buscar.';
+        setTimeout(() => {
           this.cedulaSearchMessage = '';
-        } else {
-          this.cedulaSearchMessage = err?.error?.message || err?.message || 'Error al buscar.';
-          setTimeout(() => {
-            this.cedulaSearchMessage = '';
-            this.cdr.detectChanges();
-          }, 3000);
-        }
+          this.cdr.detectChanges();
+        }, 3000);
         this.cdr.detectChanges();
       },
     });
@@ -3287,29 +3287,18 @@ export class StudentForm implements OnInit {
           next: (estudiante: any) => {
             this.isSearchingByCedula = false;
             this.cedulaSearchMessage = '';
-            this.patchFormFromEstudiante(estudiante);
+            if (estudiante != null) {
+              this.patchFormFromEstudiante(estudiante);
+            }
             this.cdr.detectChanges();
             this.doGuardarPasoYAvanzar();
           },
           error: (err: any) => {
             this.isSearchingByCedula = false;
             this.cedulaSearchMessage = '';
-            this.cdr.detectChanges();
-            if (err?.status === 404) {
-              this.submitError = true;
-              this.submitMessage = 'No hay registro con esta cédula. Complete todos los campos del formulario para registrarse.';
-              this.cdr.detectChanges();
-              setTimeout(() => {
-                this.submitMessage = '';
-                this.submitError = false;
-                this.cdr.detectChanges();
-              }, 5000);
-              return;
-            }
             this.submitError = true;
             this.submitMessage = err?.error?.message || err?.message || 'Error al buscar.';
             this.cdr.detectChanges();
-            return;
           },
         });
         return;
