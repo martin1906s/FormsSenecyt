@@ -4,7 +4,7 @@ Este documento muestra el formato exacto del JSON que debes enviar en el POST al
 
 ## Endpoint
 ```
-POST http://localhost:3000/estudiantes
+POST https://backendformsenecyt.onrender.com/estudiantes
 Content-Type: application/json
 ```
 

@@ -1,4 +1,44 @@
-/* You can add global styles to this file, and also import other style files */
-body{
-    background-color: #000000;
+/* Movilis design system - same as movilis-landing */
+:root {
+  --brand-purple: #881e80;
+  --brand-purple-dark: #6b1866;
+  --brand-purple-deep: #4d1149;
+  --brand-yellow: #f9eb1d;
+  --brand-yellow-dark: #e6d91a;
+  --bg: #881e80;
+  --bg-alt: #6b1866;
+  --bg-card: #4d1149;
+  --surface: #5a1555;
+  --text: #ffffff;
+  --text-soft: #f5f0f5;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 3px solid var(--brand-yellow);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

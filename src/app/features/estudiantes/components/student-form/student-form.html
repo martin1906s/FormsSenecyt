@@ -12,27 +12,40 @@
   </header>
 
   <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="student-form">
-    <!-- Barra de progreso -->
+    <!-- Barra de progreso y stepper -->
     <div class="progress-container">
+      <div class="progress-header">
+        <span class="progress-text">{{ getProgress() | number:'1.0-0' }}% completado</span>
+        <span class="progress-step-label">Paso {{ currentStep + 1 }} de {{ totalSteps }}</span>
+      </div>
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="getProgress()"></div>
       </div>
-      <div class="progress-text">{{ getProgress() | number:'1.0-0' }}% completado - Paso {{ currentStep + 1 }} de {{ totalSteps }}</div>
-      
-      <!-- Indicadores de pasos -->
-      <div class="steps-indicator">
-        @for (step of steps; track step.id; let i = $index) {
-          <div 
-            class="step-indicator" 
-            [class.active]="i === currentStep"
-            [class.completed]="i < currentStep && isStepValid(i)"
-            [class.invalid]="i < currentStep && !isStepValid(i)"
+      <!-- Stepper horizontal: círculos conectados -->
+      <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario">
+        @for (step of steps; track step.id; let i = $index; let last = $last) {
+          <div
+            class="step-item"
+            [class.step-active]="i === currentStep"
+            [class.step-done]="i < currentStep && isStepValid(i)"
+            [class.step-invalid]="i < currentStep && !isStepValid(i)"
             (click)="goToStep(i)"
-            [title]="step.title"
+            [attr.aria-current]="i === currentStep ? 'step' : null"
+            [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
           >
-            <span class="step-number">{{ i + 1 }}</span>
-            <span class="step-icon">{{ step.icon }}</span>
-            <span class="step-title">{{ step.title }}</span>
+            <div class="step-dot-row">
+              @if (i > 0) {
+                <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
+              }
+              <button type="button" class="step-dot" [title]="step.title">
+                @if (i < currentStep && isStepValid(i)) {
+                  <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else {
+                  <span class="step-dot-num">{{ i + 1 }}</span>
+                }
+              </button>
+            </div>
+            <span class="step-label">{{ step.title }}</span>
           </div>
         }
       </div>
@@ -40,8 +53,13 @@
 
     <!-- Mensajes de estado -->
     <div *ngIf="submitMessage" class="submit-message" [class.success]="!submitError" [class.error]="submitError">
-      <span *ngIf="submitError">⚠️</span>
-      <span *ngIf="!submitError"></span>
+      @if (submitError) {
+        <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          <path d="M12 9v4"></path>
+          <path d="M12 17h.01"></path>
+        </svg>
+      }
       <span class="message-text">{{ submitMessage }}</span>
     </div>
 
@@ -58,7 +76,7 @@
       @if (currentStep === 0) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">📋</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg></span>
             Identificación
           </h2>
           <div class="form-grid">
@@ -67,7 +85,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoDocumentoId" class="form-control select-enhanced" [class.error]="hasError('tipoDocumentoId')">
                   <option value="">Seleccione un tipo de documento</option>
-                  @if (enums?.TipoDocumento) {
+                  @if (enums.TipoDocumento) {
                     @for (item of enums.TipoDocumento; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -87,11 +105,18 @@
                 class="form-control"
                 [class.error]="hasError('numeroIdentificacion')"
                 placeholder="Ingrese su número de identificación"
+                (blur)="buscarPorCedula()"
               />
               <small class="error-message" *ngIf="hasError('numeroIdentificacion')">
                 {{ getErrorMessage('numeroIdentificacion') }}
               </small>
-              <small class="hint">10 dígitos para cédula, 9 caracteres para pasaporte</small>
+              <small class="hint">10 dígitos para cédula, 9 caracteres para pasaporte. Si ya está registrado, al salir del campo se cargarán sus datos.</small>
+              @if (isSearchingByCedula) {
+                <small class="hint" style="color: var(--brand-yellow);">Buscando...</small>
+              }
+              @if (cedulaSearchMessage && !isSearchingByCedula) {
+                <small class="hint" [style.color]="cedulaSearchMessage.startsWith('Datos') ? 'var(--brand-yellow)' : '#fca5a5'">{{ cedulaSearchMessage }}</small>
+              }
             </div>
 
             <div class="form-group">
@@ -114,7 +139,7 @@
       @if (currentStep === 1) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">👤</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             Datos Personales
           </h2>
           <div class="form-grid">
@@ -187,7 +212,7 @@
               <div class="select-wrapper">
                 <select formControlName="sexoId" class="form-control select-enhanced" [class.error]="hasError('sexoId')" >
                   <option value="">Seleccione el sexo</option>
-                  @if (enums?.Sexo) {
+                  @if (enums.Sexo) {
                     @for (item of enums.Sexo; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -204,7 +229,7 @@
               <div class="select-wrapper">
                 <select formControlName="generoId" class="form-control select-enhanced" [class.error]="hasError('generoId')" >
                   <option value="">Seleccione el género</option>
-                  @if (enums?.Genero) {
+                  @if (enums.Genero) {
                     @for (item of enums.Genero; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -221,7 +246,7 @@
               <div class="select-wrapper">
                 <select formControlName="estadocivilId" class="form-control select-enhanced" [class.error]="hasError('estadocivilId')" >
                   <option value="">Seleccione el estado civil</option>
-                  @if (enums?.EstadoCivil) {
+                  @if (enums.EstadoCivil) {
                     @for (item of enums.EstadoCivil; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -238,7 +263,7 @@
               <div class="select-wrapper">
                 <select formControlName="etniaId" class="form-control select-enhanced" [class.error]="hasError('etniaId')" >
                   <option value="">Seleccione la etnia</option>
-                  @if (enums?.Etnia) {
+                  @if (enums.Etnia) {
                     @for (item of enums.Etnia; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -258,7 +283,7 @@
               <div class="select-wrapper">
                 <select formControlName="pueblonacionalidadId" class="form-control select-enhanced" [class.error]="hasError('pueblonacionalidadId')">
                   <option value="">Seleccione el pueblo nacionalidad</option>
-                  @if (enums?.PuebloNacionalidad) {
+                  @if (enums.PuebloNacionalidad) {
                     @for (item of enums.PuebloNacionalidad; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -278,7 +303,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoSangre" class="form-control select-enhanced" [class.error]="hasError('tipoSangre')" >
                   <option value="">Seleccione el tipo de sangre</option>
-                  @if (enums?.TipoSangre) {
+                  @if (enums.TipoSangre) {
                     @for (item of enums.TipoSangre; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -297,7 +322,7 @@
       @if (currentStep === 2) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">♿</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg></span>
             Discapacidad
           </h2>
           <div class="form-grid">
@@ -306,7 +331,7 @@
               <div class="select-wrapper">
                 <select formControlName="discapacidad" class="form-control select-enhanced" [class.error]="hasError('discapacidad')" >
                   <option value="">Seleccione si tiene discapacidad</option>
-                  @if (enums?.Discapacidad) {
+                  @if (enums.Discapacidad) {
                     @for (item of enums.Discapacidad; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -360,7 +385,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoDiscapacidad" class="form-control select-enhanced" [class.error]="hasError('tipoDiscapacidad')">
                   <option value="">Seleccione el tipo de discapacidad</option>
-                  @if (enums?.TipoDiscapacidad) {
+                  @if (enums.TipoDiscapacidad) {
                     @for (item of enums.TipoDiscapacidad; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -371,6 +396,55 @@
                 {{ getErrorMessage('tipoDiscapacidad') }}
               </small>
             </div>
+
+            <div class="form-group">
+              <label>Alergias</label>
+              <input type="text" formControlName="alergias" class="form-control" [class.error]="hasError('alergias')" placeholder="Alergias o NA" />
+              <small class="error-message" *ngIf="hasError('alergias')">{{ getErrorMessage('alergias') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Medicamentos</label>
+              <input type="text" formControlName="medicamentos" class="form-control" [class.error]="hasError('medicamentos')" placeholder="Medicamentos o NA" />
+              <small class="error-message" *ngIf="hasError('medicamentos')">{{ getErrorMessage('medicamentos') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Referencia personal – Nombre</label>
+              <input type="text" formControlName="referenciaPersonalNombre" class="form-control" [class.error]="hasError('referenciaPersonalNombre')" placeholder="Nombre" />
+              <small class="error-message" *ngIf="hasError('referenciaPersonalNombre')">{{ getErrorMessage('referenciaPersonalNombre') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Referencia personal – Parentesco</label>
+              <input type="text" formControlName="referenciaPersonalParentesco" class="form-control" [class.error]="hasError('referenciaPersonalParentesco')" placeholder="Parentesco" />
+              <small class="error-message" *ngIf="hasError('referenciaPersonalParentesco')">{{ getErrorMessage('referenciaPersonalParentesco') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Referencia personal – Teléfono</label>
+              <input type="tel" formControlName="referenciaPersonalTelefono" class="form-control" [class.error]="hasError('referenciaPersonalTelefono')" placeholder="Teléfono" />
+              <small class="error-message" *ngIf="hasError('referenciaPersonalTelefono')">{{ getErrorMessage('referenciaPersonalTelefono') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Enfermedad catastrófica</label>
+              <input type="text" formControlName="enfermedadCatastrofica" class="form-control" [class.error]="hasError('enfermedadCatastrofica')" placeholder="Enfermedad catastrófica o NA" />
+              <small class="error-message" *ngIf="hasError('enfermedadCatastrofica')">{{ getErrorMessage('enfermedadCatastrofica') }}</small>
+            </div>
+            <div class="form-group">
+              <label>¿Presenta carnet de discapacidad?</label>
+              <select formControlName="presentaCarnetDiscapacidad" class="form-control" [class.error]="hasError('presentaCarnetDiscapacidad')">
+                <option value="">Seleccione</option>
+                <option value="SI">Sí</option>
+                <option value="NO">No</option>
+                <option value="NA">N/A</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>¿Presenta algún tipo de alergia importante?</label>
+              <select formControlName="presentaAlergiaImportante" class="form-control" [class.error]="hasError('presentaAlergiaImportante')">
+                <option value="">Seleccione</option>
+                <option value="SI">Sí</option>
+                <option value="NO">No</option>
+                <option value="NA">N/A</option>
+              </select>
+            </div>
           </div>
         </div>
       }
@@ -379,7 +453,7 @@
       @if (currentStep === 3) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">🌍</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></span>
             Nacionalidad y Residencia
           </h2>
           <div class="form-grid">
@@ -564,7 +638,7 @@
       @if (currentStep === 4) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">🎓</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
             Información Académica
           </h2>
           <div class="form-grid">
@@ -573,7 +647,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoColegioId" class="form-control select-enhanced" [class.error]="hasError('tipoColegioId')" >
                   <option value="">Seleccione el tipo de colegio</option>
-                  @if (enums?.TipoColegio) {
+                  @if (enums.TipoColegio) {
                     @for (item of enums.TipoColegio; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -590,7 +664,7 @@
               <div class="select-wrapper">
                 <select formControlName="modalidadCarrera" class="form-control select-enhanced" [class.error]="hasError('modalidadCarrera')" >
                   <option value="">Seleccione la modalidad</option>
-                  @if (enums?.ModalidadCarrera) {
+                  @if (enums.ModalidadCarrera) {
                     @for (item of enums.ModalidadCarrera; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -607,7 +681,7 @@
               <div class="select-wrapper">
                 <select formControlName="jornadaCarrera" class="form-control select-enhanced" [class.error]="hasError('jornadaCarrera')" >
                   <option value="">Seleccione la jornada</option>
-                  @if (enums?.JornadaCarrera) {
+                  @if (enums.JornadaCarrera) {
                     @for (item of enums.JornadaCarrera; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -650,7 +724,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoMatriculaId" class="form-control select-enhanced" [class.error]="hasError('tipoMatriculaId')" >
                   <option value="">Seleccione el tipo de matrícula</option>
-                  @if (enums?.TipoMatricula) {
+                  @if (enums.TipoMatricula) {
                     @for (item of enums.TipoMatricula; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -682,7 +756,7 @@
               <div class="select-wrapper">
                 <select formControlName="nivelAcademicoQueCursa" class="form-control select-enhanced" [class.error]="hasError('nivelAcademicoQueCursa')" >
                   <option value="">Seleccione el nivel académico</option>
-                  @if (enums?.NivelAcademico) {
+                  @if (enums.NivelAcademico) {
                     @for (item of enums.NivelAcademico; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -699,7 +773,7 @@
               <div class="select-wrapper">
                 <select formControlName="haRepetidoAlMenosUnaMateria" class="form-control select-enhanced" [class.error]="hasError('haRepetidoAlMenosUnaMateria')" >
                   <option value="">Seleccione una opción</option>
-                  @if (enums?.HaRepetidoAlMenosUnaMateria) {
+                  @if (enums.HaRepetidoAlMenosUnaMateria) {
                     @for (item of enums.HaRepetidoAlMenosUnaMateria; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -716,7 +790,7 @@
               <div class="select-wrapper">
                 <select formControlName="paraleloId" class="form-control select-enhanced" [class.error]="hasError('paraleloId')" >
                   <option value="">Seleccione el paralelo</option>
-                  @if (enums?.Paralelo) {
+                  @if (enums.Paralelo) {
                     @for (item of enums.Paralelo; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -733,7 +807,7 @@
               <div class="select-wrapper">
                 <select formControlName="haPerdidoLaGratuidad" class="form-control select-enhanced" [class.error]="hasError('haPerdidoLaGratuidad')" >
                   <option value="">Seleccione una opción</option>
-                  @if (enums?.HaPerdidoLaGratuidad) {
+                  @if (enums.HaPerdidoLaGratuidad) {
                     @for (item of enums.HaPerdidoLaGratuidad; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -750,7 +824,7 @@
               <div class="select-wrapper">
                 <select formControlName="recibePensionDiferenciada" class="form-control select-enhanced" [class.error]="hasError('recibePensionDiferenciada')" >
                   <option value="">Seleccione una opción</option>
-                  @if (enums?.RecibePensionDiferenciada) {
+                  @if (enums.RecibePensionDiferenciada) {
                     @for (item of enums.RecibePensionDiferenciada; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -761,6 +835,60 @@
                 {{ getErrorMessage('recibePensionDiferenciada') }}
               </small>
             </div>
+
+            <div class="form-group">
+              <label>Carrera</label>
+              <select formControlName="carrera" class="form-control select-enhanced" [class.error]="hasError('carrera')">
+                <option value="">Seleccione carrera</option>
+                @for (opcion of carrerasOpciones; track opcion) {
+                  <option [value]="opcion">{{ opcion }}</option>
+                }
+              </select>
+              <small class="error-message" *ngIf="hasError('carrera')">{{ getErrorMessage('carrera') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Diseño curricular</label>
+              <input type="text" formControlName="disenoCurricular" class="form-control" [class.error]="hasError('disenoCurricular')" placeholder="Diseño curricular" />
+              <small class="error-message" *ngIf="hasError('disenoCurricular')">{{ getErrorMessage('disenoCurricular') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Período académico</label>
+              <input type="text" formControlName="periodoAcademico" class="form-control" [class.error]="hasError('periodoAcademico')" placeholder="Ej. 2024-2025" />
+              <small class="error-message" *ngIf="hasError('periodoAcademico')">{{ getErrorMessage('periodoAcademico') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Colegio del cual proviene</label>
+              <input type="text" formControlName="nombreColegioProcedencia" class="form-control" [class.error]="hasError('nombreColegioProcedencia')" placeholder="Nombre del colegio" />
+            </div>
+            <div class="form-group">
+              <label>Título de Bachiller</label>
+              <p class="field-hint">Sube una foto o PDF de tu título de bachiller.</p>
+              <input
+                type="file"
+                #tituloBachillerInput
+                accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                (change)="onTituloBachillerFileSelected($event)"
+                class="form-control"
+                [disabled]="tituloBachillerUploading"
+              />
+              @if (tituloBachillerUploading) {
+                <p class="upload-status">Subiendo archivo...</p>
+              }
+              @if (tituloBachillerError) {
+                <small class="error-message">{{ tituloBachillerError }}</small>
+              }
+              @if (studentForm.get('tituloBachiller')?.value && !tituloBachillerUploading) {
+                <div class="uploaded-file">
+                  <span>Documento subido:</span>
+                  <a [href]="studentForm.get('tituloBachiller')?.value" target="_blank" rel="noopener noreferrer">Ver documento</a>
+                  <button type="button" class="btn-link-remove" (click)="removeTituloBachiller(tituloBachillerInput)">Quitar</button>
+                </div>
+              }
+            </div>
+            <div class="form-group">
+              <label>Año de graduación</label>
+              <input type="text" formControlName="anioGraduacion" class="form-control" [class.error]="hasError('anioGraduacion')" placeholder="Ej. 2023" maxlength="4" />
+            </div>
           </div>
         </div>
       }
@@ -769,7 +897,7 @@
       @if (currentStep === 5) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">💰</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
             Información Económica
           </h2>
           <div class="form-grid">
@@ -778,7 +906,7 @@
               <div class="select-wrapper">
                 <select formControlName="estudianteocupacionId" class="form-control select-enhanced" [class.error]="hasError('estudianteocupacionId')" >
                   <option value="">Seleccione la ocupación</option>
-                  @if (enums?.EstudianteOcupacion) {
+                  @if (enums.EstudianteOcupacion) {
                     @for (item of enums.EstudianteOcupacion; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -795,7 +923,7 @@
               <div class="select-wrapper">
                 <select formControlName="ingresosestudianteId" class="form-control select-enhanced" [class.error]="hasError('ingresosestudianteId')" >
                   <option value="">Seleccione la empleación de ingresos</option>
-                  @if (enums?.IngresosEstudiante) {
+                  @if (enums.IngresosEstudiante) {
                     @for (item of enums.IngresosEstudiante; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -812,7 +940,7 @@
               <div class="select-wrapper">
                 <select formControlName="bonodesarrolloId" class="form-control select-enhanced" [class.error]="hasError('bonodesarrolloId')" >
                   <option value="">Seleccione si recibe bono</option>
-                  @if (enums?.BonoDesarrollo) {
+                  @if (enums.BonoDesarrollo) {
                     @for (item of enums.BonoDesarrollo; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -831,7 +959,7 @@
       @if (currentStep === 6) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">💼</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
             Prácticas Preprofesionales
           </h2>
           <div class="form-grid">
@@ -840,7 +968,7 @@
               <div class="select-wrapper">
                 <select formControlName="haRealizadoPracticasPreprofesionales" class="form-control select-enhanced" [class.error]="hasError('haRealizadoPracticasPreprofesionales')" >
                   <option value="">Seleccione una opción</option>
-                  @if (enums?.HaRealizadoPracticasPreprofesionales) {
+                  @if (enums.HaRealizadoPracticasPreprofesionales) {
                     @for (item of enums.HaRealizadoPracticasPreprofesionales; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -877,7 +1005,7 @@
               <div class="select-wrapper">
                 <select formControlName="entornoInstitucionalPracticasProfesionales" class="form-control select-enhanced" [class.error]="hasError('entornoInstitucionalPracticasProfesionales')">
                   <option value="">Seleccione el entorno</option>
-                  @if (enums?.EntornoInstitucionalPracticasProfesionales) {
+                  @if (enums.EntornoInstitucionalPracticasProfesionales) {
                     @for (item of enums.EntornoInstitucionalPracticasProfesionales; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -894,7 +1022,7 @@
               <div class="select-wrapper">
                 <select formControlName="sectorEconomicoPracticaProfesional" class="form-control select-enhanced" [class.error]="hasError('sectorEconomicoPracticaProfesional')">
                   <option value="">Seleccione el sector económico</option>
-                  @if (enums?.SectorEconomicoPracticaProfesional) {
+                  @if (enums.SectorEconomicoPracticaProfesional) {
                     @for (item of enums.SectorEconomicoPracticaProfesional; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -916,7 +1044,7 @@
       @if (currentStep === 7) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">🎁</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
             Becas y Ayudas
           </h2>
           <div class="form-grid">
@@ -925,7 +1053,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoBecaId" class="form-control select-enhanced" [class.error]="hasError('tipoBecaId')" >
                   <option value="">Seleccione el tipo de beca</option>
-                  @if (enums?.TipoBeca) {
+                  @if (enums.TipoBeca) {
                     @for (item of enums.TipoBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -942,7 +1070,7 @@
               <div class="select-wrapper">
                 <select formControlName="primeraRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('primeraRazonBecaId')">
                   <option value="">Seleccione la primera razón</option>
-                  @if (enums?.PrimeraRazonBeca) {
+                  @if (enums.PrimeraRazonBeca) {
                     @for (item of enums.PrimeraRazonBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -962,7 +1090,7 @@
               <div class="select-wrapper">
                 <select formControlName="segundaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('segundaRazonBecaId')">
                   <option value="">Seleccione la segunda razón</option>
-                  @if (enums?.SegundaRazonBeca) {
+                  @if (enums.SegundaRazonBeca) {
                     @for (item of enums.SegundaRazonBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -982,7 +1110,7 @@
               <div class="select-wrapper">
                 <select formControlName="terceraRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('terceraRazonBecaId')">
                   <option value="">Seleccione la tercera razón</option>
-                  @if (enums?.TerceraRazonBeca) {
+                  @if (enums.TerceraRazonBeca) {
                     @for (item of enums.TerceraRazonBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1002,7 +1130,7 @@
               <div class="select-wrapper">
                 <select formControlName="cuartaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('cuartaRazonBecaId')">
                   <option value="">Seleccione la cuarta razón</option>
-                  @if (enums?.CuartaRazonBeca) {
+                  @if (enums.CuartaRazonBeca) {
                     @for (item of enums.CuartaRazonBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1022,7 +1150,7 @@
               <div class="select-wrapper">
                 <select formControlName="quintaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('quintaRazonBecaId')">
                   <option value="">Seleccione la quinta razón</option>
-                  @if (enums?.QuintaRazonBeca) {
+                  @if (enums.QuintaRazonBeca) {
                     @for (item of enums.QuintaRazonBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1042,7 +1170,7 @@
               <div class="select-wrapper">
                 <select formControlName="sextaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('sextaRazonBecaId')">
                   <option value="">Seleccione la sexta razón</option>
-                  @if (enums?.SextaRazonBeca) {
+                  @if (enums.SextaRazonBeca) {
                     @for (item of enums.SextaRazonBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1119,7 +1247,7 @@
               <div class="select-wrapper">
                 <select formControlName="financiamientoBeca" class="form-control select-enhanced" [class.error]="hasError('financiamientoBeca')" >
                   <option value="">Seleccione el financiamiento</option>
-                  @if (enums?.FinanciamientoBeca) {
+                  @if (enums.FinanciamientoBeca) {
                     @for (item of enums.FinanciamientoBeca; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1160,6 +1288,10 @@
               </small>
               <small class="hint">Entero de 5 dígitos (0-99999) o "NA"</small>
             </div>
+            <div class="form-group">
+              <label>Financiamiento: ¿Quiénes? (si aplica ayuda de terceras personas)</label>
+              <input type="text" formControlName="financiamientoQuienes" class="form-control" placeholder="Especifique quiénes" />
+            </div>
           </div>
         </div>
       }
@@ -1168,7 +1300,7 @@
       @if (currentStep === 8) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">🤝</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a1 1 0 0 0-1.41 1.41l.88.88"/><path d="M15 9 14.7 8.7a1 1 0 0 0-1.41 1.41l.88.88"/><path d="m9 11 3-3"/><path d="m15 15 2 2"/><path d="m3 21 2-2"/><path d="M5 3 3 5"/><path d="m3 9 2-2"/><path d="m9 3 2 2"/><path d="m21 15-2 2"/><path d="m21 9-2 2"/><path d="m15 21 2-2"/><path d="m9 21 2-2"/></svg></span>
             Vinculación Social
           </h2>
           <div class="form-grid">
@@ -1177,7 +1309,7 @@
               <div class="select-wrapper">
                 <select formControlName="participaEnProyectoVinculacionSociedad" class="form-control select-enhanced" [class.error]="hasError('participaEnProyectoVinculacionSociedad')" >
                   <option value="">Seleccione una opción</option>
-                  @if (enums?.ParticipaEnProyectoVinculacionSociedad) {
+                  @if (enums.ParticipaEnProyectoVinculacionSociedad) {
                     @for (item of enums.ParticipaEnProyectoVinculacionSociedad; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1194,7 +1326,7 @@
               <div class="select-wrapper">
                 <select formControlName="tipoAlcanceProyectoVinculacionId" class="form-control select-enhanced" [class.error]="hasError('tipoAlcanceProyectoVinculacionId')">
                   <option value="">Seleccione el alcance</option>
-                  @if (enums?.TipoAlcanceProyectoVinculacion) {
+                  @if (enums.TipoAlcanceProyectoVinculacion) {
                     @for (item of enums.TipoAlcanceProyectoVinculacion; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
@@ -1213,7 +1345,7 @@
       @if (currentStep === 9) {
         <div class="step-section">
           <h2 class="step-title">
-            <span class="step-icon-large">📧</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
             Contacto
           </h2>
           <div class="form-grid">
@@ -1249,82 +1381,451 @@
               </small>
               <small class="hint">10 dígitos numéricos o "0000000000"</small>
             </div>
+
+            <div class="form-group">
+              <label>Dirección domicilio</label>
+              <input type="text" formControlName="direccionDomicilio" class="form-control" [class.error]="hasError('direccionDomicilio')" placeholder="Dirección de domicilio" />
+              <small class="error-message" *ngIf="hasError('direccionDomicilio')">{{ getErrorMessage('direccionDomicilio') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Correo electrónico institucional</label>
+              <input type="email" formControlName="correoInstitucional" class="form-control" [class.error]="hasError('correoInstitucional')" placeholder="correo@institucion.edu.ec" />
+              <small class="error-message" *ngIf="hasError('correoInstitucional')">{{ getErrorMessage('correoInstitucional') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Lugar (ej. Quito)</label>
+              <input type="text" formControlName="lugarResidencia" class="form-control" [class.error]="hasError('lugarResidencia')" placeholder="Quito, Guayaquil, etc." />
+              <small class="error-message" *ngIf="hasError('lugarResidencia')">{{ getErrorMessage('lugarResidencia') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Número convencional</label>
+              <input type="tel" formControlName="numeroConvencional" class="form-control" [class.error]="hasError('numeroConvencional')" placeholder="Ej. 022345678" />
+              <small class="error-message" *ngIf="hasError('numeroConvencional')">{{ getErrorMessage('numeroConvencional') }}</small>
+            </div>
           </div>
         </div>
       }
 
       <!-- Paso 10: Datos del Hogar -->
       @if (currentStep === 10) {
-        <div class="step-section">
+        <div class="step-section datos-hogar-step">
           <h2 class="step-title">
-            <span class="step-icon-large">🏠</span>
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
             Datos del Hogar
           </h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Nivel de Formación del Padre</label>
-              <div class="select-wrapper">
-                <select formControlName="nivelFormacionPadre" class="form-control select-enhanced" [class.error]="hasError('nivelFormacionPadre')" >
-                  <option value="">Seleccione el nivel de formación</option>
-                  @if (enums?.NivelFormacionPadre) {
+
+          <div class="hogar-subsection">
+            <h3 class="step-subtitle">Datos generales del hogar</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nivel de Formación del Padre</label>
+                <select formControlName="nivelFormacionPadre" class="form-control select-enhanced" [class.error]="hasError('nivelFormacionPadre')">
+                  <option value="">Seleccione</option>
+                  @if (enums.NivelFormacionPadre) {
                     @for (item of enums.NivelFormacionPadre; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
                   }
                 </select>
+                <small class="error-message" *ngIf="hasError('nivelFormacionPadre')">{{ getErrorMessage('nivelFormacionPadre') }}</small>
               </div>
-              <small class="error-message" *ngIf="hasError('nivelFormacionPadre')">
-                {{ getErrorMessage('nivelFormacionPadre') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Nivel de Formación de la Madre</label>
-              <div class="select-wrapper">
-                <select formControlName="nivelFormacionMadre" class="form-control select-enhanced" [class.error]="hasError('nivelFormacionMadre')" >
-                  <option value="">Seleccione el nivel de formación</option>
-                  @if (enums?.NivelFormacionMadre) {
+              <div class="form-group">
+                <label>Nivel de Formación de la Madre</label>
+                <select formControlName="nivelFormacionMadre" class="form-control select-enhanced" [class.error]="hasError('nivelFormacionMadre')">
+                  <option value="">Seleccione</option>
+                  @if (enums.NivelFormacionMadre) {
                     @for (item of enums.NivelFormacionMadre; track $index) {
                       <option [value]="item">{{ getEnumLabel(item) }}</option>
                     }
                   }
                 </select>
+                <small class="error-message" *ngIf="hasError('nivelFormacionMadre')">{{ getErrorMessage('nivelFormacionMadre') }}</small>
               </div>
-              <small class="error-message" *ngIf="hasError('nivelFormacionMadre')">
-                {{ getErrorMessage('nivelFormacionMadre') }}
-              </small>
+              <div class="form-group">
+                <label>Ingreso Total del Hogar (o "NA")</label>
+                <input type="text" formControlName="ingresoTotalHogar" class="form-control" [class.error]="hasError('ingresoTotalHogar')" placeholder="Ingreso o NA" />
+                <small class="error-message" *ngIf="hasError('ingresoTotalHogar')">{{ getErrorMessage('ingresoTotalHogar') }}</small>
+                <small class="hint">Entero o "NA"</small>
+              </div>
+              <div class="form-group">
+                <label>Cantidad de Miembros del Hogar <span class="required">*</span></label>
+                <input type="number" formControlName="cantidadMiembrosHogar" class="form-control" [class.error]="hasError('cantidadMiembrosHogar')" placeholder="Ej. 4" min="1" max="99" />
+                <small class="error-message" *ngIf="hasError('cantidadMiembrosHogar')">{{ getErrorMessage('cantidadMiembrosHogar') }}</small>
+                <small class="hint">Mínimo 2, máximo 99</small>
+              </div>
             </div>
+          </div>
 
-            <div class="form-group">
-              <label>Ingreso Total del Hogar (o "NA")</label>
-              <input
-                type="text"
-                formControlName="ingresoTotalHogar"
-                class="form-control"
-                [class.error]="hasError('ingresoTotalHogar')"
-                placeholder="Ingreso o NA"
-              />
-              <small class="error-message" *ngIf="hasError('ingresoTotalHogar')">
-                {{ getErrorMessage('ingresoTotalHogar') }}
-              </small>
-              <small class="hint">Entero de 4 dígitos (0-9999) o "NA"</small>
+          <div class="hogar-subsection">
+            <h3 class="step-subtitle">Ubicación y vivienda</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Referencia domiciliaria</label>
+                <input type="text" formControlName="referenciaDomiciliaria" class="form-control" placeholder="Ej. Frente al parque" />
+              </div>
+              <div class="form-group">
+                <label>Parroquia</label>
+                <input type="text" formControlName="parroquiaResidencia" class="form-control" placeholder="Parroquia" />
+              </div>
+              <div class="form-group">
+                <label>Barrio / Sector</label>
+                <input type="text" formControlName="barrioSector" class="form-control" placeholder="Barrio o sector" />
+              </div>
+              <div class="form-group">
+                <label>Zona</label>
+                <select formControlName="zonaVivienda" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="URBANA">Urbana</option>
+                  <option value="RURAL">Rural</option>
+                  <option value="SUBURBANO">Suburbano</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Coordenadas (Google Maps)</label>
+                <input type="text" formControlName="coordenadasVivienda" class="form-control" placeholder="Lat, Long" />
+              </div>
+              <div class="form-group form-group-full">
+                <label>Croquis de la vivienda</label>
+                <p class="field-hint">Sube una imagen del croquis o ubicación (mapa, foto de Google Maps).</p>
+                <input type="file" #croquisInput accept="image/jpeg,image/png,image/webp,image/gif" (change)="onCroquisFileSelected($event)" class="form-control" [disabled]="croquisUploading" />
+                @if (croquisUploading) {
+                  <p class="upload-status">Subiendo imagen...</p>
+                }
+                @if (croquisError) {
+                  <small class="error-message">{{ croquisError }}</small>
+                }
+                @if (studentForm.get('croquisViviendaUrl')?.value && !croquisUploading) {
+                  <div class="uploaded-file">
+                    <span>Imagen subida:</span>
+                    <a [href]="studentForm.get('croquisViviendaUrl')?.value" target="_blank" rel="noopener noreferrer">Ver croquis</a>
+                    <button type="button" class="btn-link-remove" (click)="removeCroquis(croquisInput)">Quitar</button>
+                  </div>
+                }
+              </div>
+              <div class="form-group">
+                <label>Tipo de propiedad</label>
+                <select formControlName="tipoPropiedadVivienda" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="PROPIA">Propia</option>
+                  <option value="ARRENDADA">Arrendada</option>
+                  <option value="CEDIDA_TRABAJO">Cedida por trabajo</option>
+                  <option value="CEDIDA_FAMILIAR">Cedida por familiar</option>
+                  <option value="OTRO">Otro</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Estructura de la vivienda</label>
+                <select formControlName="estructuraVivienda" class="form-control">
+                  <option value="">Seleccione</option>
+                  @for (op of estructuraViviendaOpciones; track op.value) {
+                    <option [value]="op.value">{{ op.label }}</option>
+                  }
+                </select>
+                @if (studentForm.get('estructuraVivienda')?.value === 'OTRO') {
+                  <input type="text" formControlName="estructuraViviendaEspecifique" class="form-control mt-2" placeholder="Especifique cuál" maxlength="120" />
+                }
+              </div>
+              <div class="form-group">
+                <label>Tipo de vivienda</label>
+                <select formControlName="tipoVivienda" class="form-control">
+                  <option value="">Seleccione</option>
+                  @for (op of tipoViviendaOpciones; track op.value) {
+                    <option [value]="op.value">{{ op.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group form-group-full">
+                <label>Servicios disponibles</label>
+                <p class="field-hint">Marque todos los que apliquen.</p>
+                <div class="checkbox-group">
+                  @for (op of serviciosDisponiblesOpciones; track op.value) {
+                    <label class="checkbox-label">
+                      <input type="checkbox" [checked]="isServicioSelected(op.value)" (change)="toggleServicio(op.value)" />
+                      <span>{{ op.label }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+              <div class="form-group">
+                <label>¿Cuántos baños?</label>
+                <input type="text" formControlName="cantidadBanos" class="form-control" placeholder="Número o NA" />
+              </div>
+              <div class="form-group">
+                <label>¿Cuántas habitaciones?</label>
+                <input type="text" formControlName="cantidadHabitaciones" class="form-control" placeholder="Número o NA" />
+              </div>
+              <div class="form-group">
+                <label>¿Compartes habitación?</label>
+                <select formControlName="comparteHabitacion" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>¿Con quién vives?</label>
+                <input type="text" formControlName="conQuienVive" class="form-control" placeholder="Personas con las que vives" />
+              </div>
+              <div class="form-group">
+                <label>¿El tamaño de la vivienda es suficiente?</label>
+                <select formControlName="tamanoViviendaSuficiente" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
             </div>
+          </div>
 
-            <div class="form-group">
-              <label>Cantidad de Miembros del Hogar <span class="required">*</span></label>
-              <input
-                type="number"
-                formControlName="cantidadMiembrosHogar"
-                class="form-control"
-                [class.error]="hasError('cantidadMiembrosHogar')"
-                placeholder="Número de miembros"
-              />
-              <small class="error-message" *ngIf="hasError('cantidadMiembrosHogar')">
-                {{ getErrorMessage('cantidadMiembrosHogar') }}
-              </small>
-              <small class="hint">Entero de 2 dígitos (1-99)</small>
+          <div class="hogar-subsection">
+            <h3 class="step-subtitle">Dinámica familiar</h3>
+            <div class="form-grid">
+              <div class="form-group form-group-full">
+                <label>¿Cómo es la dinámica familiar en su hogar?</label>
+                <textarea formControlName="dinamicaFamiliar" class="form-control" rows="3" placeholder="Relación, comunicación y apoyo entre los miembros"></textarea>
+              </div>
+              <div class="form-group">
+                <label>¿En tu contexto familiar se han presentado conductas violentas?</label>
+                <select formControlName="violenciaFamiliar" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
+              @if (studentForm.get('violenciaFamiliar')?.value === 'SI') {
+                <div class="form-group form-group-full">
+                  <label>Si tu respuesta es Sí, elige el tipo de violencia:</label>
+                  <div class="checkbox-group">
+                    @for (op of tipoViolenciaOpciones; track op.value) {
+                      <label class="checkbox-label">
+                        <input type="checkbox" [checked]="isTipoViolenciaSelected(op.value)" (change)="toggleTipoViolencia(op.value)" />
+                        <span>{{ op.label }}</span>
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+              <div class="form-group">
+                <label>¿El estudiante es cabeza familiar?</label>
+                <select formControlName="estudianteCabezaFamiliar" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
             </div>
+          </div>
 
+            <div class="hogar-subsection">
+            <h3 class="step-subtitle">Composición familiar</h3>
+            <p class="step-hint">Agrega a las personas con las que vives en tu hogar.</p>
+            <div class="table-actions">
+              <button type="button" class="btn btn-add-row" (click)="addComposicionFamiliar()">Agregar miembro</button>
+            </div>
+            <div class="table-responsive" formArrayName="composicionFamiliar">
+              <table class="form-table">
+                <thead>
+                  <tr>
+                    <th>Nombres y Apellidos</th>
+                    <th>Fecha Nac.</th>
+                    <th>Cédula</th>
+                    <th>Estado Civil</th>
+                    <th>Parentesco</th>
+                    <th>Nivel estudios</th>
+                    <th>Título</th>
+                    <th>Labor u ocupación</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of composicionFamiliarArray.controls; track $index; let i = $index) {
+                    <tr [formGroupName]="i">
+                      <td><input type="text" formControlName="nombresApellidos" class="form-control form-control-sm" placeholder="Nombres y apellidos" /></td>
+                      <td><input type="date" formControlName="fechaNacimiento" class="form-control form-control-sm" /></td>
+                      <td><input type="text" formControlName="cedulaIdentidad" class="form-control form-control-sm" placeholder="Cédula" /></td>
+                      <td>
+                        <select formControlName="estadoCivil" class="form-control form-control-sm">
+                          <option value="">Seleccione</option>
+                          @if (enums.EstadoCivil) {
+                            @for (opt of enums.EstadoCivil; track opt) {
+                              <option [value]="opt">{{ getEnumLabel(opt) }}</option>
+                            }
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <select formControlName="parentesco" class="form-control form-control-sm">
+                          <option value="">Seleccione</option>
+                          @for (p of parentescoOpciones; track p.value) {
+                            <option [value]="p.value">{{ p.label }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <select formControlName="nivelEstudios" class="form-control form-control-sm">
+                          <option value="">Seleccione</option>
+                          @if (enums.NivelFormacionPadre) {
+                            @for (opt of enums.NivelFormacionPadre; track opt) {
+                              <option [value]="opt">{{ getEnumLabel(opt) }}</option>
+                            }
+                          }
+                        </select>
+                      </td>
+                      <td><input type="text" formControlName="titulo" class="form-control form-control-sm" placeholder="Título" /></td>
+                      <td><input type="text" formControlName="laborOcupacion" class="form-control form-control-sm" placeholder="Labor u ocupación" /></td>
+                      <td><button type="button" class="btn btn-remove-row" (click)="removeComposicionFamiliar(i)" title="Quitar">&#10005;</button></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="hogar-subsection">
+            <h3 class="step-subtitle">Ingresos mensuales del grupo familiar</h3>
+            <p class="step-hint">Nombres, parentesco, actividad laboral, ingreso mensual e ingresos extras. Total por fila (opcional).</p>
+            <div class="table-actions">
+              <button type="button" class="btn btn-add-row" (click)="addIngresoFamiliar()">Agregar registro</button>
+            </div>
+            <div class="table-responsive" formArrayName="ingresosFamiliares">
+              <table class="form-table">
+                <thead>
+                  <tr>
+                    <th>Nombres y Apellidos</th>
+                    <th>Parentesco</th>
+                    <th>Actividad Laboral</th>
+                    <th>Ingreso Mensual</th>
+                    <th>Ingresos Extras</th>
+                    <th>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of ingresosFamiliaresArray.controls; track $index; let i = $index) {
+                    <tr [formGroupName]="i">
+                      <td><input type="text" formControlName="nombresApellidos" class="form-control form-control-sm" placeholder="Nombres y apellidos" /></td>
+                      <td>
+                        <select formControlName="parentesco" class="form-control form-control-sm">
+                          <option value="">Seleccione</option>
+                          @for (p of parentescoOpciones; track p.value) {
+                            <option [value]="p.value">{{ p.label }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td><input type="text" formControlName="actividadLaboral" class="form-control form-control-sm" placeholder="Actividad laboral" /></td>
+                      <td><input type="number" formControlName="ingresoMensual" class="form-control form-control-sm" min="0" step="0.01" placeholder="0.00" /></td>
+                      <td><input type="number" formControlName="ingresosExtras" class="form-control form-control-sm" min="0" step="0.01" placeholder="0.00" /></td>
+                      <td><input type="number" formControlName="total" class="form-control form-control-sm" min="0" step="0.01" placeholder="0.00" readonly /></td>
+                      <td><button type="button" class="btn btn-remove-row" (click)="removeIngresoFamiliar(i)" title="Quitar">&#10005;</button></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="hogar-subsection">
+            <h3 class="step-subtitle">Familia - discapacidad / enfermedad catastrófica</h3>
+            <p class="step-hint">¿Algún miembro de la familia presenta discapacidades y/o enfermedades catastróficas, huérfanas o raras consideradas por el Ministerio de Salud Pública?</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>¿Algún miembro con discapacidad o enfermedad catastrófica? <span class="required">*</span></label>
+                <select formControlName="familiaDiscapacidadEnfermedadCatastrofica" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
+              @if (studentForm.get('familiaDiscapacidadEnfermedadCatastrofica')?.value === 'SI') {
+                <div class="form-group">
+                  <label>Problema de salud <span class="required">*</span></label>
+                  <input type="text" formControlName="familiaProblemaSalud" class="form-control" placeholder="Describa el problema de salud" />
+                  <small class="error-message" *ngIf="hasError('familiaProblemaSalud')">{{ getErrorMessage('familiaProblemaSalud') }}</small>
+                </div>
+                <div class="form-group">
+                  <label>Parentesco <span class="required">*</span></label>
+                  <select formControlName="familiaParentesco" class="form-control">
+                    <option value="">Seleccione</option>
+                    @for (p of parentescoOpciones; track p.value) {
+                      <option [value]="p.value">{{ p.label }}</option>
+                    }
+                  </select>
+                  <small class="error-message" *ngIf="hasError('familiaParentesco')">{{ getErrorMessage('familiaParentesco') }}</small>
+                </div>
+              }
+              <div class="form-group form-group-full">
+                <label>¿Su familia cuenta con servicios médicos?</label>
+                <select formControlName="familiaServiciosMedicos" class="form-control">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                  <option value="NA">N/A</option>
+                </select>
+              </div>
+              @if (studentForm.get('familiaServiciosMedicos')?.value === 'SI') {
+                <div class="form-group form-group-full">
+                  <label>Especifique con cuáles:</label>
+                  <div class="checkbox-group">
+                    <label class="checkbox-label"><input type="checkbox" formControlName="familiaServicioIees" /> IEES</label>
+                    <label class="checkbox-label"><input type="checkbox" formControlName="familiaServicioSeguroPrivado" /> Seguro Privado</label>
+                    <label class="checkbox-label"><input type="checkbox" formControlName="familiaServicioSeguroCampesino" /> Seguro Campesino</label>
+                    <label class="checkbox-label"><input type="checkbox" formControlName="familiaServicioOtro" /> Otro</label>
+                  </div>
+                  @if (studentForm.get('familiaServicioOtro')?.value) {
+                    <input type="text" formControlName="familiaServicioOtroEspecifique" class="form-control mt-1" placeholder="Especifique cuál (ej. nombre del seguro)" />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="hogar-subsection">
+            <h3 class="step-subtitle">Egresos familiares (valor aprox. mensual)</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Vivienda (arriendo, cuota)</label>
+                <input type="number" formControlName="egresoVivienda" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Alimentación</label>
+                <input type="number" formControlName="egresoAlimentacion" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Educación</label>
+                <input type="number" formControlName="egresoEducacion" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Indumentaria</label>
+                <input type="number" formControlName="egresoIndumentaria" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Transporte</label>
+                <input type="number" formControlName="egresoTransporte" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Salud</label>
+                <input type="number" formControlName="egresoSalud" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Servicios básicos</label>
+                <input type="number" formControlName="egresoServiciosBasicos" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Otros</label>
+                <input type="number" formControlName="egresoOtros" class="form-control" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="form-group">
+                <label>Total egresos</label>
+                <input type="number" formControlName="totalEgresos" class="form-control" min="0" step="0.01" placeholder="0.00" readonly />
+              </div>
+            </div>
           </div>
         </div>
       }

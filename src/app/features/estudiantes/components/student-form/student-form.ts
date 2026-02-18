@@ -1,9 +1,17 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, FormControl, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
 import { EnumsService, EnumsResponse } from '../../../../services/enums.service';
 import { EstudianteService } from '../../../../services/estudiante.service';
 import { finalize } from 'rxjs';
+
+/** Opciones de carrera (mismas que movilis-landing: SectionCarreras / RegistrationModal / Registro) */
+export const CARRERAS_OPCIONES_LANDING: string[] = [
+  'Desarrollo de Software',
+  'Estética',
+  'Transporte'
+];
 
 @Component({
   selector: 'app-student-form',
@@ -15,11 +23,92 @@ export class StudentForm implements OnInit {
   enumsService = inject(EnumsService);
   estudianteService = inject(EstudianteService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
   enums: EnumsResponse | null = null;
+
+  /** Opciones de carrera (mismas que en el landing Movilis) */
+  carrerasOpciones = CARRERAS_OPCIONES_LANDING;
+
+  /** Opciones para estructura de la vivienda */
+  estructuraViviendaOpciones: { value: string; label: string }[] = [
+    { value: 'HORMIGON', label: 'Hormigón' },
+    { value: 'LADRILLO', label: 'Ladrillo' },
+    { value: 'BLOQUE', label: 'Bloque' },
+    { value: 'ADOBE', label: 'Adobe' },
+    { value: 'MADERA', label: 'Madera' },
+    { value: 'CANA', label: 'Caña' },
+    { value: 'OTRO', label: 'Otro' },
+    { value: 'NA', label: 'N/A' },
+  ];
+
+  /** Opciones para tipo de vivienda */
+  tipoViviendaOpciones: { value: string; label: string }[] = [
+    { value: 'SUITE_LUJO', label: 'Suite de lujo' },
+    { value: 'CASA', label: 'Casa' },
+    { value: 'DEPARTAMENTO', label: 'Departamento' },
+    { value: 'HABITACION', label: 'Habitación' },
+    { value: 'MEDIA_AGUA', label: 'Media agua' },
+    { value: 'RANCHO', label: 'Rancho' },
+    { value: 'NA', label: 'N/A' },
+  ];
+
+  /** Opciones para servicios disponibles (selección múltiple) */
+  serviciosDisponiblesOpciones: { value: string; label: string }[] = [
+    { value: 'ENERGIA_ELECTRICA', label: 'Energía eléctrica' },
+    { value: 'AGUA_POTABLE', label: 'Agua potable' },
+    { value: 'ALCANTARILLADO', label: 'Alcantarillado' },
+    { value: 'TELEFONO_FIJO', label: 'Teléfono fijo' },
+    { value: 'INTERNET', label: 'Internet' },
+    { value: 'TV_CABLE', label: 'TV cable' },
+    { value: 'PLAN_DATOS', label: 'Plan de datos' },
+  ];
+
+  /** Opciones de parentesco para composición familiar e ingresos */
+  parentescoOpciones: { value: string; label: string }[] = [
+    { value: 'MADRE', label: 'Madre' },
+    { value: 'PADRE', label: 'Padre' },
+    { value: 'HERMANO', label: 'Hermano' },
+    { value: 'HERMANA', label: 'Hermana' },
+    { value: 'HIJO', label: 'Hijo' },
+    { value: 'HIJA', label: 'Hija' },
+    { value: 'ABUELO', label: 'Abuelo' },
+    { value: 'ABUELA', label: 'Abuela' },
+    { value: 'TIO', label: 'Tío' },
+    { value: 'TIA', label: 'Tía' },
+    { value: 'PRIMO', label: 'Primo' },
+    { value: 'PRIMA', label: 'Prima' },
+    { value: 'CONYUGE', label: 'Cónyuge' },
+    { value: 'PAREJA', label: 'Pareja' },
+    { value: 'OTRO', label: 'Otro' },
+    { value: 'NA', label: 'N/A' },
+  ];
+
+  /** Opciones para tipo de violencia (solo visibles si violencia familiar = Sí) */
+  tipoViolenciaOpciones: { value: string; label: string }[] = [
+    { value: 'FISICA', label: 'Física' },
+    { value: 'PSICOLOGICA', label: 'Psicológica' },
+    { value: 'SEXUAL', label: 'Sexual' },
+    { value: 'SIMBOLICA', label: 'Simbólica' },
+    { value: 'PATRIMONIAL_ECONOMICA', label: 'Patrimonial o económica' },
+  ];
+
   isLoadingEnums = true;
   isSubmitting = false;
   submitMessage = '';
   submitError = false;
+
+  /** Búsqueda por cédula en primer paso */
+  isSearchingByCedula = false;
+  cedulaSearchMessage = '';
+
+  /** Subida de foto título de bachiller */
+  tituloBachillerUploading = false;
+  tituloBachillerError = '';
+
+  /** Subida de croquis vivienda (bucket maps) */
+  croquisUploading = false;
+  croquisError = '';
 
   // Propiedades para autocompletado de países, provincias y cantones
   filteredPaisesNacionalidad: string[] = [];
@@ -51,17 +140,17 @@ export class StudentForm implements OnInit {
   currentStep: number = 0;
   totalSteps: number = 11;
   steps: Array<{ id: string; title: string; icon: string; fields: string[] }> = [
-    { id: 'identificacion', title: 'Identificación', icon: '📋', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
-    { id: 'datosPersonales', title: 'Datos Personales', icon: '👤', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'puebloNacionalidad', 'tipoSangre'] },
-    { id: 'discapacidad', title: 'Discapacidad', icon: '♿', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad'] },
-    { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: '🌍', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
-    { id: 'informacionAcademica', title: 'Información Académica', icon: '🎓', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada'] },
-    { id: 'informacionEconomica', title: 'Información Económica', icon: '💰', fields: ['estudianteocupacionId', 'ingresosestudianteId', 'bonoDesarrollo'] },
-    { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: '💼', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
-    { id: 'becasAyudas', title: 'Becas y Ayudas', icon: '🎁', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
-    { id: 'vinculacionSocial', title: 'Vinculación Social', icon: '🤝', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
-    { id: 'contacto', title: 'Contacto', icon: '📧', fields: ['correoElectronico', 'numeroCelular'] },
-    { id: 'datosHogar', title: 'Datos del Hogar', icon: '🏠', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
+      { id: 'identificacion', title: 'Identificación', icon: 'clipboard', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
+    { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'puebloNacionalidad', 'tipoSangre'] },
+    { id: 'discapacidad', title: 'Discapacidad', icon: 'accessibility', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad', 'alergias', 'medicamentos', 'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono', 'enfermedadCatastrofica'] },
+    { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: 'globe', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
+    { id: 'informacionAcademica', title: 'Información Académica', icon: 'graduation', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada', 'carrera', 'disenoCurricular', 'periodoAcademico'] },
+    { id: 'informacionEconomica', title: 'Información Económica', icon: 'dollar', fields: ['estudianteocupacionId', 'ingresosestudianteId', 'bonoDesarrollo'] },
+    { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: 'briefcase', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
+    { id: 'becasAyudas', title: 'Becas y Ayudas', icon: 'gift', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
+    { id: 'vinculacionSocial', title: 'Vinculación Social', icon: 'handshake', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
+    { id: 'contacto', title: 'Contacto', icon: 'mail', fields: ['correoElectronico', 'numeroCelular', 'direccionDomicilio', 'correoInstitucional', 'lugarResidencia'] },
+    { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
   ];
   
   collapsedSections: { [key: string]: boolean } = {
@@ -86,28 +175,438 @@ export class StudentForm implements OnInit {
     this.studentForm = this.createForm();
     this.setupConditionalValidators();
     this.setupAutoUppercase();
+    this.setupNormalizeNA();
     this.setupAutoSave();
   }
 
   ngOnInit(): void {
     this.loadSavedData();
+    this.applyCarreraFromLanding();
     this.loadEnums();
+    this.setupTotalEgresos();
+  }
+
+  private static parseEgresoVal(v: unknown): number {
+    if (v == null || v === '') return 0;
+    const s = String(v).trim().toUpperCase();
+    if (s === 'NA') return 0;
+    const n = parseFloat(String(v).trim().replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+
+  private updateTotalEgresos(): void {
+    const names = ['egresoVivienda', 'egresoAlimentacion', 'egresoEducacion', 'egresoIndumentaria', 'egresoTransporte', 'egresoSalud', 'egresoServiciosBasicos', 'egresoOtros'];
+    let sum = 0;
+    for (const name of names) {
+      sum += StudentForm.parseEgresoVal(this.studentForm.get(name)?.value);
+    }
+    this.studentForm.get('totalEgresos')?.setValue(sum === 0 ? '' : sum, { emitEvent: false });
+  }
+
+  private setupTotalEgresos(): void {
+    const names = ['egresoVivienda', 'egresoAlimentacion', 'egresoEducacion', 'egresoIndumentaria', 'egresoTransporte', 'egresoSalud', 'egresoServiciosBasicos', 'egresoOtros'];
+    names.forEach(name => this.studentForm.get(name)?.valueChanges.subscribe(() => this.updateTotalEgresos()));
+    this.updateTotalEgresos();
+  }
+
+  /** Lee valor del objeto API (soporta camelCase por si el JSON viene con otro formato). */
+  private static getApiVal(obj: any, ...keys: string[]): string | number | null | undefined {
+    if (obj == null) return undefined;
+    for (const k of keys) {
+      const v = obj[k];
+      if (v !== undefined && v !== null && v !== '') return v;
+    }
+    return undefined;
+  }
+
+  /** Convierte respuesta del API (estudiante) al formato del formulario para patchValue. */
+  private apiEstudianteToFormValue(e: any): Record<string, unknown> {
+    const v = (key: string, fallback: string | number = '') => StudentForm.getApiVal(e, key) ?? fallback;
+    const estructura = e?.estructuraVivienda && String(e.estructuraVivienda).startsWith('OTRO:')
+      ? { estructuraVivienda: 'OTRO', estructuraViviendaEspecifique: String(e.estructuraVivienda).replace(/^OTRO:\s*/i, '').trim() }
+      : { estructuraVivienda: v('estructuraVivienda', '') };
+    return {
+      tipoDocumentoId: v('tipoDocumento'),
+      numeroIdentificacion: v('numeroIdentificacion'),
+      primerApellido: v('primerApellido'),
+      segundoApellido: v('segundoApellido'),
+      primerNombre: v('primerNombre'),
+      segundoNombre: v('segundoNombre'),
+      sexoId: v('sexo'),
+      generoId: v('genero'),
+      estadocivilId: v('estadoCivil'),
+      etniaId: v('etnia'),
+      pueblonacionalidadId: v('puebloNacionalidad'),
+      tipoSangre: v('tipoSangre'),
+      discapacidad: v('discapacidad'),
+      porcentajeDiscapacidad: e.porcentajeDiscapacidad ?? '',
+      numCarnetConadis: e.numCarnetConadis ?? '',
+      tipoDiscapacidad: e.tipoDiscapacidad ?? '',
+      fechaNacimiento: e.fechaNacimiento ?? '',
+      paisNacionalidadId: e.paisNacionalidadId ?? '',
+      provinciaNacimientoId: e.provinciaNacimientoId ?? '',
+      cantonNacimientoId: e.cantonNacimientoId ?? '',
+      paisResidenciaId: e.paisResidenciaId ?? '',
+      provinciaResidenciaId: e.provinciaResidenciaId ?? '',
+      cantonResidenciaId: e.cantonResidenciaId ?? '',
+      tipoColegioId: e.tipoColegioId ?? '',
+      modalidadCarrera: e.modalidadCarrera ?? '',
+      jornadaCarrera: e.jornadaCarrera ?? '',
+      fechaInicioCarrera: e.fechaInicioCarrera ?? '',
+      fechaMatricula: e.fechaMatricula ?? '',
+      tipoMatriculaId: e.tipoMatricula ?? '',
+      duracionPeriodoAcademico: e.duracionPeriodoAcademico ?? 1,
+      nivelAcademicoQueCursa: e.nivelAcademico ?? '',
+      haRepetidoAlMenosUnaMateria: e.haRepetidoAlMenosUnaMateria ?? '',
+      paraleloId: e.paralelo ?? '',
+      haPerdidoLaGratuidad: e.haPerdidoLaGratuidad ?? '',
+      recibePensionDiferenciada: e.recibePensionDiferenciada ?? '',
+      estudianteocupacionId: e.estudianteOcupacion ?? '',
+      ingresosestudianteId: e.ingresosEstudiante ?? '',
+      bonodesarrolloId: e.bonoDesarrollo ?? '',
+      haRealizadoPracticasPreprofesionales: e.haRealizadoPracticasPreprofesionales ?? '',
+      nroHorasPracticasPreprofesionalesPorPeriodo: e.nroHorasPracticasPreprofesionalesPorPeriodo ?? '',
+      entornoInstitucionalPracticasProfesionales: e.entornoInstitucionalPracticasProfesionales ?? '',
+      sectorEconomicoPracticaProfesional: e.sectorEconomicoPracticaProfesional ?? '',
+      tipoBecaId: e.tipoBeca ?? '',
+      primeraRazonBecaId: e.primeraRazonBeca ?? '',
+      segundaRazonBecaId: e.segundaRazonBeca ?? '',
+      terceraRazonBecaId: e.terceraRazonBeca ?? '',
+      cuartaRazonBecaId: e.cuartaRazonBeca ?? '',
+      quintaRazonBecaId: e.quintaRazonBeca ?? '',
+      sextaRazonBecaId: e.sextaRazonBeca ?? '',
+      montoBeca: e.montoBeca ?? '',
+      porcientoBecaCoberturaArancel: e.porcentajeBecaCoberturaArancel ?? '',
+      porcientoBecaCoberturaManuntencion: e.porcentajeBecaCoberturaManutencion ?? '',
+      financiamientoBeca: e.financiamientoBeca ?? '',
+      montoAyudaEconomica: e.montoAyudaEconomica ?? '',
+      montoCreditoEducativo: e.montoCreditoEducativo ?? '',
+      participaEnProyectoVinculacionSociedad: e.participaEnProyectoVinculacionSociedad ?? '',
+      tipoAlcanceProyectoVinculacionId: e.tipoAlcanceProyectoVinculacion ?? '',
+      correoElectronico: e.correoElectronico ?? '',
+      numeroCelular: e.numeroCelular ?? '',
+      direccionDomicilio: e.direccionDomicilio ?? '',
+      correoInstitucional: e.correoInstitucional ?? '',
+      lugarResidencia: e.lugarResidencia ?? '',
+      carrera: e.carrera ?? '',
+      disenoCurricular: e.disenoCurricular ?? '',
+      periodoAcademico: e.periodoAcademico ?? '',
+      alergias: e.alergias ?? '',
+      medicamentos: e.medicamentos ?? '',
+      referenciaPersonalNombre: e.referenciaPersonalNombre ?? '',
+      referenciaPersonalParentesco: e.referenciaPersonalParentesco ?? '',
+      referenciaPersonalTelefono: e.referenciaPersonalTelefono ?? '',
+      enfermedadCatastrofica: e.enfermedadCatastrofica ?? '',
+      nivelFormacionPadre: e.nivelFormacionPadre ?? '',
+      nivelFormacionMadre: e.nivelFormacionMadre ?? '',
+      ingresoTotalHogar: e.ingresoTotalHogar ?? '',
+      cantidadMiembrosHogar: e.cantidadMiembrosHogar ?? 1,
+      numeroConvencional: e.numeroConvencional ?? '',
+      presentaCarnetDiscapacidad: e.presentaCarnetDiscapacidad ?? '',
+      presentaAlergiaImportante: e.presentaAlergiaImportante ?? '',
+      nombreColegioProcedencia: e.nombreColegioProcedencia ?? '',
+      tituloBachiller: e.tituloBachiller ?? '',
+      anioGraduacion: e.anioGraduacion ?? '',
+      financiamientoQuienes: e.financiamientoQuienes ?? '',
+      referenciaDomiciliaria: e.referenciaDomiciliaria ?? '',
+      parroquiaResidencia: e.parroquiaResidencia ?? '',
+      barrioSector: e.barrioSector ?? '',
+      zonaVivienda: e.zonaVivienda ?? '',
+      coordenadasVivienda: e.coordenadasVivienda ?? '',
+      croquisViviendaUrl: e.croquisViviendaUrl ?? '',
+      tipoPropiedadVivienda: e.tipoPropiedadVivienda ?? '',
+      ...estructura,
+      tipoVivienda: e.tipoVivienda ?? '',
+      serviciosDisponibles: e.serviciosDisponibles ?? '',
+      cantidadBanos: e.cantidadBanos ?? '',
+      cantidadHabitaciones: e.cantidadHabitaciones ?? '',
+      comparteHabitacion: e.comparteHabitacion ?? '',
+      conQuienVive: e.conQuienVive ?? '',
+      tamanoViviendaSuficiente: e.tamanoViviendaSuficiente ?? '',
+      dinamicaFamiliar: e.dinamicaFamiliar ?? '',
+      violenciaFamiliar: e.violenciaFamiliar ?? '',
+      tipoViolenciaFamiliar: e.tipoViolenciaFamiliar ?? '',
+      estudianteCabezaFamiliar: e.estudianteCabezaFamiliar ?? '',
+      familiaDiscapacidadEnfermedadCatastrofica: e.familiaDiscapacidadEnfermedadCatastrofica ?? '',
+      familiaProblemaSalud: e.familiaProblemaSalud ?? '',
+      familiaParentesco: e.familiaParentesco ?? '',
+      familiaServiciosMedicos: e.familiaServiciosMedicos ?? '',
+      familiaServiciosMedicosDetalle: e.familiaServiciosMedicosDetalle ?? '',
+      egresoVivienda: e.egresoVivienda ?? '',
+      egresoAlimentacion: e.egresoAlimentacion ?? '',
+      egresoEducacion: e.egresoEducacion ?? '',
+      egresoIndumentaria: e.egresoIndumentaria ?? '',
+      egresoTransporte: e.egresoTransporte ?? '',
+      egresoSalud: e.egresoSalud ?? '',
+      egresoServiciosBasicos: e.egresoServiciosBasicos ?? '',
+      egresoOtros: e.egresoOtros ?? '',
+      totalEgresos: e.totalEgresos ?? '',
+    };
+  }
+
+  /** Busca estudiante por tipo de documento y número de identificación; si existe, carga los datos en el formulario. */
+  buscarPorCedula(): void {
+    const tipoDoc = this.studentForm.get('tipoDocumentoId')?.value;
+    const numero = this.studentForm.get('numeroIdentificacion')?.value;
+    const tipo = typeof tipoDoc === 'string' ? tipoDoc.trim() : '';
+    const num = typeof numero === 'string' ? numero.trim() : String(numero ?? '').trim();
+    if (!tipo || !num) {
+      this.cedulaSearchMessage = '';
+      return;
+    }
+    this.isSearchingByCedula = true;
+    this.cedulaSearchMessage = 'Buscando...';
+    this.cdr.detectChanges();
+    this.estudianteService.getEstudianteByCedula(tipo, num).subscribe({
+      next: (estudiante: any) => {
+        this.isSearchingByCedula = false;
+        this.patchFormFromEstudiante(estudiante);
+        this.cedulaSearchMessage = 'Datos cargados. Puede editar y guardar.';
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.cedulaSearchMessage = '';
+          this.cdr.detectChanges();
+        }, 4000);
+      },
+      error: (err: any) => {
+        this.isSearchingByCedula = false;
+        if (err?.status === 404) {
+          this.cedulaSearchMessage = '';
+        } else {
+          this.cedulaSearchMessage = err?.error?.message || err?.message || 'Error al buscar.';
+          setTimeout(() => {
+            this.cedulaSearchMessage = '';
+            this.cdr.detectChanges();
+          }, 3000);
+        }
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  /**
+   * Si el usuario viene del landing Movilis con una carrera elegida (query param o state), se pre-rellena el campo carrera.
+   * Desde el landing: usar URL con ?carrera=NombreCarrera o navegar con state: { carrera: 'NombreCarrera' }.
+   */
+  private applyCarreraFromLanding(): void {
+    const fromQuery = this.route.snapshot.queryParams['carrera'] as string | undefined;
+    const fromState = (history.state as { carrera?: string } | undefined)?.carrera;
+    const valorCarrera = (fromQuery ?? fromState)?.trim();
+    if (valorCarrera && this.carrerasOpciones.includes(valorCarrera)) {
+      this.studentForm.get('carrera')?.setValue(valorCarrera, { emitEvent: false });
+      this.cdr.markForCheck();
+    }
+  }
+
+  /** Sube la foto del título de bachiller al bucket "titulo" y guarda la URL en el formulario. */
+  onTituloBachillerFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      this.tituloBachillerError = 'Formato no permitido. Use imagen (JPEG, PNG, WebP, GIF) o PDF.';
+      this.cdr.markForCheck();
+      return;
+    }
+    this.tituloBachillerError = '';
+    this.tituloBachillerUploading = true;
+    this.cdr.markForCheck();
+    this.estudianteService.uploadTituloBachiller(file).pipe(
+      finalize(() => {
+        this.tituloBachillerUploading = false;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
+      next: (res) => {
+        this.studentForm.get('tituloBachiller')?.setValue(res.url, { emitEvent: true });
+        input.value = '';
+      },
+      error: (err) => {
+        this.tituloBachillerError = err?.error?.message || err?.message || 'Error al subir el archivo.';
+      },
+    });
+  }
+
+  /** Quita el documento de título de bachiller: lo elimina del bucket y limpia el campo. */
+  removeTituloBachiller(fileInput: HTMLInputElement): void {
+    const url = this.studentForm.get('tituloBachiller')?.value;
+    if (!url) {
+      this.studentForm.get('tituloBachiller')?.setValue('');
+      if (fileInput) fileInput.value = '';
+      this.cdr.markForCheck();
+      return;
+    }
+    this.tituloBachillerError = '';
+    this.estudianteService.deleteTituloBachiller(url).subscribe({
+      next: () => {
+        this.studentForm.get('tituloBachiller')?.setValue('');
+        if (fileInput) fileInput.value = '';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.tituloBachillerError = err?.error?.message || err?.message || 'No se pudo eliminar el archivo del servidor.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** Sube imagen del croquis de vivienda al bucket "maps". */
+  onCroquisFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      this.croquisError = 'Solo se permiten imágenes (JPEG, PNG, WebP, GIF).';
+      this.cdr.markForCheck();
+      return;
+    }
+    this.croquisError = '';
+    this.croquisUploading = true;
+    this.cdr.markForCheck();
+    this.estudianteService.uploadCroquisVivienda(file).pipe(
+      finalize(() => {
+        this.croquisUploading = false;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
+      next: (res) => {
+        this.studentForm.get('croquisViviendaUrl')?.setValue(res.url, { emitEvent: true });
+        input.value = '';
+      },
+      error: (err) => {
+        this.croquisError = err?.error?.message || err?.message || 'Error al subir la imagen.';
+      },
+    });
+  }
+
+  /** Marca o desmarca un servicio disponible (valores guardados como lista separada por comas). */
+  toggleServicio(value: string): void {
+    const control = this.studentForm.get('serviciosDisponibles');
+    if (!control) return;
+    const current = (control.value || '').toString().trim();
+    const list = current ? current.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+    const idx = list.indexOf(value);
+    if (idx === -1) list.push(value);
+    else list.splice(idx, 1);
+    control.setValue(list.join(', '), { emitEvent: true });
+  }
+
+  isServicioSelected(value: string): boolean {
+    const current = (this.studentForm.get('serviciosDisponibles')?.value || '').toString();
+    const list = current.split(',').map((s: string) => s.trim());
+    return list.includes(value);
+  }
+
+  /** Marca o desmarca un tipo de violencia (solo visible si conductas violentas = Sí). */
+  toggleTipoViolencia(value: string): void {
+    const control = this.studentForm.get('tipoViolenciaFamiliar');
+    if (!control) return;
+    const current = (control.value || '').toString().trim();
+    const list = current ? current.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+    const idx = list.indexOf(value);
+    if (idx === -1) list.push(value);
+    else list.splice(idx, 1);
+    control.setValue(list.join(', '), { emitEvent: true });
+  }
+
+  isTipoViolenciaSelected(value: string): boolean {
+    const current = (this.studentForm.get('tipoViolenciaFamiliar')?.value || '').toString();
+    const list = current.split(',').map((s: string) => s.trim());
+    return list.includes(value);
+  }
+
+  /** Quita el croquis: lo elimina del bucket maps y limpia el campo. */
+  removeCroquis(fileInput: HTMLInputElement): void {
+    const url = this.studentForm.get('croquisViviendaUrl')?.value;
+    if (!url) {
+      this.studentForm.get('croquisViviendaUrl')?.setValue('');
+      if (fileInput) fileInput.value = '';
+      this.cdr.markForCheck();
+      return;
+    }
+    this.croquisError = '';
+    this.estudianteService.deleteCroquisVivienda(url).subscribe({
+      next: () => {
+        this.studentForm.get('croquisViviendaUrl')?.setValue('');
+        if (fileInput) fileInput.value = '';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.croquisError = err?.error?.message || err?.message || 'No se pudo eliminar la imagen.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   // Configurar conversión automática a mayúsculas en campos de texto
   setupAutoUppercase(): void {
-    // Campos que deben estar en mayúsculas
     const uppercaseFields = ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre'];
-    
     uppercaseFields.forEach(fieldName => {
       const control = this.studentForm.get(fieldName);
       control?.valueChanges.subscribe((value: string) => {
         if (value && value !== 'NA') {
           const upperValue = value.toUpperCase();
           if (value !== upperValue) {
-            control.setValue(upperValue, { emitEvent: false });
+            control!.setValue(upperValue, { emitEvent: false });
           }
         }
+      });
+    });
+  }
+
+  /** Convierte "na", "Na", "nA" o " NA " a "NA" en campos que aceptan NA */
+  setupNormalizeNA(): void {
+    const naFields = [
+      'segundoApellido', 'segundoNombre', 'alergias', 'medicamentos', 'enfermedadCatastrofica',
+      'correoElectronico', 'direccionDomicilio', 'correoInstitucional', 'lugarResidencia',
+      'carrera', 'disenoCurricular', 'periodoAcademico', 'nombreColegioProcedencia', 'tituloBachiller',
+      'financiamientoQuienes', 'referenciaDomiciliaria', 'barrioSector', 'coordenadasVivienda',
+      'croquisViviendaUrl', 'tipoPropiedadVivienda', 'estructuraVivienda', 'estructuraViviendaEspecifique', 'tipoVivienda', 'serviciosDisponibles',
+      'comparteHabitacion', 'conQuienVive', 'tamanoViviendaSuficiente', 'dinamicaFamiliar',
+      'violenciaFamiliar', 'tipoViolenciaFamiliar', 'estudianteCabezaFamiliar',
+      'familiaDiscapacidadEnfermedadCatastrofica', 'familiaProblemaSalud', 'familiaParentesco',
+      'familiaServiciosMedicos', 'familiaServiciosMedicosDetalle',
+      'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono',
+      'numeroConvencional', 'anioGraduacion', 'cantidadBanos', 'cantidadHabitaciones',
+      'egresoVivienda', 'egresoAlimentacion', 'egresoEducacion', 'egresoIndumentaria',
+      'egresoTransporte', 'egresoSalud', 'egresoServiciosBasicos', 'egresoOtros', 'totalEgresos',
+      'ingresoTotalHogar', 'porcentajeDiscapacidad', 'numCarnetConadis', 'nroHorasPracticasPreprofesionalesPorPeriodo',
+      'montoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'
+    ];
+    naFields.forEach(fieldName => {
+      const control = this.studentForm.get(fieldName);
+      control?.valueChanges.subscribe((value: unknown) => {
+        if (value != null && String(value).trim().toUpperCase() === 'NA') {
+          control!.setValue('NA', { emitEvent: false });
+        }
+      });
+    });
+    this.attachNormalizeNAToComposicionIngresos();
+  }
+
+  private attachNormalizeNAToComposicionIngresos(): void {
+    const comp = this.studentForm.get('composicionFamiliar') as FormArray;
+    const ing = this.studentForm.get('ingresosFamiliares') as FormArray;
+    const compFields = ['nombresApellidos', 'cedulaIdentidad', 'estadoCivil', 'parentesco', 'nivelEstudios', 'titulo', 'laborOcupacion'];
+    const ingFields = ['nombresApellidos', 'parentesco', 'actividadLaboral', 'ingresoMensual', 'ingresosExtras', 'total'];
+    comp?.controls?.forEach((row: AbstractControl) => {
+      compFields.forEach(name => {
+        row.get(name)?.valueChanges.subscribe((val: unknown) => {
+          if (val != null && String(val).trim().toUpperCase() === 'NA') {
+            row.get(name)!.setValue('NA', { emitEvent: false });
+          }
+        });
+      });
+    });
+    ing?.controls?.forEach((row: AbstractControl) => {
+      ingFields.forEach(name => {
+        row.get(name)?.valueChanges.subscribe((val: unknown) => {
+          if (val != null && String(val).trim().toUpperCase() === 'NA') {
+            row.get(name)!.setValue('NA', { emitEvent: false });
+          }
+        });
       });
     });
   }
@@ -164,6 +663,12 @@ export class StudentForm implements OnInit {
 
       if (savedData) {
         const formData = JSON.parse(savedData);
+        // Parse estructura vivienda si viene "OTRO: especificación"
+        if (formData.estructuraVivienda && String(formData.estructuraVivienda).startsWith('OTRO:')) {
+          const spec = String(formData.estructuraVivienda).replace(/^OTRO:\s*/i, '').trim();
+          formData.estructuraVivienda = 'OTRO';
+          formData.estructuraViviendaEspecifique = spec;
+        }
         // Restaurar datos del formulario
         this.studentForm.patchValue(formData, { emitEvent: false });
         
@@ -834,6 +1339,86 @@ export class StudentForm implements OnInit {
     };
   }
 
+  /** Solo letras (incluye acentos, ñ, espacios). Permite vacío o "NA". */
+  static lettersOnlyValidator(allowNA = false): ValidatorFn {
+    const lettersSpaces = /^[A-Za-zÁ-úÑñÜü\s]*$/;
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const v = String(control.value).trim();
+      if (allowNA && (v === 'NA' || v === '')) return null;
+      if (!lettersSpaces.test(v)) {
+        return { lettersOnly: { value: control.value } };
+      }
+      return null;
+    };
+  }
+
+  /** Solo números (dígitos). Permite vacío o "NA" si allowNA. */
+  static numbersOnlyValidator(allowNA = false): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const v = String(control.value).trim();
+      if (allowNA && v === 'NA') return null;
+      if (!/^\d+$/.test(v)) {
+        return { numbersOnly: { value: control.value } };
+      }
+      return null;
+    };
+  }
+
+  /** Acepta solo letras/espacios o exactamente "NA". */
+  static lettersOrNAValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const v = String(control.value).trim().toUpperCase();
+      if (v === 'NA') return null;
+      if (!/^[A-Za-zÁ-úÑñÜü\s]+$/.test(control.value)) {
+        return { lettersOrNA: { value: control.value } };
+      }
+      return null;
+    };
+  }
+
+  /** Acepta solo números o "NA". */
+  static numbersOrNAValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const v = String(control.value).trim().toUpperCase();
+      if (v === 'NA') return null;
+      if (!/^\d+$/.test(String(control.value).trim())) {
+        return { numbersOrNA: { value: control.value } };
+      }
+      return null;
+    };
+  }
+
+  /** Acepta vacío, "NA" o número (entero o decimal). */
+  static decimalOrNAValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value && control.value !== 0) return null;
+      const v = String(control.value).trim().toUpperCase();
+      if (v === 'NA') return null;
+      const num = parseFloat(String(control.value).trim().replace(',', '.'));
+      if (isNaN(num)) {
+        return { decimalOrNA: { value: control.value } };
+      }
+      return null;
+    };
+  }
+
+  /** Si hay valor numérico, debe ser >= 0. Acepta vacío o "NA". */
+  static nonNegativeNumberOrEmptyValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value && control.value !== 0) return null;
+      const v = String(control.value).trim().toUpperCase();
+      if (v === 'NA') return null;
+      const num = parseFloat(String(control.value).trim().replace(',', '.'));
+      if (isNaN(num) || num < 0) {
+        return { nonNegative: { value: control.value } };
+      }
+      return null;
+    };
+  }
 
   setupConditionalValidators(): void {
     // Validación condicional para discapacidad
@@ -908,6 +1493,44 @@ export class StudentForm implements OnInit {
         pueblo?.clearValidators();
       }
       pueblo?.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Si conductas violentas no es "Sí", limpiar tipo de violencia
+    this.studentForm.get('violenciaFamiliar')?.valueChanges.subscribe((value: unknown) => {
+      if (value !== 'SI') {
+        this.studentForm.get('tipoViolenciaFamiliar')?.setValue('', { emitEvent: false });
+      }
+    });
+
+    // Familia con discapacidad/enfermedad catastrófica: si Sí → requerir Problema de salud y mostrar Parentesco (select)
+    const applyFamiliaDiscapacidadValidators = (value: string) => {
+      const problema = this.studentForm.get('familiaProblemaSalud');
+      const parentesco = this.studentForm.get('familiaParentesco');
+      if (value === 'SI') {
+        problema?.setValidators([Validators.required, Validators.maxLength(200)]);
+        parentesco?.setValidators([Validators.required]);
+      } else {
+        problema?.setValue('', { emitEvent: false });
+        parentesco?.setValue('', { emitEvent: false });
+        problema?.clearValidators();
+        parentesco?.clearValidators();
+      }
+      problema?.updateValueAndValidity({ emitEvent: false });
+      parentesco?.updateValueAndValidity({ emitEvent: false });
+    };
+    this.studentForm.get('familiaDiscapacidadEnfermedadCatastrofica')?.valueChanges.subscribe(applyFamiliaDiscapacidadValidators);
+    applyFamiliaDiscapacidadValidators(this.studentForm.get('familiaDiscapacidadEnfermedadCatastrofica')?.value);
+
+    // Servicios médicos: si No, limpiar detalle y opciones
+    this.studentForm.get('familiaServiciosMedicos')?.valueChanges.subscribe((value: string) => {
+      if (value !== 'SI') {
+        this.studentForm.get('familiaServiciosMedicosDetalle')?.setValue('', { emitEvent: false });
+        this.studentForm.get('familiaServicioIees')?.setValue(false, { emitEvent: false });
+        this.studentForm.get('familiaServicioSeguroPrivado')?.setValue(false, { emitEvent: false });
+        this.studentForm.get('familiaServicioSeguroCampesino')?.setValue(false, { emitEvent: false });
+        this.studentForm.get('familiaServicioOtro')?.setValue(false, { emitEvent: false });
+        this.studentForm.get('familiaServicioOtroEspecifique')?.setValue('', { emitEvent: false });
+      }
     });
 
     // Validación condicional para provincias y cantones de nacimiento
@@ -1220,17 +1843,19 @@ export class StudentForm implements OnInit {
       // 2. numeroIdentificacion (Caracter 10 cédula / 9 pasaporte, obligatorio)
       numeroIdentificacion: ['', [Validators.required, StudentForm.cedulaPasaporteValidator()]],
 
-      // 3. primerApellido (Caracter 60, MAYÚSCULAS, obligatorio)
+      // 3. primerApellido (Caracter 60, MAYÚSCULAS, solo letras, obligatorio)
       primerApellido: ['', [
         Validators.required,
         Validators.maxLength(60),
-        StudentForm.uppercaseValidator()
+        StudentForm.uppercaseValidator(),
+        StudentForm.lettersOnlyValidator(false)
       ]],
 
-      // 4. segundoApellido (Caracter 60, obligatorio o "NA")
+      // 4. segundoApellido (Caracter 60, obligatorio o "NA", solo letras o NA)
       segundoApellido: ['', [
         StudentForm.naOrRequiredValidator(),
         Validators.maxLength(60),
+        StudentForm.lettersOrNAValidator(),
         (control: AbstractControl) => {
           if (control.value && control.value !== 'NA' && control.value.length > 60) {
             return { maxlength: { requiredLength: 60, actualLength: control.value.length } };
@@ -1239,17 +1864,19 @@ export class StudentForm implements OnInit {
         }
       ]],
 
-      // 5. primerNombre (Caracter 60, MAYÚSCULAS, obligatorio)
+      // 5. primerNombre (Caracter 60, MAYÚSCULAS, solo letras, obligatorio)
       primerNombre: ['', [
         Validators.required,
         Validators.maxLength(60),
-        StudentForm.uppercaseValidator()
+        StudentForm.uppercaseValidator(),
+        StudentForm.lettersOnlyValidator(false)
       ]],
 
-      // 6. segundoNombre (Caracter 60, obligatorio o "NA")
+      // 6. segundoNombre (Caracter 60, obligatorio o "NA", solo letras o NA)
       segundoNombre: ['', [
         StudentForm.naOrRequiredValidator(),
         Validators.maxLength(60),
+        StudentForm.lettersOrNAValidator(),
         (control: AbstractControl) => {
           if (control.value && control.value !== 'NA' && control.value.length > 60) {
             return { maxlength: { requiredLength: 60, actualLength: control.value.length } };
@@ -1499,6 +2126,20 @@ export class StudentForm implements OnInit {
         }
       ]],
 
+      // Campos adicionales contacto y ubicación
+      direccionDomicilio: [''],
+      correoInstitucional: [''],
+      lugarResidencia: [''],
+      carrera: [''],
+      disenoCurricular: [''],
+      periodoAcademico: [''],
+      alergias: [''],
+      medicamentos: [''],
+      referenciaPersonalNombre: ['', [StudentForm.lettersOnlyValidator(true), Validators.maxLength(120)]],
+      referenciaPersonalParentesco: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(60)]],
+      referenciaPersonalTelefono: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(15)]],
+      enfermedadCatastrofica: [''],
+
       // CAMPOS HOGAR (60-63)
       // 60. nivelFormacionPadre (Enum) - obligatorio
       nivelFormacionPadre: ['', [Validators.required]],
@@ -1535,6 +2176,54 @@ export class StudentForm implements OnInit {
       provinciaResidencia: [''],
       cantonResidencia: [''],
       parroquiaResidencia: [''],
+      numeroConvencional: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(15)]],
+      presentaCarnetDiscapacidad: [''],
+      presentaAlergiaImportante: [''],
+      nombreColegioProcedencia: [''],
+      tituloBachiller: [''],
+      anioGraduacion: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(4)]],
+      financiamientoQuienes: [''],
+      referenciaDomiciliaria: [''],
+      barrioSector: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(100)]],
+      zonaVivienda: [''],
+      coordenadasVivienda: [''],
+      croquisViviendaUrl: [''],
+      tipoPropiedadVivienda: [''],
+      estructuraVivienda: [''],
+      estructuraViviendaEspecifique: ['', [Validators.maxLength(120)]],
+      tipoVivienda: [''],
+      serviciosDisponibles: [''],
+      cantidadBanos: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(2)]],
+      cantidadHabitaciones: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(2)]],
+      comparteHabitacion: [''],
+      conQuienVive: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(200)]],
+      tamanoViviendaSuficiente: [''],
+      dinamicaFamiliar: [''],
+      violenciaFamiliar: [''],
+      tipoViolenciaFamiliar: [''],
+      estudianteCabezaFamiliar: [''],
+      familiaDiscapacidadEnfermedadCatastrofica: [''],
+      familiaProblemaSalud: [''],
+      familiaParentesco: [''],
+      familiaServiciosMedicos: [''],
+      familiaServiciosMedicosDetalle: [''],
+      familiaServicioIees: [false],
+      familiaServicioSeguroPrivado: [false],
+      familiaServicioSeguroCampesino: [false],
+      familiaServicioOtro: [false],
+      familiaServicioOtroEspecifique: [''],
+      egresoVivienda: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoAlimentacion: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoEducacion: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoIndumentaria: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoTransporte: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoSalud: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoServiciosBasicos: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      egresoOtros: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      totalEgresos: [{ value: '', disabled: false }],
+
+      composicionFamiliar: this.fb.array([]),
+      ingresosFamiliares: this.fb.array([]),
 
       // SECCIÓN 5: Información académica (8 campos)
       nivelEducacion: [''],
@@ -1561,6 +2250,93 @@ export class StudentForm implements OnInit {
     this.collapsedSections[section] = !this.collapsedSections[section];
   }
 
+  createComposicionFamiliarGroup(): FormGroup {
+    return this.fb.group({
+      nombresApellidos: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(200)]],
+      fechaNacimiento: [''],
+      cedulaIdentidad: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(13)]],
+      estadoCivil: [''],
+      parentesco: [''],
+      nivelEstudios: [''],
+      titulo: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(120)]],
+      laborOcupacion: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(120)]],
+    });
+  }
+
+  addComposicionFamiliar(): void {
+    const arr = this.studentForm.get('composicionFamiliar') as FormArray;
+    arr.push(this.createComposicionFamiliarGroup());
+    const row = arr.at(arr.length - 1);
+    ['nombresApellidos', 'cedulaIdentidad', 'estadoCivil', 'parentesco', 'nivelEstudios', 'titulo', 'laborOcupacion'].forEach(name => {
+      row.get(name)?.valueChanges.subscribe((val: unknown) => {
+        if (val != null && String(val).trim().toUpperCase() === 'NA') {
+          row.get(name)!.setValue('NA', { emitEvent: false });
+        }
+      });
+    });
+  }
+
+  removeComposicionFamiliar(index: number): void {
+    const arr = this.studentForm.get('composicionFamiliar') as FormArray;
+    if (arr.length > 0) arr.removeAt(index);
+  }
+
+  get composicionFamiliarArray(): FormArray {
+    return this.studentForm.get('composicionFamiliar') as FormArray;
+  }
+
+  createIngresoFamiliarGroup(): FormGroup {
+    return this.fb.group({
+      nombresApellidos: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(200)]],
+      parentesco: [''],
+      actividadLaboral: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(120)]],
+      ingresoMensual: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      ingresosExtras: ['', [StudentForm.decimalOrNAValidator(), Validators.maxLength(15), StudentForm.nonNegativeNumberOrEmptyValidator()]],
+      total: [{ value: '', disabled: false }],
+    });
+  }
+
+  /** Parsea valor de ingreso a número (vacío o NA = 0). */
+  private static parseIngresoVal(v: unknown): number {
+    if (v == null || v === '') return 0;
+    const s = String(v).trim().toUpperCase();
+    if (s === 'NA') return 0;
+    const n = parseFloat(String(v).trim().replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+
+  /** Recalcula total de una fila de ingresos: ingresoMensual + ingresosExtras. */
+  private updateIngresoTotalRow(row: FormGroup): void {
+    const ing = StudentForm.parseIngresoVal(row.get('ingresoMensual')?.value);
+    const ext = StudentForm.parseIngresoVal(row.get('ingresosExtras')?.value);
+    const total = ing + ext;
+    row.get('total')?.setValue(total === 0 ? '' : total, { emitEvent: false });
+  }
+
+  addIngresoFamiliar(): void {
+    const arr = this.studentForm.get('ingresosFamiliares') as FormArray;
+    arr.push(this.createIngresoFamiliarGroup());
+    const row = arr.at(arr.length - 1) as FormGroup;
+    ['nombresApellidos', 'parentesco', 'actividadLaboral', 'ingresoMensual', 'ingresosExtras'].forEach(name => {
+      row.get(name)?.valueChanges.subscribe((val: unknown) => {
+        if (val != null && String(val).trim().toUpperCase() === 'NA') {
+          row.get(name)!.setValue('NA', { emitEvent: false });
+        }
+      });
+    });
+    row.get('ingresoMensual')?.valueChanges.subscribe(() => this.updateIngresoTotalRow(row));
+    row.get('ingresosExtras')?.valueChanges.subscribe(() => this.updateIngresoTotalRow(row));
+    this.updateIngresoTotalRow(row);
+  }
+
+  removeIngresoFamiliar(index: number): void {
+    const arr = this.studentForm.get('ingresosFamiliares') as FormArray;
+    if (arr.length > 0) arr.removeAt(index);
+  }
+
+  get ingresosFamiliaresArray(): FormArray {
+    return this.studentForm.get('ingresosFamiliares') as FormArray;
+  }
 
   onSubmit(): void {
     // Validar que estamos en el último paso
@@ -1662,7 +2438,7 @@ export class StudentForm implements OnInit {
         }
       });
       
-      this.estudianteService.createEstudiante(jsonData)
+      this.estudianteService.guardarPaso(jsonData)
           .pipe(
             finalize(() => {
               console.log('Finalizando petición, desactivando isSubmitting');
@@ -1672,10 +2448,10 @@ export class StudentForm implements OnInit {
           )
           .subscribe({
             next: (response: any) => {
-              console.log('Estudiante creado exitosamente:', response);
+              console.log('Estudiante guardado exitosamente:', response);
               this.isSubmitting = false;
               this.submitError = false;
-              this.submitMessage = ' ¡Estudiante registrado exitosamente!';
+              this.submitMessage = ' ¡Estudiante guardado exitosamente!';
               this.clearSavedData();
               this.studentForm.reset();
               this.currentStep = 0;
@@ -1695,21 +2471,21 @@ export class StudentForm implements OnInit {
               }, 8000);
             },
             error: (error: any) => {
-              console.error('Error al crear estudiante:', error);
+              console.error('Error al guardar estudiante:', error);
               this.isSubmitting = false;
               this.submitError = true;
-              let errorMessage = '⚠️ Error al registrar el estudiante.';
+              let errorMessage = 'Error al guardar el estudiante.';
               if (error.status === 500) {
-                errorMessage = '⚠️ Error interno del servidor (500).\n\nPor favor, verifica que todos los campos estén completos correctamente.\nSi el problema persiste, contacta al administrador.';
+                errorMessage = 'Error interno del servidor (500).\n\nPor favor, verifica que todos los campos estén completos correctamente.\nSi el problema persiste, contacta al administrador.';
                 if (error.error?.message) {
                   errorMessage += '\n\nDetalle: ' + error.error.message;
                 }
               } else if (error.error && Array.isArray(error.error.message)) {
-                errorMessage = '⚠️ Error de validación:\n' + error.error.message.join('\n');
+                errorMessage = 'Error de validación:\n' + error.error.message.join('\n');
               } else if (error.error?.message) {
-                errorMessage = '⚠️ ' + error.error.message;
+                errorMessage = error.error.message;
               } else if (error.message) {
-                errorMessage = '⚠️ ' + error.message;
+                errorMessage = error.message;
               }
               this.submitMessage = errorMessage;
               this.cdr.detectChanges();
@@ -1799,6 +2575,18 @@ export class StudentForm implements OnInit {
       tipoAlcanceProyectoVinculacionId: 'Tipo Alcance Proyecto Vinculación',
       correoElectronico: 'Correo Electrónico',
       numeroCelular: 'Número Celular',
+      direccionDomicilio: 'Dirección Domicilio',
+      correoInstitucional: 'Correo Institucional',
+      lugarResidencia: 'Lugar Residencia',
+      carrera: 'Carrera',
+      disenoCurricular: 'Diseño Curricular',
+      periodoAcademico: 'Período Académico',
+      alergias: 'Alergias',
+      medicamentos: 'Medicamentos',
+      referenciaPersonalNombre: 'Referencia Personal Nombre',
+      referenciaPersonalParentesco: 'Referencia Personal Parentesco',
+      referenciaPersonalTelefono: 'Referencia Personal Teléfono',
+      enfermedadCatastrofica: 'Enfermedad Catastrófica',
       nivelFormacionPadre: 'Nivel Formación Padre',
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
@@ -1807,10 +2595,31 @@ export class StudentForm implements OnInit {
 
     Object.keys(this.studentForm.controls).forEach(key => {
       const control = this.studentForm.get(key);
-      // Verificar campos inválidos (touched o no, pero que tienen errores)
-      if (control && control.invalid) {
+      if (!control) return;
+      // FormArrays: recorrer controles anidados para listar errores por fila
+      if (control instanceof FormArray && (key === 'composicionFamiliar' || key === 'ingresosFamiliares')) {
+        const arr = control as FormArray;
+        const sectionLabel = key === 'composicionFamiliar' ? 'Composición familiar' : 'Ingresos familiares';
+        const fieldLabels: Record<string, string> = key === 'composicionFamiliar'
+          ? { nombresApellidos: 'Nombres y apellidos', fechaNacimiento: 'Fecha nac.', cedulaIdentidad: 'Cédula', estadoCivil: 'Estado civil', parentesco: 'Parentesco', nivelEstudios: 'Nivel estudios', titulo: 'Título', laborOcupacion: 'Labor u ocupación' }
+          : { nombresApellidos: 'Nombres y apellidos', parentesco: 'Parentesco', actividadLaboral: 'Actividad laboral', ingresoMensual: 'Ingreso mensual', ingresosExtras: 'Ingresos extras', total: 'Total' };
+        for (let i = 0; i < arr.length; i++) {
+          const group = arr.at(i) as FormGroup;
+          Object.keys(group.controls).forEach(ctrlName => {
+            const ctrl = group.get(ctrlName);
+            if (ctrl && ctrl.invalid && ctrl.errors) {
+              const path = `${key}.${i}.${ctrlName}`;
+              const error = this.getErrorMessageForField(path);
+              const label = fieldLabels[ctrlName] || ctrlName;
+              camposConErrores.push(`• ${sectionLabel} (fila ${i + 1}) - ${label}: ${error || 'Campo inválido'}`);
+            }
+          });
+        }
+        return;
+      }
+      // Controles normales
+      if (control.invalid) {
         const nombreCampo = nombresCampos[key] || key;
-        // Obtener el mensaje de error (ahora también funciona sin touched)
         const error = this.getErrorMessageForField(key);
         if (error) {
           camposConErrores.push(`• ${nombreCampo}: ${error}`);
@@ -1875,6 +2684,12 @@ export class StudentForm implements OnInit {
     if (errors['length']) {
       return `Debe tener exactamente ${errors['length'].requiredLength} caracteres`;
     }
+    if (errors['lettersOnly'] || errors['lettersOrNA']) {
+      return 'Solo se permiten letras y espacios';
+    }
+    if (errors['numbersOnly'] || errors['numbersOrNA']) {
+      return 'Solo se permiten números';
+    }
     return 'Campo inválido';
   }
 
@@ -1907,6 +2722,14 @@ export class StudentForm implements OnInit {
    * @param minValue - Valor mínimo por defecto si el valor es inválido
    * @returns Entero válido >= minValue
    */
+  /** Convierte valor numérico o vacío a string para el backend: número como string o 'NA'. */
+  toNumOrNAString(v: unknown): string {
+    if (v == null || v === '') return 'NA';
+    const s = String(v).trim().toUpperCase();
+    if (s === 'NA') return 'NA';
+    return String(v);
+  }
+
   parseInt(value: any, minValue: number = 0): number {
     if (value === null || value === undefined || value === '') {
       return minValue;
@@ -1922,6 +2745,21 @@ export class StudentForm implements OnInit {
       return minValue;
     }
     return num;
+  }
+
+  /** Construye familiaServiciosMedicosDetalle desde checkboxes (IEES, Seguro Privado, etc.) + Otro especifique. */
+  private buildFamiliaServiciosMedicosDetalle(formValue: any): string {
+    if (formValue.familiaServiciosMedicos !== 'SI') return formValue.familiaServiciosMedicosDetalle || 'NA';
+    const parts: string[] = [];
+    if (formValue.familiaServicioIees) parts.push('IEES');
+    if (formValue.familiaServicioSeguroPrivado) parts.push('Seguro Privado');
+    if (formValue.familiaServicioSeguroCampesino) parts.push('Seguro Campesino');
+    if (formValue.familiaServicioOtro && formValue.familiaServicioOtroEspecifique) {
+      parts.push('Otro: ' + String(formValue.familiaServicioOtroEspecifique).trim());
+    } else if (formValue.familiaServicioOtro) {
+      parts.push('Otro');
+    }
+    return parts.length ? parts.join(', ') : (formValue.familiaServiciosMedicosDetalle || 'NA');
   }
 
   getFormDataForBackend(): any {
@@ -2022,13 +2860,91 @@ export class StudentForm implements OnInit {
       // Campos de contacto
       correoElectronico: formValue.correoElectronico || 'NA',
       numeroCelular: formValue.numeroCelular || '0000000000',
-      
+      direccionDomicilio: formValue.direccionDomicilio || 'NA',
+      correoInstitucional: formValue.correoInstitucional || 'NA',
+      lugarResidencia: formValue.lugarResidencia || 'NA',
+      carrera: formValue.carrera || 'NA',
+      disenoCurricular: formValue.disenoCurricular || 'NA',
+      periodoAcademico: formValue.periodoAcademico || 'NA',
+      alergias: formValue.alergias || 'NA',
+      medicamentos: formValue.medicamentos || 'NA',
+      referenciaPersonalNombre: formValue.referenciaPersonalNombre || 'NA',
+      referenciaPersonalParentesco: formValue.referenciaPersonalParentesco || 'NA',
+      referenciaPersonalTelefono: formValue.referenciaPersonalTelefono || 'NA',
+      enfermedadCatastrofica: formValue.enfermedadCatastrofica || 'NA',
+
       // Campos de hogar
       nivelFormacionPadre: formValue.nivelFormacionPadre || '',
       nivelFormacionMadre: formValue.nivelFormacionMadre || '',
       ingresoTotalHogar: formValue.ingresoTotalHogar || 'NA',
       cantidadMiembrosHogar: this.parseInt(formValue.cantidadMiembrosHogar, 1),
-      
+
+      numeroConvencional: formValue.numeroConvencional || 'NA',
+      presentaCarnetDiscapacidad: formValue.presentaCarnetDiscapacidad || 'NA',
+      presentaAlergiaImportante: formValue.presentaAlergiaImportante || 'NA',
+      nombreColegioProcedencia: formValue.nombreColegioProcedencia || 'NA',
+      tituloBachiller: formValue.tituloBachiller || 'NA',
+      anioGraduacion: formValue.anioGraduacion || 'NA',
+      financiamientoQuienes: formValue.financiamientoQuienes || 'NA',
+      referenciaDomiciliaria: formValue.referenciaDomiciliaria || 'NA',
+      parroquiaResidencia: formValue.parroquiaResidencia || 'NA',
+      barrioSector: formValue.barrioSector || 'NA',
+      zonaVivienda: formValue.zonaVivienda || 'NA',
+      coordenadasVivienda: formValue.coordenadasVivienda || 'NA',
+      croquisViviendaUrl: formValue.croquisViviendaUrl || 'NA',
+      tipoPropiedadVivienda: formValue.tipoPropiedadVivienda || 'NA',
+      estructuraVivienda: formValue.estructuraVivienda === 'OTRO'
+        ? ('OTRO: ' + (formValue.estructuraViviendaEspecifique || '').trim()).trim() || 'OTRO'
+        : (formValue.estructuraVivienda || 'NA'),
+      tipoVivienda: formValue.tipoVivienda || 'NA',
+      serviciosDisponibles: formValue.serviciosDisponibles || 'NA',
+      cantidadBanos: formValue.cantidadBanos != null && formValue.cantidadBanos !== '' ? this.parseInt(formValue.cantidadBanos, 0) : undefined,
+      cantidadHabitaciones: formValue.cantidadHabitaciones != null && formValue.cantidadHabitaciones !== '' ? this.parseInt(formValue.cantidadHabitaciones, 0) : undefined,
+      comparteHabitacion: formValue.comparteHabitacion || 'NA',
+      conQuienVive: formValue.conQuienVive || 'NA',
+      tamanoViviendaSuficiente: formValue.tamanoViviendaSuficiente || 'NA',
+      dinamicaFamiliar: formValue.dinamicaFamiliar || 'NA',
+      violenciaFamiliar: formValue.violenciaFamiliar || 'NA',
+      tipoViolenciaFamiliar: formValue.tipoViolenciaFamiliar || 'NA',
+      estudianteCabezaFamiliar: formValue.estudianteCabezaFamiliar || 'NA',
+      familiaDiscapacidadEnfermedadCatastrofica: formValue.familiaDiscapacidadEnfermedadCatastrofica || 'NA',
+      familiaProblemaSalud: formValue.familiaProblemaSalud || 'NA',
+      familiaParentesco: formValue.familiaParentesco || 'NA',
+      familiaServiciosMedicos: formValue.familiaServiciosMedicos || 'NA',
+      familiaServiciosMedicosDetalle: this.buildFamiliaServiciosMedicosDetalle(formValue),
+      egresoVivienda: this.toNumOrNAString(formValue.egresoVivienda),
+      egresoAlimentacion: this.toNumOrNAString(formValue.egresoAlimentacion),
+      egresoEducacion: this.toNumOrNAString(formValue.egresoEducacion),
+      egresoIndumentaria: this.toNumOrNAString(formValue.egresoIndumentaria),
+      egresoTransporte: this.toNumOrNAString(formValue.egresoTransporte),
+      egresoSalud: this.toNumOrNAString(formValue.egresoSalud),
+      egresoServiciosBasicos: this.toNumOrNAString(formValue.egresoServiciosBasicos),
+      egresoOtros: this.toNumOrNAString(formValue.egresoOtros),
+      totalEgresos: this.toNumOrNAString(formValue.totalEgresos),
+
+      composicionFamiliar: (this.studentForm.get('composicionFamiliar') as FormArray).value
+        .map((r: any) => ({
+          nombresApellidos: r.nombresApellidos || 'NA',
+          fechaNacimiento: r.fechaNacimiento || 'NA',
+          cedulaIdentidad: r.cedulaIdentidad || 'NA',
+          estadoCivil: r.estadoCivil || 'NA',
+          parentesco: r.parentesco || 'NA',
+          nivelEstudios: r.nivelEstudios || 'NA',
+          titulo: r.titulo || 'NA',
+          laborOcupacion: r.laborOcupacion || 'NA',
+        }))
+        .filter((r: any) => r.nombresApellidos !== 'NA' || r.cedulaIdentidad !== 'NA' || r.parentesco !== 'NA'),
+
+      ingresosFamiliares: (this.studentForm.get('ingresosFamiliares') as FormArray).value
+        .map((r: any) => ({
+          nombresApellidos: r.nombresApellidos || 'NA',
+          parentesco: r.parentesco || 'NA',
+          actividadLaboral: r.actividadLaboral || 'NA',
+          ingresoMensual: this.toNumOrNAString(r.ingresoMensual),
+          ingresosExtras: this.toNumOrNAString(r.ingresosExtras),
+          total: this.toNumOrNAString(r.total),
+        }))
+        .filter((r: any) => r.nombresApellidos !== 'NA' || r.ingresoMensual !== 'NA' || r.total !== 'NA'),
     };
     
     // Campos opcionales - solo agregar si tienen valor
@@ -2189,6 +3105,12 @@ export class StudentForm implements OnInit {
     if (errors['length']) {
       return `Debe tener exactamente ${errors['length'].requiredLength} caracteres`;
     }
+    if (errors['lettersOnly'] || errors['lettersOrNA']) {
+      return 'Solo se permiten letras y espacios';
+    }
+    if (errors['numbersOnly'] || errors['numbersOrNA']) {
+      return 'Solo se permiten números';
+    }
     return 'Campo inválido';
   }
 
@@ -2311,6 +3233,18 @@ export class StudentForm implements OnInit {
       tipoAlcanceProyectoVinculacionId: 'Tipo Alcance Proyecto Vinculación',
       correoElectronico: 'Correo Electrónico',
       numeroCelular: 'Número Celular',
+      direccionDomicilio: 'Dirección Domicilio',
+      correoInstitucional: 'Correo Institucional',
+      lugarResidencia: 'Lugar Residencia',
+      carrera: 'Carrera',
+      disenoCurricular: 'Diseño Curricular',
+      periodoAcademico: 'Período Académico',
+      alergias: 'Alergias',
+      medicamentos: 'Medicamentos',
+      referenciaPersonalNombre: 'Referencia Personal Nombre',
+      referenciaPersonalParentesco: 'Referencia Personal Parentesco',
+      referenciaPersonalTelefono: 'Referencia Personal Teléfono',
+      enfermedadCatastrofica: 'Enfermedad Catastrófica',
       nivelFormacionPadre: 'Nivel Formación Padre',
       nivelFormacionMadre: 'Nivel Formación Madre',
       ingresoTotalHogar: 'Ingreso Total Hogar',
@@ -2334,21 +3268,144 @@ export class StudentForm implements OnInit {
   }
 
   nextStep(): void {
-    if (this.validateCurrentStep()) {
-      if (this.currentStep < this.totalSteps - 1) {
-        this.currentStep++;
-        this.submitError = false;
-        this.submitMessage = '';
-        // Guardar el paso actual
-        this.saveFormData();
-        // Scroll al inicio del formulario
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    } else {
-      // El mensaje ya se estableció en validateCurrentStep()
-      // Scroll al primer campo con error
+    if (!this.validateCurrentStep()) {
       this.scrollToFirstError();
+      return;
     }
+    if (this.currentStep >= this.totalSteps - 1) return;
+
+    // En el primer paso: si solo hay tipo + número de identificación y no hay datos personales, buscar por cédula antes de guardar
+    if (this.currentStep === 0) {
+      const tipo = (this.studentForm.get('tipoDocumentoId')?.value ?? '').toString().trim();
+      const num = (this.studentForm.get('numeroIdentificacion')?.value ?? '').toString().trim();
+      const primerApellido = (this.studentForm.get('primerApellido')?.value ?? '').toString().trim();
+      if (tipo && num && !primerApellido) {
+        this.isSearchingByCedula = true;
+        this.cedulaSearchMessage = 'Buscando datos...';
+        this.cdr.detectChanges();
+        this.estudianteService.getEstudianteByCedula(tipo, num).subscribe({
+          next: (estudiante: any) => {
+            this.isSearchingByCedula = false;
+            this.cedulaSearchMessage = '';
+            this.patchFormFromEstudiante(estudiante);
+            this.cdr.detectChanges();
+            this.doGuardarPasoYAvanzar();
+          },
+          error: (err: any) => {
+            this.isSearchingByCedula = false;
+            this.cedulaSearchMessage = '';
+            this.cdr.detectChanges();
+            if (err?.status === 404) {
+              this.submitError = true;
+              this.submitMessage = 'No hay registro con esta cédula. Complete todos los campos del formulario para registrarse.';
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                this.submitMessage = '';
+                this.submitError = false;
+                this.cdr.detectChanges();
+              }, 5000);
+              return;
+            }
+            this.submitError = true;
+            this.submitMessage = err?.error?.message || err?.message || 'Error al buscar.';
+            this.cdr.detectChanges();
+            return;
+          },
+        });
+        return;
+      }
+    }
+
+    this.doGuardarPasoYAvanzar();
+  }
+
+  /** Guarda el paso actual en el backend y avanza al siguiente. */
+  private doGuardarPasoYAvanzar(): void {
+    this.isSubmitting = true;
+    this.submitMessage = '';
+    this.submitError = false;
+    const formData = this.getFormDataForBackend();
+    this.estudianteService
+      .guardarPaso(formData)
+      .pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.currentStep++;
+          this.submitError = false;
+          this.submitMessage = 'Paso guardado correctamente.';
+          this.saveFormData();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.submitMessage = '';
+            this.cdr.detectChanges();
+          }, 2500);
+        },
+        error: (err: any) => {
+          this.submitError = true;
+          this.submitMessage = err?.error?.message || err?.message || 'Error al guardar el paso. Intenta de nuevo.';
+          if (Array.isArray(err?.error?.message)) {
+            this.submitMessage = 'Error de validación:\n' + err.error.message.join('\n');
+          }
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  /** Rellena el formulario con los datos de un estudiante devuelto por el API (evita duplicar lógica de buscarPorCedula). */
+  private patchFormFromEstudiante(estudiante: any): void {
+    const formValue = this.apiEstudianteToFormValue(estudiante);
+    this.studentForm.patchValue(formValue, { emitEvent: false });
+    const compArr = this.studentForm.get('composicionFamiliar') as FormArray;
+    compArr.clear();
+    (estudiante.composicionFamiliar || []).forEach((r: any) => {
+      compArr.push(this.createComposicionFamiliarGroup());
+      const last = compArr.at(compArr.length - 1);
+      last.patchValue({
+        nombresApellidos: r.nombresApellidos ?? '',
+        fechaNacimiento: r.fechaNacimiento ?? '',
+        cedulaIdentidad: r.cedulaIdentidad ?? '',
+        estadoCivil: r.estadoCivil ?? '',
+        parentesco: r.parentesco ?? '',
+        nivelEstudios: r.nivelEstudios ?? '',
+        titulo: r.titulo ?? '',
+        laborOcupacion: r.laborOcupacion ?? '',
+      }, { emitEvent: false });
+    });
+    const ingArr = this.studentForm.get('ingresosFamiliares') as FormArray;
+    ingArr.clear();
+    (estudiante.ingresosFamiliares || []).forEach((r: any) => {
+      ingArr.push(this.createIngresoFamiliarGroup());
+      const row = ingArr.at(ingArr.length - 1) as FormGroup;
+      const ing = Number(r.ingresoMensual) || 0;
+      const ext = Number(r.ingresosExtras) || 0;
+      row.patchValue({
+        nombresApellidos: r.nombresApellidos ?? '',
+        parentesco: r.parentesco ?? '',
+        actividadLaboral: r.actividadLaboral ?? '',
+        ingresoMensual: r.ingresoMensual ?? '',
+        ingresosExtras: r.ingresosExtras ?? '',
+        total: ((ing + ext) || r.total) ?? '',
+      }, { emitEvent: false });
+      row.get('ingresoMensual')?.valueChanges.subscribe(() => this.updateIngresoTotalRow(row));
+      row.get('ingresosExtras')?.valueChanges.subscribe(() => this.updateIngresoTotalRow(row));
+    });
+    this.updateTotalEgresos();
+    if (this.studentForm.get('familiaDiscapacidadEnfermedadCatastrofica')?.value === 'SI') {
+      this.studentForm.get('familiaProblemaSalud')?.updateValueAndValidity({ emitEvent: false });
+      this.studentForm.get('familiaParentesco')?.updateValueAndValidity({ emitEvent: false });
+    }
+    this.paisNacionalidadSearch = this.getEnumLabel(formValue['paisNacionalidadId'] as string) || '';
+    this.paisResidenciaSearch = this.getEnumLabel(formValue['paisResidenciaId'] as string) || '';
+    this.provinciaNacimientoSearch = this.getEnumLabel(formValue['provinciaNacimientoId'] as string) || '';
+    this.provinciaResidenciaSearch = this.getEnumLabel(formValue['provinciaResidenciaId'] as string) || '';
+    this.cantonNacimientoSearch = this.getEnumLabel(formValue['cantonNacimientoId'] as string) || '';
+    this.cantonResidenciaSearch = this.getEnumLabel(formValue['cantonResidenciaId'] as string) || '';
   }
 
   scrollToFirstError(): void {
