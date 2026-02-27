@@ -2,6 +2,20 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface CatalogoItem {
+  id: string;
+  codigo: number;
+  nombre: string;
+}
+
+export interface ProvinciaItem extends CatalogoItem {
+  paisId: string;
+}
+
+export interface CantonItem extends CatalogoItem {
+  provinciaId: string;
+}
+
 export interface EnumsResponse {
   TipoDocumento: string[];
   Sexo: string[];
@@ -12,10 +26,10 @@ export interface EnumsResponse {
   Discapacidad: string[];
   TipoDiscapacidad: string[];
   TipoColegio: string[];
-  Pais: string[];
-  Provincia: string[];
-  Canton: string[];
-  PuebloNacionalidad: string[];
+  Pais: CatalogoItem[];
+  Provincia: ProvinciaItem[];
+  Canton: CantonItem[];
+  PuebloNacionalidad: CatalogoItem[];
   ModalidadCarrera: string[];
   JornadaCarrera: string[];
   TipoMatricula: string[];
@@ -42,6 +56,7 @@ export interface EnumsResponse {
   TipoAlcanceProyectoVinculacion: string[];
   NivelFormacionPadre: string[];
   NivelFormacionMadre: string[];
+  DisenoCurricular: string[];
 }
 
 @Injectable({
@@ -49,10 +64,20 @@ export interface EnumsResponse {
 })
 export class EnumsService {
   private http = inject(HttpClient);
-   private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
+  private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
   //private apiUrl = 'http://localhost:3000/estudiantes';
+  private catalogosUrl = 'https://backendformsenecyt.onrender.com';
+  //private catalogosUrl = 'http://localhost:3000';
 
   getEnums(): Observable<EnumsResponse> {
     return this.http.get<EnumsResponse>(`${this.apiUrl}/enums`);
+  }
+
+  getColegios(provincia?: string, canton?: string): Observable<any[]> {
+    let params: any = {};
+    if (provincia) params.provincia = provincia;
+    if (canton) params.canton = canton;
+    
+    return this.http.get<any[]>(`${this.catalogosUrl}/colegios`, { params });
   }
 }

@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class EstudianteService {
   private http = inject(HttpClient);
-   private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
+  private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
   //private apiUrl = 'http://localhost:3000/estudiantes';
 
   createEstudiante(data: any): Observable<any> {

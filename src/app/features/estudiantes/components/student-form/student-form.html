@@ -278,14 +278,14 @@
             <div class="form-group">
               <label>
                 Pueblo Nacionalidad
-                <span class="required" *ngIf="studentForm.get('etniaId')?.value === 'INDÍGENA'">*</span>
+                <span class="required" *ngIf="studentForm.get('etniaId')?.value === 'INDIGENA'">*</span>
               </label>
               <div class="select-wrapper">
                 <select formControlName="pueblonacionalidadId" class="form-control select-enhanced" [class.error]="hasError('pueblonacionalidadId')">
                   <option value="">Seleccione el pueblo nacionalidad</option>
                   @if (enums.PuebloNacionalidad) {
-                    @for (item of enums.PuebloNacionalidad; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+                    @for (item of enums.PuebloNacionalidad; track item.id) {
+                      <option [value]="item.id">{{ item.nombre }}</option>
                     }
                   }
                 </select>
@@ -293,7 +293,7 @@
               <small class="error-message" *ngIf="hasError('pueblonacionalidadId')">
                 {{ getErrorMessage('pueblonacionalidadId') }}
               </small>
-              <small class="hint" *ngIf="studentForm.get('etniaId')?.value !== 'INDÍGENA'">
+              <small class="hint" *ngIf="studentForm.get('etniaId')?.value !== 'INDIGENA'">
                 Se establece automáticamente como "NO_APLICA"
               </small>
             </div>
@@ -475,7 +475,7 @@
                   <div class="autocomplete-dropdown">
                     @for (item of filteredPaisesNacionalidad; track $index) {
                       <div class="autocomplete-item" (mousedown)="selectPaisNacionalidad(item)">
-                        {{ getEnumLabel(item) }}
+                        {{ item.nombre }}
                       </div>
                     }
                   </div>
@@ -504,7 +504,7 @@
                   <div class="autocomplete-dropdown">
                     @for (item of filteredProvinciasNacimiento; track $index) {
                       <div class="autocomplete-item" (mousedown)="selectProvinciaNacimiento(item)">
-                        {{ getEnumLabel(item) }}
+                        {{ item.nombre }}
                       </div>
                     }
                   </div>
@@ -517,27 +517,15 @@
 
             <div class="form-group">
               <label>Cantón de Nacimiento</label>
-              <div class="autocomplete-wrapper">
-                <input
-                  type="text"
-                  [value]="cantonNacimientoSearch"
-                  (input)="onCantonNacimientoInput($event)"
-                  (blur)="onCantonNacimientoBlur()"
-                  (focus)="onCantonNacimientoFocus()"
-                  class="form-control"
-                  [class.error]="hasError('cantonNacimientoId')"
-                  placeholder="Buscar cantón..."
-                  autocomplete="off"
-                />
-                @if (showCantonesNacimiento && filteredCantonesNacimiento.length > 0) {
-                  <div class="autocomplete-dropdown">
-                    @for (item of filteredCantonesNacimiento; track $index) {
-                      <div class="autocomplete-item" (mousedown)="selectCantonNacimiento(item)">
-                        {{ getEnumLabel(item) }}
-                      </div>
+              <div class="select-wrapper">
+                <select formControlName="cantonNacimientoId" class="form-control select-enhanced" [class.error]="hasError('cantonNacimientoId')">
+                  <option value="">Seleccione el cantón</option>
+                  @if (enums.Canton) {
+                    @for (item of getCantonesFiltered('nacimiento'); track item.id) {
+                      <option [value]="item.id">{{ item.nombre }}</option>
                     }
-                  </div>
-                }
+                  }
+                </select>
               </div>
               <small class="error-message" *ngIf="hasError('cantonNacimientoId')">
                 {{ getErrorMessage('cantonNacimientoId') }}
@@ -562,7 +550,7 @@
                   <div class="autocomplete-dropdown">
                     @for (item of filteredPaisesResidencia; track $index) {
                       <div class="autocomplete-item" (mousedown)="selectPaisResidencia(item)">
-                        {{ getEnumLabel(item) }}
+                        {{ item.nombre }}
                       </div>
                     }
                   </div>
@@ -591,7 +579,7 @@
                   <div class="autocomplete-dropdown">
                     @for (item of filteredProvinciasResidencia; track $index) {
                       <div class="autocomplete-item" (mousedown)="selectProvinciaResidencia(item)">
-                        {{ getEnumLabel(item) }}
+                        {{ item.nombre }}
                       </div>
                     }
                   </div>
@@ -604,27 +592,15 @@
 
             <div class="form-group">
               <label>Cantón de Residencia</label>
-              <div class="autocomplete-wrapper">
-                <input
-                  type="text"
-                  [value]="cantonResidenciaSearch"
-                  (input)="onCantonResidenciaInput($event)"
-                  (blur)="onCantonResidenciaBlur()"
-                  (focus)="onCantonResidenciaFocus()"
-                  class="form-control"
-                  [class.error]="hasError('cantonResidenciaId')"
-                  placeholder="Buscar cantón..."
-                  autocomplete="off"
-                />
-                @if (showCantonesResidencia && filteredCantonesResidencia.length > 0) {
-                  <div class="autocomplete-dropdown">
-                    @for (item of filteredCantonesResidencia; track $index) {
-                      <div class="autocomplete-item" (mousedown)="selectCantonResidencia(item)">
-                        {{ getEnumLabel(item) }}
-                      </div>
+              <div class="select-wrapper">
+                <select formControlName="cantonResidenciaId" class="form-control select-enhanced" [class.error]="hasError('cantonResidenciaId')">
+                  <option value="">Seleccione el cantón</option>
+                  @if (enums.Canton) {
+                    @for (item of getCantonesFiltered('residencia'); track item.id) {
+                      <option [value]="item.id">{{ item.nombre }}</option>
                     }
-                  </div>
-                }
+                  }
+                </select>
               </div>
               <small class="error-message" *ngIf="hasError('cantonResidenciaId')">
                 {{ getErrorMessage('cantonResidenciaId') }}
@@ -848,7 +824,16 @@
             </div>
             <div class="form-group">
               <label>Diseño curricular</label>
-              <input type="text" formControlName="disenoCurricular" class="form-control" [class.error]="hasError('disenoCurricular')" placeholder="Diseño curricular" />
+              <div class="select-wrapper">
+                <select formControlName="disenoCurricular" class="form-control select-enhanced" [class.error]="hasError('disenoCurricular')">
+                  <option value="">Seleccione el diseño curricular</option>
+                  @if (enums.DisenoCurricular) {
+                    @for (item of enums.DisenoCurricular; track $index) {
+                      <option [value]="item">{{ getEnumLabel(item) }}</option>
+                    }
+                  }
+                </select>
+              </div>
               <small class="error-message" *ngIf="hasError('disenoCurricular')">{{ getErrorMessage('disenoCurricular') }}</small>
             </div>
             <div class="form-group">
@@ -858,7 +843,34 @@
             </div>
             <div class="form-group">
               <label>Colegio del cual proviene</label>
-              <input type="text" formControlName="nombreColegioProcedencia" class="form-control" [class.error]="hasError('nombreColegioProcedencia')" placeholder="Nombre del colegio" />
+              <div class="autocomplete-wrapper">
+                <input
+                  type="text"
+                  [value]="colegioSearch"
+                  (input)="onColegioInput($event)"
+                  (blur)="onColegioBlur()"
+                  (focus)="onColegioFocus()"
+                  class="form-control"
+                  style="text-transform: uppercase"
+                  [class.error]="hasError('nombreColegioProcedencia')"
+                  placeholder="Buscar colegio..."
+                  autocomplete="off"
+                />
+                @if (showColegios && filteredColegios.length > 0) {
+                  <div class="autocomplete-dropdown">
+                    @for (colegio of filteredColegios; track $index) {
+                      <div class="autocomplete-item" (mousedown)="selectColegio(colegio)">
+                        <div>{{ colegio.nombre }}</div>
+                        <small style="color: #666;">{{ colegio.sostenimiento }} - {{ colegio.Provincia?.nombre }}, {{ colegio.Canton?.nombre }}</small>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              <small class="hint">Seleccione primero la provincia y cantón de residencia para filtrar los colegios</small>
+              <small class="error-message" *ngIf="hasError('nombreColegioProcedencia')">
+                {{ getErrorMessage('nombreColegioProcedencia') }}
+              </small>
             </div>
             <div class="form-group">
               <label>Título de Bachiller</label>
@@ -1386,11 +1398,6 @@
               <label>Dirección domicilio</label>
               <input type="text" formControlName="direccionDomicilio" class="form-control" [class.error]="hasError('direccionDomicilio')" placeholder="Dirección de domicilio" />
               <small class="error-message" *ngIf="hasError('direccionDomicilio')">{{ getErrorMessage('direccionDomicilio') }}</small>
-            </div>
-            <div class="form-group">
-              <label>Correo electrónico institucional</label>
-              <input type="email" formControlName="correoInstitucional" class="form-control" [class.error]="hasError('correoInstitucional')" placeholder="correo@institucion.edu.ec" />
-              <small class="error-message" *ngIf="hasError('correoInstitucional')">{{ getErrorMessage('correoInstitucional') }}</small>
             </div>
             <div class="form-group">
               <label>Lugar (ej. Quito)</label>

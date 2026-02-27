@@ -2,7 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormControl, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { EnumsService, EnumsResponse } from '../../../../services/enums.service';
+import { EnumsService, EnumsResponse, CatalogoItem, ProvinciaItem, CantonItem } from '../../../../services/enums.service';
 import { EstudianteService } from '../../../../services/estudiante.service';
 import { finalize } from 'rxjs';
 
@@ -111,12 +111,12 @@ export class StudentForm implements OnInit {
   croquisError = '';
 
   // Propiedades para autocompletado de países, provincias y cantones
-  filteredPaisesNacionalidad: string[] = [];
-  filteredPaisesResidencia: string[] = [];
-  filteredProvinciasNacimiento: string[] = [];
-  filteredCantonesNacimiento: string[] = [];
-  filteredProvinciasResidencia: string[] = []; 
-  filteredCantonesResidencia: string[] = [];
+  filteredPaisesNacionalidad: CatalogoItem[] = [];
+  filteredPaisesResidencia: CatalogoItem[] = [];
+  filteredProvinciasNacimiento: ProvinciaItem[] = [];
+  filteredCantonesNacimiento: CantonItem[] = [];
+  filteredProvinciasResidencia: ProvinciaItem[] = []; 
+  filteredCantonesResidencia: CantonItem[] = [];
   
   // Propiedades para controlar la visibilidad de los dropdowns
   showPaisesNacionalidad: boolean = false;
@@ -133,6 +133,12 @@ export class StudentForm implements OnInit {
   cantonNacimientoSearch: string = '';
   provinciaResidenciaSearch: string = '';
   cantonResidenciaSearch: string = '';
+  
+  // Propiedades para autocompletado de colegios
+  colegioSearch: string = '';
+  filteredColegios: any[] = [];
+  showColegios: boolean = false;
+  allColegios: any[] = []; // Cache de todos los colegios de la provincia/cantón
 
   studentForm: FormGroup;
   
@@ -141,7 +147,7 @@ export class StudentForm implements OnInit {
   totalSteps: number = 11;
   steps: Array<{ id: string; title: string; icon: string; fields: string[] }> = [
       { id: 'identificacion', title: 'Identificación', icon: 'clipboard', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
-    { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'puebloNacionalidad', 'tipoSangre'] },
+    { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'pueblonacionalidadId', 'tipoSangre'] },
     { id: 'discapacidad', title: 'Discapacidad', icon: 'accessibility', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad', 'alergias', 'medicamentos', 'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono', 'enfermedadCatastrofica'] },
     { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: 'globe', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
     { id: 'informacionAcademica', title: 'Información Académica', icon: 'graduation', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada', 'carrera', 'disenoCurricular', 'periodoAcademico'] },
@@ -149,7 +155,7 @@ export class StudentForm implements OnInit {
     { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: 'briefcase', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: 'gift', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
     { id: 'vinculacionSocial', title: 'Vinculación Social', icon: 'handshake', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
-    { id: 'contacto', title: 'Contacto', icon: 'mail', fields: ['correoElectronico', 'numeroCelular', 'direccionDomicilio', 'correoInstitucional', 'lugarResidencia'] },
+    { id: 'contacto', title: 'Contacto', icon: 'mail', fields: ['correoElectronico', 'numeroCelular', 'direccionDomicilio', 'lugarResidencia'] },
     { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
   ];
   
@@ -221,11 +227,12 @@ export class StudentForm implements OnInit {
 
   /** Convierte respuesta del API (estudiante) al formato del formulario para patchValue. */
   private apiEstudianteToFormValue(e: any): Record<string, unknown> {
+    console.log('Datos recibidos del API:', e);
     const v = (key: string, fallback: string | number = '') => StudentForm.getApiVal(e, key) ?? fallback;
     const estructura = e?.estructuraVivienda && String(e.estructuraVivienda).startsWith('OTRO:')
       ? { estructuraVivienda: 'OTRO', estructuraViviendaEspecifique: String(e.estructuraVivienda).replace(/^OTRO:\s*/i, '').trim() }
       : { estructuraVivienda: v('estructuraVivienda', '') };
-    return {
+    const formValue = {
       tipoDocumentoId: v('tipoDocumento'),
       numeroIdentificacion: v('numeroIdentificacion'),
       primerApellido: v('primerApellido'),
@@ -236,7 +243,7 @@ export class StudentForm implements OnInit {
       generoId: v('genero'),
       estadocivilId: v('estadoCivil'),
       etniaId: v('etnia'),
-      pueblonacionalidadId: v('puebloNacionalidad'),
+      pueblonacionalidadId: v('nacionalidadId') || v('puebloId'),
       tipoSangre: v('tipoSangre'),
       discapacidad: v('discapacidad'),
       porcentajeDiscapacidad: e.porcentajeDiscapacidad ?? '',
@@ -342,6 +349,8 @@ export class StudentForm implements OnInit {
       egresoOtros: e.egresoOtros ?? '',
       totalEgresos: e.totalEgresos ?? '',
     };
+    console.log('Valores mapeados al formulario:', formValue);
+    return formValue;
   }
 
   /** Busca estudiante por tipo de documento y número de identificación; si existe, carga los datos en el formulario. */
@@ -714,6 +723,8 @@ export class StudentForm implements OnInit {
     
     this.enumsService.getEnums().subscribe({
       next: (enums: EnumsResponse) => {
+        console.log('Enums recibidos:', enums);
+        console.log('PuebloNacionalidad:', enums.PuebloNacionalidad);
         this.enums = enums;
         // Inicializar listas filtradas vacías (no mostrar dropdowns automáticamente)
         this.filteredPaisesNacionalidad = [];
@@ -733,23 +744,21 @@ export class StudentForm implements OnInit {
         
         // Inicializar valores de búsqueda si hay valores seleccionados
         const formValue = this.studentForm.getRawValue();
-        if (formValue.paisNacionalidadId) {
-          this.paisNacionalidadSearch = this.getEnumLabel(formValue.paisNacionalidadId);
+        if (formValue.paisNacionalidadId && this.enums.Pais) {
+          const pais = this.enums.Pais.find(p => p.id === formValue.paisNacionalidadId);
+          this.paisNacionalidadSearch = pais?.nombre || '';
         }
-        if (formValue.paisResidenciaId) {
-          this.paisResidenciaSearch = this.getEnumLabel(formValue.paisResidenciaId);
+        if (formValue.paisResidenciaId && this.enums.Pais) {
+          const pais = this.enums.Pais.find(p => p.id === formValue.paisResidenciaId);
+          this.paisResidenciaSearch = pais?.nombre || '';
         }
-        if (formValue.provinciaNacimientoId) {
-          this.provinciaNacimientoSearch = this.getEnumLabel(formValue.provinciaNacimientoId);
+        if (formValue.provinciaNacimientoId && this.enums.Provincia) {
+          const provincia = this.enums.Provincia.find(p => p.id === formValue.provinciaNacimientoId);
+          this.provinciaNacimientoSearch = provincia?.nombre || '';
         }
-        if (formValue.cantonNacimientoId) {
-          this.cantonNacimientoSearch = this.getEnumLabel(formValue.cantonNacimientoId);
-        }
-        if (formValue.provinciaResidenciaId) {
-          this.provinciaResidenciaSearch = this.getEnumLabel(formValue.provinciaResidenciaId);
-        }
-        if (formValue.cantonResidenciaId) {
-          this.cantonResidenciaSearch = this.getEnumLabel(formValue.cantonResidenciaId);
+        if (formValue.provinciaResidenciaId && this.enums.Provincia) {
+          const provincia = this.enums.Provincia.find(p => p.id === formValue.provinciaResidenciaId);
+          this.provinciaResidenciaSearch = provincia?.nombre || '';
         }
         
         this.isLoadingEnums = false;
@@ -757,7 +766,11 @@ export class StudentForm implements OnInit {
         this.enableEnumDependentControls();
         // Verificar estado inicial de tipoAlcanceProyectoVinculacionId
         this.updateTipoAlcanceState();
-        this.cdr.detectChanges(); // Forzar detección de cambios
+        
+        // Forzar detección de cambios múltiples veces para asegurar que Angular actualice la vista
+        this.cdr.detectChanges();
+        setTimeout(() => this.cdr.detectChanges(), 0);
+        setTimeout(() => this.cdr.detectChanges(), 100);
       },
       error: (err: any) => {
         console.error('Error fetching enums:', err);
@@ -848,10 +861,63 @@ export class StudentForm implements OnInit {
     
     // Controles que dependen de pueblonacionalidadId
     if (controlName === 'pueblonacionalidadId') {
-      return formValue.etniaId !== 'INDÍGENA';
+      return formValue.etniaId !== 'INDIGENA';
     }
     
     return false;
+  }
+
+  // Método auxiliar para determinar si un cantón pertenece a una provincia
+  // basándose en el código del cantón
+  private cantonPerteneceAProvincia(codigoCanton: number, codigoProvincia: number): boolean {
+    const cantonStr = codigoCanton.toString();
+    const provinciaStr = codigoProvincia.toString();
+    
+    // Si el cantón tiene 4 dígitos, toma los primeros 2 dígitos
+    if (cantonStr.length === 4) {
+      return cantonStr.substring(0, 2) === provinciaStr;
+    }
+    
+    // Si el cantón tiene 3 dígitos, toma el primer dígito
+    if (cantonStr.length === 3) {
+      return cantonStr.substring(0, 1) === provinciaStr;
+    }
+    
+    // Para otros casos, comparar directamente
+    return cantonStr.startsWith(provinciaStr);
+  }
+
+  // Método auxiliar para verificar si un país es Ecuador
+  private esPaisEcuador(paisId: string): boolean {
+    if (!paisId || !this.enums?.Pais) {
+      return false;
+    }
+    const pais = this.enums.Pais.find(p => p.id === paisId);
+    return pais?.nombre.toLowerCase() === 'ecuador';
+  }
+
+  // Método para obtener cantones filtrados por provincia seleccionada
+  getCantonesFiltered(tipo: 'nacimiento' | 'residencia'): CantonItem[] {
+    if (!this.enums?.Canton || !this.enums?.Provincia) {
+      return [];
+    }
+    
+    const provinciaId = tipo === 'nacimiento' 
+      ? this.studentForm.get('provinciaNacimientoId')?.value
+      : this.studentForm.get('provinciaResidenciaId')?.value;
+    
+    if (!provinciaId) {
+      return [];
+    }
+    
+    const provincia = this.enums.Provincia.find(p => p.id === provinciaId);
+    if (!provincia) {
+      return [];
+    }
+    
+    return this.enums.Canton.filter(canton => 
+      this.cantonPerteneceAProvincia(canton.codigo, provincia.codigo)
+    );
   }
 
   // Métodos para filtrar países
@@ -862,9 +928,8 @@ export class StudentForm implements OnInit {
       this.filteredPaisesNacionalidad = [...this.enums.Pais];
     } else {
       this.filteredPaisesNacionalidad = this.enums.Pais.filter(pais => {
-        const label = this.getEnumLabel(pais);
-        return this.normalizeText(label).includes(term) ||
-               this.normalizeText(pais).includes(term);
+        return this.normalizeText(pais.nombre).includes(term) ||
+               pais.codigo.toString().includes(term);
       });
     }
     // Mostrar dropdown solo si hay texto
@@ -878,9 +943,8 @@ export class StudentForm implements OnInit {
       this.filteredPaisesResidencia = [...this.enums.Pais];
     } else {
       this.filteredPaisesResidencia = this.enums.Pais.filter(pais => {
-        const label = this.getEnumLabel(pais);
-        return this.normalizeText(label).includes(term) ||
-               this.normalizeText(pais).includes(term);
+        return this.normalizeText(pais.nombre).includes(term) ||
+               pais.codigo.toString().includes(term);
       });
     }
     // Mostrar dropdown solo si hay texto
@@ -895,9 +959,8 @@ export class StudentForm implements OnInit {
       this.filteredProvinciasNacimiento = [...this.enums.Provincia];
     } else {
       this.filteredProvinciasNacimiento = this.enums.Provincia.filter(provincia => {
-        const label = this.getEnumLabel(provincia);
-        return this.normalizeText(label).includes(term) ||
-               this.normalizeText(provincia).includes(term);
+        return this.normalizeText(provincia.nombre).includes(term) ||
+               provincia.codigo.toString().includes(term);
       });
     }
     // Mostrar dropdown solo si hay texto
@@ -911,9 +974,8 @@ export class StudentForm implements OnInit {
       this.filteredProvinciasResidencia = [...this.enums.Provincia];
     } else {
       this.filteredProvinciasResidencia = this.enums.Provincia.filter(provincia => {
-        const label = this.getEnumLabel(provincia);
-        return this.normalizeText(label).includes(term) ||
-               this.normalizeText(provincia).includes(term);
+        return this.normalizeText(provincia.nombre).includes(term) ||
+               provincia.codigo.toString().includes(term);
       });
     }
     // Mostrar dropdown solo si hay texto
@@ -923,14 +985,28 @@ export class StudentForm implements OnInit {
   // Métodos para filtrar cantones
   filterCantonesNacimiento(searchTerm: string) {
     if (!this.enums?.Canton) return;
+    
+    // Obtener la provincia seleccionada
+    const provinciaId = this.studentForm.get('provinciaNacimientoId')?.value;
+    let cantonesDisponibles = [...this.enums.Canton];
+    
+    // Filtrar por provincia si hay una seleccionada
+    if (provinciaId && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === provinciaId);
+      if (provincia) {
+        cantonesDisponibles = this.enums.Canton.filter(canton => 
+          this.cantonPerteneceAProvincia(canton.codigo, provincia.codigo)
+        );
+      }
+    }
+    
     const term = this.normalizeText(searchTerm).trim();
     if (!term) {
-      this.filteredCantonesNacimiento = [...this.enums.Canton];
+      this.filteredCantonesNacimiento = cantonesDisponibles;
     } else {
-      this.filteredCantonesNacimiento = this.enums.Canton.filter(canton => {
-        const label = this.getEnumLabel(canton);
-        return this.normalizeText(label).includes(term) ||
-               this.normalizeText(canton).includes(term);
+      this.filteredCantonesNacimiento = cantonesDisponibles.filter(canton => {
+        return this.normalizeText(canton.nombre).includes(term) ||
+               canton.codigo.toString().includes(term);
       });
     }
     // Mostrar dropdown solo si hay texto
@@ -939,14 +1015,28 @@ export class StudentForm implements OnInit {
 
   filterCantonesResidencia(searchTerm: string) {
     if (!this.enums?.Canton) return;
+    
+    // Obtener la provincia seleccionada
+    const provinciaId = this.studentForm.get('provinciaResidenciaId')?.value;
+    let cantonesDisponibles = [...this.enums.Canton];
+    
+    // Filtrar por provincia si hay una seleccionada
+    if (provinciaId && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === provinciaId);
+      if (provincia) {
+        cantonesDisponibles = this.enums.Canton.filter(canton => 
+          this.cantonPerteneceAProvincia(canton.codigo, provincia.codigo)
+        );
+      }
+    }
+    
     const term = this.normalizeText(searchTerm).trim();
     if (!term) {
-      this.filteredCantonesResidencia = [...this.enums.Canton];
+      this.filteredCantonesResidencia = cantonesDisponibles;
     } else {
-      this.filteredCantonesResidencia = this.enums.Canton.filter(canton => {
-        const label = this.getEnumLabel(canton);
-        return this.normalizeText(label).includes(term) ||
-               this.normalizeText(canton).includes(term);
+      this.filteredCantonesResidencia = cantonesDisponibles.filter(canton => {
+        return this.normalizeText(canton.nombre).includes(term) ||
+               canton.codigo.toString().includes(term);
       });
     }
     // Mostrar dropdown solo si hay texto
@@ -954,48 +1044,66 @@ export class StudentForm implements OnInit {
   }
 
   // Método para seleccionar un país
-  selectPaisNacionalidad(pais: string) {
-    this.studentForm.get('paisNacionalidadId')?.setValue(pais);
-    this.paisNacionalidadSearch = this.getEnumLabel(pais);
+  selectPaisNacionalidad(pais: CatalogoItem) {
+    this.studentForm.get('paisNacionalidadId')?.setValue(pais.id);
+    this.paisNacionalidadSearch = pais.nombre;
     this.filteredPaisesNacionalidad = [];
     this.showPaisesNacionalidad = false;
   }
 
-  selectPaisResidencia(pais: string) {
-    this.studentForm.get('paisResidenciaId')?.setValue(pais);
-    this.paisResidenciaSearch = this.getEnumLabel(pais);
+  selectPaisResidencia(pais: CatalogoItem) {
+    this.studentForm.get('paisResidenciaId')?.setValue(pais.id);
+    this.paisResidenciaSearch = pais.nombre;
     this.filteredPaisesResidencia = [];
     this.showPaisesResidencia = false;
   }
 
   // Método para seleccionar una provincia
-  selectProvinciaNacimiento(provincia: string) {
-    this.studentForm.get('provinciaNacimientoId')?.setValue(provincia);
-    this.provinciaNacimientoSearch = this.getEnumLabel(provincia);
+  selectProvinciaNacimiento(provincia: ProvinciaItem) {
+    this.studentForm.get('provinciaNacimientoId')?.setValue(provincia.id);
+    this.provinciaNacimientoSearch = provincia.nombre;
     this.filteredProvinciasNacimiento = [];
     this.showProvinciasNacimiento = false;
+    
+    // Limpiar el cantón seleccionado cuando se cambia la provincia
+    this.studentForm.get('cantonNacimientoId')?.setValue('');
   }
 
-  selectProvinciaResidencia(provincia: string) {
-    this.studentForm.get('provinciaResidenciaId')?.setValue(provincia);
-    this.provinciaResidenciaSearch = this.getEnumLabel(provincia);
+  selectProvinciaResidencia(provincia: ProvinciaItem) {
+    this.studentForm.get('provinciaResidenciaId')?.setValue(provincia.id);
+    this.provinciaResidenciaSearch = provincia.nombre;
     this.filteredProvinciasResidencia = [];
     this.showProvinciasResidencia = false;
+    
+    // Limpiar el cantón seleccionado cuando se cambia la provincia
+    this.studentForm.get('cantonResidenciaId')?.setValue('');
+    
+    // Limpiar el cache de colegios para que se recargue con la nueva provincia
+    this.allColegios = [];
+    this.filteredColegios = [];
+    this.colegioSearch = '';
+    this.studentForm.get('nombreColegioProcedencia')?.setValue('');
   }
 
   // Método para seleccionar un cantón
-  selectCantonNacimiento(canton: string) {
-    this.studentForm.get('cantonNacimientoId')?.setValue(canton);
-    this.cantonNacimientoSearch = this.getEnumLabel(canton);
+  selectCantonNacimiento(canton: CantonItem) {
+    this.studentForm.get('cantonNacimientoId')?.setValue(canton.id);
+    this.cantonNacimientoSearch = canton.nombre;
     this.filteredCantonesNacimiento = [];
     this.showCantonesNacimiento = false;
   }
 
-  selectCantonResidencia(canton: string) {
-    this.studentForm.get('cantonResidenciaId')?.setValue(canton);
-    this.cantonResidenciaSearch = this.getEnumLabel(canton);
+  selectCantonResidencia(canton: CantonItem) {
+    this.studentForm.get('cantonResidenciaId')?.setValue(canton.id);
+    this.cantonResidenciaSearch = canton.nombre;
     this.filteredCantonesResidencia = [];
     this.showCantonesResidencia = false;
+    
+    // Limpiar el cache de colegios para que se recargue con el nuevo cantón
+    this.allColegios = [];
+    this.filteredColegios = [];
+    this.colegioSearch = '';
+    this.studentForm.get('nombreColegioProcedencia')?.setValue('');
   }
 
   // Métodos para manejar eventos de input de países
@@ -1015,8 +1123,11 @@ export class StudentForm implements OnInit {
 
   onPaisNacionalidadBlur() {
     const selectedValue = this.studentForm.get('paisNacionalidadId')?.value;
-    if (selectedValue) {
-      this.paisNacionalidadSearch = this.getEnumLabel(selectedValue);
+    if (selectedValue && this.enums?.Pais) {
+      const pais = this.enums.Pais.find(p => p.id === selectedValue);
+      if (pais) {
+        this.paisNacionalidadSearch = pais.nombre;
+      }
     }
     setTimeout(() => {
       this.filteredPaisesNacionalidad = [];
@@ -1040,8 +1151,11 @@ export class StudentForm implements OnInit {
 
   onPaisResidenciaBlur() {
     const selectedValue = this.studentForm.get('paisResidenciaId')?.value;
-    if (selectedValue) {
-      this.paisResidenciaSearch = this.getEnumLabel(selectedValue);
+    if (selectedValue && this.enums?.Pais) {
+      const pais = this.enums.Pais.find(p => p.id === selectedValue);
+      if (pais) {
+        this.paisResidenciaSearch = pais.nombre;
+      }
     }
     setTimeout(() => {
       this.filteredPaisesResidencia = [];
@@ -1067,8 +1181,11 @@ export class StudentForm implements OnInit {
   onProvinciaNacimientoBlur() {
     // Si hay un valor seleccionado, restaurar el texto al valor seleccionado
     const selectedValue = this.studentForm.get('provinciaNacimientoId')?.value;
-    if (selectedValue) {
-      this.provinciaNacimientoSearch = this.getEnumLabel(selectedValue);
+    if (selectedValue && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === selectedValue);
+      if (provincia) {
+        this.provinciaNacimientoSearch = provincia.nombre;
+      }
     }
     // Delay para permitir el click en el dropdown
     setTimeout(() => {
@@ -1093,8 +1210,11 @@ export class StudentForm implements OnInit {
 
   onCantonNacimientoBlur() {
     const selectedValue = this.studentForm.get('cantonNacimientoId')?.value;
-    if (selectedValue) {
-      this.cantonNacimientoSearch = this.getEnumLabel(selectedValue);
+    if (selectedValue && this.enums?.Canton) {
+      const canton = this.enums.Canton.find(c => c.id === selectedValue);
+      if (canton) {
+        this.cantonNacimientoSearch = canton.nombre;
+      }
     }
     setTimeout(() => {
       this.filteredCantonesNacimiento = [];
@@ -1118,8 +1238,11 @@ export class StudentForm implements OnInit {
 
   onProvinciaResidenciaBlur() {
     const selectedValue = this.studentForm.get('provinciaResidenciaId')?.value;
-    if (selectedValue) {
-      this.provinciaResidenciaSearch = this.getEnumLabel(selectedValue);
+    if (selectedValue && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === selectedValue);
+      if (provincia) {
+        this.provinciaResidenciaSearch = provincia.nombre;
+      }
     }
     setTimeout(() => {
       this.filteredProvinciasResidencia = [];
@@ -1143,12 +1266,112 @@ export class StudentForm implements OnInit {
 
   onCantonResidenciaBlur() {
     const selectedValue = this.studentForm.get('cantonResidenciaId')?.value;
-    if (selectedValue) {
-      this.cantonResidenciaSearch = this.getEnumLabel(selectedValue);
+    if (selectedValue && this.enums?.Canton) {
+      const canton = this.enums.Canton.find(c => c.id === selectedValue);
+      if (canton) {
+        this.cantonResidenciaSearch = canton.nombre;
+      }
     }
     setTimeout(() => {
       this.filteredCantonesResidencia = [];
       this.showCantonesResidencia = false;
+    }, 200);
+  }
+
+  // Métodos para autocompletado de colegios
+  loadColegiosFromAPI() {
+    // Obtener provincia y cantón seleccionados para filtrar
+    const provinciaId = this.studentForm.get('provinciaResidenciaId')?.value;
+    const cantonId = this.studentForm.get('cantonResidenciaId')?.value;
+
+    // Buscar el nombre de la provincia y cantón
+    let provinciaNombre = '';
+    let cantonNombre = '';
+
+    if (provinciaId && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === provinciaId);
+      if (provincia) {
+        provinciaNombre = provincia.nombre;
+      }
+    }
+
+    if (cantonId && this.enums?.Canton) {
+      const canton = this.enums.Canton.find(c => c.id === cantonId);
+      if (canton) {
+        cantonNombre = canton.nombre;
+      }
+    }
+
+    // Llamar al API con los parámetros de provincia y cantón
+    this.enumsService.getColegios(provinciaNombre, cantonNombre).subscribe({
+      next: (colegios) => {
+        this.allColegios = colegios;
+        this.filterColegiosLocally(this.colegioSearch);
+      },
+      error: (err) => {
+        console.error('Error al cargar colegios:', err);
+        this.allColegios = [];
+        this.filteredColegios = [];
+      }
+    });
+  }
+
+  filterColegiosLocally(searchTerm: string) {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      this.filteredColegios = this.allColegios;
+      return;
+    }
+
+    // Filtrar localmente por el término de búsqueda (normalizado)
+    const term = this.normalizeText(searchTerm).trim();
+    this.filteredColegios = this.allColegios.filter(colegio => 
+      this.normalizeText(colegio.nombre).includes(term)
+    );
+  }
+
+  filterColegios(searchTerm: string) {
+    // Si no hay colegios cargados, cargar del API
+    if (this.allColegios.length === 0) {
+      this.loadColegiosFromAPI();
+    } else {
+      // Si ya están cargados, filtrar localmente
+      this.filterColegiosLocally(searchTerm);
+    }
+  }
+
+  selectColegio(colegio: any) {
+    const nombreMayusculas = colegio.nombre.toUpperCase();
+    this.studentForm.get('nombreColegioProcedencia')?.setValue(nombreMayusculas);
+    this.colegioSearch = nombreMayusculas;
+    
+    // Establecer automáticamente el tipo de colegio según el sostenimiento
+    if (colegio.sostenimiento) {
+      this.studentForm.get('tipoColegioId')?.setValue(colegio.sostenimiento);
+    }
+    
+    this.filteredColegios = [];
+    this.showColegios = false;
+  }
+
+  onColegioInput(event: any) {
+    const value = event.target.value.toUpperCase();
+    this.colegioSearch = value;
+    this.studentForm.get('nombreColegioProcedencia')?.setValue(value, { emitEvent: false });
+    this.filterColegios(value);
+    this.showColegios = value.length > 0;
+  }
+
+  onColegioFocus() {
+    if (this.colegioSearch.length > 0) {
+      this.filterColegios(this.colegioSearch);
+      this.showColegios = true;
+    }
+  }
+
+  onColegioBlur() {
+    setTimeout(() => {
+      this.filteredColegios = [];
+      this.showColegios = false;
     }, 200);
   }
 
@@ -1478,21 +1701,34 @@ export class StudentForm implements OnInit {
     });
 
     // Validación condicional para pueblonacionalidadId
-    // Solo se habilita si etniaId = "INDÍGENA", si no se establece automáticamente "NO_APLICA"
+    // Solo se habilita si etniaId = "INDIGENA", si no se establece automáticamente "NO_APLICA"
     this.studentForm.get('etniaId')?.valueChanges.subscribe((value: any) => {
+      console.log('Etnia cambió a:', value);
       const pueblo = this.studentForm.get('pueblonacionalidadId');
-      if (value === 'INDÍGENA') {
+      console.log('Estado actual del campo pueblo:', pueblo?.disabled ? 'deshabilitado' : 'habilitado');
+      
+      if (value === 'INDIGENA') {
         // Si es indígena, habilitar el campo y requerir selección
+        console.log('Habilitando campo pueblonacionalidadId');
         pueblo?.enable({ emitEvent: false });
         pueblo?.setValidators([Validators.required]);
         pueblo?.setValue('', { emitEvent: false });
       } else {
-        // Si no es indígena, establecer automáticamente "NO_APLICA" y deshabilitar
-        pueblo?.setValue('NO_APLICA', { emitEvent: false });
+        // Si no es indígena, buscar el ID de "No aplica" y establecerlo automáticamente
+        const noAplicaItem = this.enums?.PuebloNacionalidad?.find(p => 
+          p.nombre.toLowerCase().includes('no aplica') || p.codigo === 34
+        );
+        console.log('Deshabilitando campo pueblonacionalidadId, estableciendo a:', noAplicaItem?.nombre);
+        if (noAplicaItem) {
+          pueblo?.setValue(noAplicaItem.id, { emitEvent: false });
+        } else {
+          pueblo?.setValue('', { emitEvent: false });
+        }
         pueblo?.disable({ emitEvent: false });
         pueblo?.clearValidators();
       }
       pueblo?.updateValueAndValidity({ emitEvent: false });
+      console.log('Nuevo estado del campo pueblo:', pueblo?.disabled ? 'deshabilitado' : 'habilitado');
     });
 
     // Si conductas violentas no es "Sí", limpiar tipo de violencia
@@ -1540,31 +1776,69 @@ export class StudentForm implements OnInit {
       const cantonNacimiento = this.studentForm.get('cantonNacimientoId');
       
       // Actualizar valor de búsqueda del país
-      if (value) {
-        this.paisNacionalidadSearch = this.getEnumLabel(value);
+      if (value && this.enums?.Pais) {
+        const pais = this.enums.Pais.find(p => p.id === value);
+        this.paisNacionalidadSearch = pais?.nombre || '';
+        
+        // Verificar si el país es Ecuador
+        const esEcuador = pais?.nombre.toLowerCase() === 'ecuador';
+        
+        if (esEcuador) {
+          // Si el país es Ecuador, habilitar provincia
+          provinciaNacimiento?.enable({ emitEvent: false });
+          // El cantón solo se habilita si hay una provincia seleccionada
+          if (provinciaNacimiento?.value) {
+            cantonNacimiento?.enable({ emitEvent: false });
+          } else {
+            cantonNacimiento?.disable({ emitEvent: false });
+          }
+        } else {
+          // Si el país no es Ecuador, deshabilitar y establecer valores como NA
+          provinciaNacimiento?.setValue('NA', { emitEvent: false });
+          cantonNacimiento?.setValue('NA', { emitEvent: false });
+          provinciaNacimiento?.disable({ emitEvent: false });
+          cantonNacimiento?.disable({ emitEvent: false });
+          provinciaNacimiento?.clearValidators();
+          cantonNacimiento?.clearValidators();
+          // Limpiar valores de búsqueda
+          this.provinciaNacimientoSearch = '';
+          this.filteredProvinciasNacimiento = [];
+        }
       } else {
         this.paisNacionalidadSearch = '';
-      }
-      
-      if (value === 'ECUADOR') {
-        // Si el país es Ecuador, habilitar campos
-        provinciaNacimiento?.enable({ emitEvent: false });
-        cantonNacimiento?.enable({ emitEvent: false });
-      } else {
-        // Si el país no es Ecuador, deshabilitar y establecer valores como NA
-        provinciaNacimiento?.setValue('NA', { emitEvent: false });
-        cantonNacimiento?.setValue('NA', { emitEvent: false });
+        // Si no hay país seleccionado, deshabilitar provincia y cantón
+        provinciaNacimiento?.setValue('', { emitEvent: false });
+        cantonNacimiento?.setValue('', { emitEvent: false });
         provinciaNacimiento?.disable({ emitEvent: false });
         cantonNacimiento?.disable({ emitEvent: false });
         provinciaNacimiento?.clearValidators();
         cantonNacimiento?.clearValidators();
         // Limpiar valores de búsqueda
         this.provinciaNacimientoSearch = '';
-        this.cantonNacimientoSearch = '';
         this.filteredProvinciasNacimiento = [];
-        this.filteredCantonesNacimiento = [];
       }
       provinciaNacimiento?.updateValueAndValidity({ emitEvent: false });
+      cantonNacimiento?.updateValueAndValidity({ emitEvent: false });
+    });
+    
+    // Habilitar cantón de nacimiento cuando se selecciona una provincia
+    this.studentForm.get('provinciaNacimientoId')?.valueChanges.subscribe((value: any) => {
+      const cantonNacimiento = this.studentForm.get('cantonNacimientoId');
+      const paisNacionalidadId = this.studentForm.get('paisNacionalidadId')?.value;
+      
+      // Verificar si el país es Ecuador
+      let esEcuador = false;
+      if (paisNacionalidadId && this.enums?.Pais) {
+        const pais = this.enums.Pais.find(p => p.id === paisNacionalidadId);
+        esEcuador = pais?.nombre.toLowerCase() === 'ecuador';
+      }
+      
+      if (value && esEcuador) {
+        cantonNacimiento?.enable({ emitEvent: false });
+      } else if (!value) {
+        cantonNacimiento?.disable({ emitEvent: false });
+        cantonNacimiento?.setValue('', { emitEvent: false });
+      }
       cantonNacimiento?.updateValueAndValidity({ emitEvent: false });
     });
 
@@ -1574,34 +1848,72 @@ export class StudentForm implements OnInit {
       const provinciaResidencia = this.studentForm.get('provinciaResidenciaId');
       const cantonResidencia = this.studentForm.get('cantonResidenciaId');
       
-      // Actualizar valor de búsqueda del país
-      if (value) {
-        this.paisResidenciaSearch = this.getEnumLabel(value);
+      if (value && this.enums?.Pais) {
+        const pais = this.enums.Pais.find(p => p.id === value);
+        this.paisResidenciaSearch = pais?.nombre || '';
+        
+        // Verificar si el país es Ecuador
+        const esEcuador = pais?.nombre.toLowerCase() === 'ecuador';
+        
+        if (esEcuador) {
+          // Si el país es Ecuador, habilitar provincia
+          provinciaResidencia?.enable({ emitEvent: false });
+          provinciaResidencia?.setValidators([Validators.required]);
+          // El cantón solo se habilita si hay una provincia seleccionada
+          if (provinciaResidencia?.value) {
+            cantonResidencia?.enable({ emitEvent: false });
+            cantonResidencia?.setValidators([Validators.required]);
+          } else {
+            cantonResidencia?.disable({ emitEvent: false });
+          }
+        } else {
+          // Si el país no es Ecuador, deshabilitar y establecer valores como NA
+          provinciaResidencia?.setValue('NA', { emitEvent: false });
+          cantonResidencia?.setValue('NA', { emitEvent: false });
+          provinciaResidencia?.disable({ emitEvent: false });
+          cantonResidencia?.disable({ emitEvent: false });
+          provinciaResidencia?.clearValidators();
+          cantonResidencia?.clearValidators();
+          // Limpiar valores de búsqueda
+          this.provinciaResidenciaSearch = '';
+          this.filteredProvinciasResidencia = [];
+        }
       } else {
         this.paisResidenciaSearch = '';
-      }
-      
-      if (value === 'ECUADOR') {
-        // Si el país es Ecuador, habilitar campos
-        provinciaResidencia?.enable({ emitEvent: false });
-        cantonResidencia?.enable({ emitEvent: false });
-        provinciaResidencia?.setValidators([Validators.required]);
-        cantonResidencia?.setValidators([Validators.required]);
-      } else {
-        // Si el país no es Ecuador, deshabilitar y establecer valores como NA
-        provinciaResidencia?.setValue('NA', { emitEvent: false });
-        cantonResidencia?.setValue('NA', { emitEvent: false });
+        // Si no hay país seleccionado, deshabilitar provincia y cantón
+        provinciaResidencia?.setValue('', { emitEvent: false });
+        cantonResidencia?.setValue('', { emitEvent: false });
         provinciaResidencia?.disable({ emitEvent: false });
         cantonResidencia?.disable({ emitEvent: false });
         provinciaResidencia?.clearValidators();
         cantonResidencia?.clearValidators();
         // Limpiar valores de búsqueda
         this.provinciaResidenciaSearch = '';
-        this.cantonResidenciaSearch = '';
         this.filteredProvinciasResidencia = [];
-        this.filteredCantonesResidencia = [];
       }
       provinciaResidencia?.updateValueAndValidity({ emitEvent: false });
+      cantonResidencia?.updateValueAndValidity({ emitEvent: false });
+    });
+    
+    // Habilitar cantón de residencia cuando se selecciona una provincia
+    this.studentForm.get('provinciaResidenciaId')?.valueChanges.subscribe((value: any) => {
+      const cantonResidencia = this.studentForm.get('cantonResidenciaId');
+      const paisResidenciaId = this.studentForm.get('paisResidenciaId')?.value;
+      
+      // Verificar si el país es Ecuador
+      let esEcuador = false;
+      if (paisResidenciaId && this.enums?.Pais) {
+        const pais = this.enums.Pais.find(p => p.id === paisResidenciaId);
+        esEcuador = pais?.nombre.toLowerCase() === 'ecuador';
+      }
+      
+      if (value && esEcuador) {
+        cantonResidencia?.enable({ emitEvent: false });
+        cantonResidencia?.setValidators([Validators.required]);
+      } else if (!value) {
+        cantonResidencia?.disable({ emitEvent: false });
+        cantonResidencia?.setValue('', { emitEvent: false });
+      }
       cantonResidencia?.updateValueAndValidity({ emitEvent: false });
     });
 
@@ -1897,7 +2209,7 @@ export class StudentForm implements OnInit {
       // 10. etniaId (Enum, obligatorio)
       etniaId: ['', [Validators.required]],
 
-      // 11. pueblonacionalidadId (Enum, obligatorio SOLO si etniaId = "INDÍGENA", si no "NO_APLICA")
+      // 11. pueblonacionalidadId (Enum, obligatorio SOLO si etniaId = "INDIGENA", si no "NO_APLICA")
       pueblonacionalidadId: [{ value: '', disabled: false }],
 
       // 12. tipoSangre (Enum, obligatorio)
@@ -2762,6 +3074,26 @@ export class StudentForm implements OnInit {
     return parts.length ? parts.join(', ') : (formValue.familiaServiciosMedicosDetalle || 'NA');
   }
 
+  /** Obtiene el ID de nacionalidad si el código es < 1000, sino retorna undefined */
+  private getNacionalidadId(pueblonacionalidadId: string | null | undefined): string | undefined {
+    if (!pueblonacionalidadId) return undefined;
+    const item = this.enums?.PuebloNacionalidad?.find(p => p.id === pueblonacionalidadId);
+    if (item && item.codigo < 1000) {
+      return item.id;
+    }
+    return undefined;
+  }
+
+  /** Obtiene el ID de pueblo si el código es >= 1000, sino retorna undefined */
+  private getPuebloId(pueblonacionalidadId: string | null | undefined): string | undefined {
+    if (!pueblonacionalidadId) return undefined;
+    const item = this.enums?.PuebloNacionalidad?.find(p => p.id === pueblonacionalidadId);
+    if (item && item.codigo >= 1000) {
+      return item.id;
+    }
+    return undefined;
+  }
+
   getFormDataForBackend(): any {
     const formValue = this.studentForm.getRawValue();
     
@@ -2774,7 +3106,8 @@ export class StudentForm implements OnInit {
       genero: formValue.generoId || '',
       estadoCivil: formValue.estadocivilId || '',
       etnia: formValue.etniaId || '',
-      puebloNacionalidad: formValue.pueblonacionalidadId || 'NO_APLICA',
+      // puebloNacionalidad ya no existe - ahora son nacionalidadId y puebloId (UUIDs)
+      // Estos campos se manejan por separado según la lógica del formulario
       tipoSangre: formValue.tipoSangre || '',
       discapacidad: formValue.discapacidad || '',
       
@@ -2794,24 +3127,29 @@ export class StudentForm implements OnInit {
       // Campos de ubicación
       paisNacionalidadId: formValue.paisNacionalidadId || '',
       // Provincia y cantón de nacimiento: 
-      // Si país != ECUADOR, provincia debe ser undefined (null en DB) y cantón debe ser 'NA'
-      // Si país == ECUADOR, usar el valor del formulario o undefined si está vacío
-      provinciaNacimientoId: formValue.paisNacionalidadId === 'ECUADOR'
+      // Si país != Ecuador, provincia debe ser undefined (null en DB) y cantón debe ser 'NA'
+      // Si país == Ecuador, usar el valor del formulario o undefined si está vacío
+      provinciaNacimientoId: this.esPaisEcuador(formValue.paisNacionalidadId)
         ? (formValue.provinciaNacimientoId || undefined)
         : undefined,
-      cantonNacimientoId: formValue.paisNacionalidadId === 'ECUADOR'
-        ? (formValue.cantonNacimientoId || 'NA')
-        : 'NA',
+      cantonNacimientoId: this.esPaisEcuador(formValue.paisNacionalidadId)
+        ? (formValue.cantonNacimientoId || undefined)
+        : undefined,
       paisResidenciaId: formValue.paisResidenciaId || '',
       // Provincia y cantón de residencia:
-      // Si país != ECUADOR, provincia debe ser undefined (null en DB) y cantón debe ser 'NA'
-      // Si país == ECUADOR, usar el valor del formulario o undefined si está vacío
-      provinciaResidenciaId: formValue.paisResidenciaId === 'ECUADOR'
+      // Si país != Ecuador, provincia debe ser undefined (null en DB) y cantón debe ser 'NA'
+      // Si país == Ecuador, usar el valor del formulario o undefined si está vacío
+      provinciaResidenciaId: this.esPaisEcuador(formValue.paisResidenciaId)
         ? (formValue.provinciaResidenciaId || undefined)
         : undefined,
-      cantonResidenciaId: formValue.paisResidenciaId === 'ECUADOR'
-        ? (formValue.cantonResidenciaId || 'NA')
-        : 'NA',
+      cantonResidenciaId: this.esPaisEcuador(formValue.paisResidenciaId)
+        ? (formValue.cantonResidenciaId || undefined)
+        : undefined,
+      
+      // Pueblo y Nacionalidad
+      // Determinar si es nacionalidad (código < 1000) o pueblo (código >= 1000)
+      nacionalidadId: this.getNacionalidadId(formValue.pueblonacionalidadId),
+      puebloId: this.getPuebloId(formValue.pueblonacionalidadId),
       
       // Campos académicos - convertir a enum si es necesario
       tipoColegioId: formValue.tipoColegioId || '',
@@ -2971,7 +3309,7 @@ export class StudentForm implements OnInit {
     const requiredFields = [
       'tipoDocumento', 'numeroIdentificacion', 'primerApellido', 'segundoApellido',
       'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia',
-      'puebloNacionalidad', 'tipoSangre', 'discapacidad', 'fechaNacimiento',
+      'tipoSangre', 'discapacidad', 'fechaNacimiento',
       'paisNacionalidadId', 'cantonNacimientoId', 'paisResidenciaId', 'cantonResidenciaId',
       'tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera',
       'fechaMatricula', 'tipoMatricula', 'nivelAcademico', 'haRepetidoAlMenosUnaMateria',
@@ -3352,7 +3690,9 @@ export class StudentForm implements OnInit {
     this.studentForm.patchValue(formValue, { emitEvent: false });
     const compArr = this.studentForm.get('composicionFamiliar') as FormArray;
     compArr.clear();
-    (estudiante.composicionFamiliar || []).forEach((r: any) => {
+    // El backend devuelve ComposicionFamiliar (con mayúscula)
+    const composicionData = estudiante.ComposicionFamiliar || estudiante.composicionFamiliar || [];
+    composicionData.forEach((r: any) => {
       compArr.push(this.createComposicionFamiliarGroup());
       const last = compArr.at(compArr.length - 1);
       last.patchValue({
@@ -3368,7 +3708,9 @@ export class StudentForm implements OnInit {
     });
     const ingArr = this.studentForm.get('ingresosFamiliares') as FormArray;
     ingArr.clear();
-    (estudiante.ingresosFamiliares || []).forEach((r: any) => {
+    // El backend devuelve IngresoFamiliar (con mayúscula y singular)
+    const ingresosData = estudiante.IngresoFamiliar || estudiante.ingresosFamiliares || [];
+    ingresosData.forEach((r: any) => {
       ingArr.push(this.createIngresoFamiliarGroup());
       const row = ingArr.at(ingArr.length - 1) as FormGroup;
       const ing = Number(r.ingresoMensual) || 0;
@@ -3389,12 +3731,37 @@ export class StudentForm implements OnInit {
       this.studentForm.get('familiaProblemaSalud')?.updateValueAndValidity({ emitEvent: false });
       this.studentForm.get('familiaParentesco')?.updateValueAndValidity({ emitEvent: false });
     }
-    this.paisNacionalidadSearch = this.getEnumLabel(formValue['paisNacionalidadId'] as string) || '';
-    this.paisResidenciaSearch = this.getEnumLabel(formValue['paisResidenciaId'] as string) || '';
-    this.provinciaNacimientoSearch = this.getEnumLabel(formValue['provinciaNacimientoId'] as string) || '';
-    this.provinciaResidenciaSearch = this.getEnumLabel(formValue['provinciaResidenciaId'] as string) || '';
-    this.cantonNacimientoSearch = this.getEnumLabel(formValue['cantonNacimientoId'] as string) || '';
-    this.cantonResidenciaSearch = this.getEnumLabel(formValue['cantonResidenciaId'] as string) || '';
+    
+    // Actualizar los textos de búsqueda para los autocomplete con los nombres de los items
+    const paisNacId = formValue['paisNacionalidadId'] as string;
+    if (paisNacId && this.enums?.Pais) {
+      const pais = this.enums.Pais.find(p => p.id === paisNacId);
+      this.paisNacionalidadSearch = pais?.nombre || '';
+    }
+    
+    const paisResId = formValue['paisResidenciaId'] as string;
+    if (paisResId && this.enums?.Pais) {
+      const pais = this.enums.Pais.find(p => p.id === paisResId);
+      this.paisResidenciaSearch = pais?.nombre || '';
+    }
+    
+    const provNacId = formValue['provinciaNacimientoId'] as string;
+    if (provNacId && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === provNacId);
+      this.provinciaNacimientoSearch = provincia?.nombre || '';
+    }
+    
+    const provResId = formValue['provinciaResidenciaId'] as string;
+    if (provResId && this.enums?.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === provResId);
+      this.provinciaResidenciaSearch = provincia?.nombre || '';
+    }
+    
+    // Actualizar el texto de búsqueda para el colegio
+    const nombreColegio = formValue['nombreColegioProcedencia'] as string;
+    if (nombreColegio) {
+      this.colegioSearch = nombreColegio;
+    }
   }
 
   scrollToFirstError(): void {
