@@ -1,0 +1,205 @@
+<div class="step-section" [formGroup]="formGroup">
+  <h2 class="step-title">
+    <span class="step-icon-large" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2v4"/><path d="M12 18v4"/>
+        <path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/>
+        <path d="M2 12h4"/><path d="M18 12h4"/>
+        <path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/>
+      </svg>
+    </span>
+    Discapacidad
+  </h2>
+  
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Discapacidad <span class="required">*</span></label>
+      <div class="select-wrapper">
+        <select formControlName="discapacidad" class="form-control select-enhanced" [class.error]="hasError('discapacidad')">
+          <option value="">Seleccione si tiene discapacidad</option>
+          @if (enums?.Discapacidad) {
+            @for (item of enums?.Discapacidad; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('discapacidad')">
+        {{ getErrorMessage('discapacidad') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Porcentaje de Discapacidad (o "NA")</label>
+      <input
+        type="text"
+        formControlName="porcentajeDiscapacidad"
+        class="form-control"
+        [class.error]="hasError('porcentajeDiscapacidad')"
+        [disabled]="formGroup.get('discapacidad')?.value === 'NO'"
+        placeholder="Porcentaje de discapacidad o NA"
+      />
+      <small class="error-message" *ngIf="hasError('porcentajeDiscapacidad')">
+        {{ getErrorMessage('porcentajeDiscapacidad') }}
+      </small>
+      <small class="hint" *ngIf="formGroup.get('discapacidad')?.value === 'NO'">
+        Se establece automáticamente como "NA"
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Número Carnet CONADIS (o "NA")</label>
+      <input
+        type="text"
+        formControlName="numCarnetConadis"
+        class="form-control"
+        maxlength="7"
+        [class.error]="hasError('numCarnetConadis')"
+        [disabled]="formGroup.get('discapacidad')?.value === 'NO'"
+        placeholder="Número de carnet CONADIS o NA"
+      />
+      <small class="error-message" *ngIf="hasError('numCarnetConadis')">
+        {{ getErrorMessage('numCarnetConadis') }}
+      </small>
+      <small class="hint" *ngIf="formGroup.get('discapacidad')?.value === 'NO'">
+        Se establece automáticamente como "NA"
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de Discapacidad</label>
+      <div class="select-wrapper">
+        <select 
+          formControlName="tipoDiscapacidad" 
+          class="form-control select-enhanced" 
+          [class.error]="hasError('tipoDiscapacidad')"
+          [disabled]="formGroup.get('discapacidad')?.value === 'NO'">
+          <option value="">Seleccione el tipo de discapacidad</option>
+          @if (enums?.TipoDiscapacidad) {
+            @for (item of enums?.TipoDiscapacidad; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('tipoDiscapacidad')">
+        {{ getErrorMessage('tipoDiscapacidad') }}
+      </small>
+      <small class="hint" *ngIf="formGroup.get('discapacidad')?.value === 'NO'">
+        Solo disponible si tiene discapacidad
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Alergias</label>
+      <input 
+        type="text" 
+        formControlName="alergias" 
+        class="form-control" 
+        style="text-transform: uppercase"
+        [class.error]="hasError('alergias')" 
+        placeholder="Alergias o NA" />
+      <small class="error-message" *ngIf="hasError('alergias')">{{ getErrorMessage('alergias') }}</small>
+    </div>
+
+    <div class="form-group">
+      <label>Medicamentos</label>
+      <input 
+        type="text" 
+        formControlName="medicamentos" 
+        class="form-control" 
+        style="text-transform: uppercase"
+        [class.error]="hasError('medicamentos')" 
+        placeholder="Medicamentos o NA" />
+      <small class="error-message" *ngIf="hasError('medicamentos')">{{ getErrorMessage('medicamentos') }}</small>
+    </div>
+
+    <div class="form-group">
+      <label>Referencia personal – Nombre</label>
+      <input 
+        type="text" 
+        formControlName="referenciaPersonalNombre" 
+        class="form-control" 
+        style="text-transform: uppercase"
+        [class.error]="hasError('referenciaPersonalNombre')" 
+        placeholder="Nombre" />
+      <small class="error-message" *ngIf="hasError('referenciaPersonalNombre')">{{ getErrorMessage('referenciaPersonalNombre') }}</small>
+    </div>
+
+    <div class="form-group">
+      <label>Referencia personal – Parentesco</label>
+      <div class="select-wrapper">
+        <select 
+          formControlName="referenciaPersonalParentesco" 
+          class="form-control select-enhanced" 
+          [class.error]="hasError('referenciaPersonalParentesco')">
+          <option value="">Seleccione el parentesco</option>
+          @if (parentescoOpciones) {
+            @for (opcion of parentescoOpciones; track opcion.value) {
+              <option [value]="opcion.value">{{ opcion.label }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('referenciaPersonalParentesco')">{{ getErrorMessage('referenciaPersonalParentesco') }}</small>
+    </div>
+
+    @if (formGroup.get('referenciaPersonalParentesco')?.value === 'OTRO') {
+      <div class="form-group">
+        <label>Especifique el parentesco</label>
+        <input 
+          type="text" 
+          formControlName="referenciaPersonalParentescoOtro" 
+          class="form-control" 
+          style="text-transform: uppercase"
+          [class.error]="hasError('referenciaPersonalParentescoOtro')" 
+          placeholder="Especifique el parentesco" />
+        <small class="error-message" *ngIf="hasError('referenciaPersonalParentescoOtro')">{{ getErrorMessage('referenciaPersonalParentescoOtro') }}</small>
+      </div>
+    }
+
+    <div class="form-group">
+      <label>Referencia personal – Teléfono</label>
+      <input 
+        type="tel" 
+        formControlName="referenciaPersonalTelefono" 
+        class="form-control" 
+        [class.error]="hasError('referenciaPersonalTelefono')" 
+        placeholder="Teléfono" />
+      <small class="error-message" *ngIf="hasError('referenciaPersonalTelefono')">{{ getErrorMessage('referenciaPersonalTelefono') }}</small>
+    </div>
+
+    <div class="form-group">
+      <label>Enfermedad catastrófica</label>
+      <input 
+        type="text" 
+        formControlName="enfermedadCatastrofica" 
+        class="form-control" 
+        style="text-transform: uppercase"
+        [class.error]="hasError('enfermedadCatastrofica')" 
+        placeholder="Enfermedad catastrófica o NA" />
+      <small class="error-message" *ngIf="hasError('enfermedadCatastrofica')">{{ getErrorMessage('enfermedadCatastrofica') }}</small>
+    </div>
+
+    <div class="form-group">
+      <label>¿Presenta carnet de discapacidad?</label>
+      <select formControlName="presentaCarnetDiscapacidad" class="form-control" [class.error]="hasError('presentaCarnetDiscapacidad')">
+        <option value="">Seleccione</option>
+        <option value="SI">Sí</option>
+        <option value="NO">No</option>
+        <option value="NA">N/A</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>¿Presenta algún tipo de alergia importante?</label>
+      <select formControlName="presentaAlergiaImportante" class="form-control" [class.error]="hasError('presentaAlergiaImportante')">
+        <option value="">Seleccione</option>
+        <option value="SI">Sí</option>
+        <option value="NO">No</option>
+        <option value="NA">N/A</option>
+      </select>
+    </div>
+  </div>
+</div>

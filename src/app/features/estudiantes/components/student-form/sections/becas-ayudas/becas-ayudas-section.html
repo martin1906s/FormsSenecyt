@@ -1,0 +1,231 @@
+<div class="step-section" [formGroup]="formGroup">
+  <h2 class="step-title">
+    <span class="step-icon-large" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="8" width="18" height="4" rx="1"/>
+        <path d="M12 8v13"/>
+        <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
+        <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
+      </svg>
+    </span>
+    Becas y Ayudas
+  </h2>
+  
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Tipo de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="tipoBecaId" class="form-control select-enhanced" [class.error]="hasError('tipoBecaId')">
+          <option value="">Seleccione el tipo de beca</option>
+          @if (enums?.TipoBeca) {
+            @for (item of enums?.TipoBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('tipoBecaId')">
+        {{ getErrorMessage('tipoBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Primera Razón de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="primeraRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('primeraRazonBecaId')">
+          <option value="">Seleccione la razón</option>
+          @if (enums?.PrimeraRazonBeca) {
+            @for (item of enums?.PrimeraRazonBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('primeraRazonBecaId')">
+        {{ getErrorMessage('primeraRazonBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Segunda Razón de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="segundaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('segundaRazonBecaId')">
+          <option value="">Seleccione la razón</option>
+          @if (enums?.SegundaRazonBeca) {
+            @for (item of enums?.SegundaRazonBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('segundaRazonBecaId')">
+        {{ getErrorMessage('segundaRazonBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Tercera Razón de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="terceraRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('terceraRazonBecaId')">
+          <option value="">Seleccione la razón</option>
+          @if (enums?.TerceraRazonBeca) {
+            @for (item of enums?.TerceraRazonBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('terceraRazonBecaId')">
+        {{ getErrorMessage('terceraRazonBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Cuarta Razón de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="cuartaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('cuartaRazonBecaId')">
+          <option value="">Seleccione la razón</option>
+          @if (enums?.CuartaRazonBeca) {
+            @for (item of enums?.CuartaRazonBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('cuartaRazonBecaId')">
+        {{ getErrorMessage('cuartaRazonBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Quinta Razón de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="quintaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('quintaRazonBecaId')">
+          <option value="">Seleccione la razón</option>
+          @if (enums?.QuintaRazonBeca) {
+            @for (item of enums?.QuintaRazonBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('quintaRazonBecaId')">
+        {{ getErrorMessage('quintaRazonBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Sexta Razón de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="sextaRazonBecaId" class="form-control select-enhanced" [class.error]="hasError('sextaRazonBecaId')">
+          <option value="">Seleccione la razón</option>
+          @if (enums?.SextaRazonBeca) {
+            @for (item of enums?.SextaRazonBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('sextaRazonBecaId')">
+        {{ getErrorMessage('sextaRazonBecaId') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Monto de Beca</label>
+      <input
+        type="number"
+        formControlName="montoBeca"
+        class="form-control"
+        [class.error]="hasError('montoBeca')"
+        placeholder="Monto de beca o NA"
+        min="0"
+        step="0.01"
+      />
+      <small class="error-message" *ngIf="hasError('montoBeca')">
+        {{ getErrorMessage('montoBeca') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Porcentaje de Beca - Cobertura Arancel (%)</label>
+      <input
+        type="number"
+        formControlName="porcientoBecaCoberturaArancel"
+        class="form-control"
+        [class.error]="hasError('porcientoBecaCoberturaArancel')"
+        placeholder="Porcentaje"
+        min="0"
+        max="100"
+      />
+      <small class="error-message" *ngIf="hasError('porcientoBecaCoberturaArancel')">
+        {{ getErrorMessage('porcientoBecaCoberturaArancel') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Porcentaje de Beca - Cobertura Manutención (%)</label>
+      <input
+        type="number"
+        formControlName="porcientoBecaCoberturaManuntencion"
+        class="form-control"
+        [class.error]="hasError('porcientoBecaCoberturaManuntencion')"
+        placeholder="Porcentaje"
+        min="0"
+        max="100"
+      />
+      <small class="error-message" *ngIf="hasError('porcientoBecaCoberturaManuntencion')">
+        {{ getErrorMessage('porcientoBecaCoberturaManuntencion') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Financiamiento de Beca</label>
+      <div class="select-wrapper">
+        <select formControlName="financiamientoBeca" class="form-control select-enhanced" [class.error]="hasError('financiamientoBeca')">
+          <option value="">Seleccione el financiamiento</option>
+          @if (enums?.FinanciamientoBeca) {
+            @for (item of enums?.FinanciamientoBeca; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
+            }
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('financiamientoBeca')">
+        {{ getErrorMessage('financiamientoBeca') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Monto de Ayuda Económica</label>
+      <input
+        type="number"
+        formControlName="montoAyudaEconomica"
+        class="form-control"
+        [class.error]="hasError('montoAyudaEconomica')"
+        placeholder="Monto o NA"
+        min="0"
+        step="0.01"
+      />
+      <small class="error-message" *ngIf="hasError('montoAyudaEconomica')">
+        {{ getErrorMessage('montoAyudaEconomica') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Monto de Crédito Educativo</label>
+      <input
+        type="number"
+        formControlName="montoCreditoEducativo"
+        class="form-control"
+        [class.error]="hasError('montoCreditoEducativo')"
+        placeholder="Monto o NA"
+        min="0"
+        step="0.01"
+      />
+      <small class="error-message" *ngIf="hasError('montoCreditoEducativo')">
+        {{ getErrorMessage('montoCreditoEducativo') }}
+      </small>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,236 @@
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { EnumsResponse } from '../../../../../../services/enums.service';
+import { EnumsService } from '../../../../../../services/enums.service';
+import { EstudianteService } from '../../../../../../services/estudiante.service';
+import { finalize } from 'rxjs';
+
+@Component({
+  selector: 'app-informacion-academica-section',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './informacion-academica-section.html',
+  styleUrl: './informacion-academica-section.scss'
+})
+export class InformacionAcademicaSection implements OnInit {
+  @Input() formGroup!: FormGroup;
+  @Input() enums: EnumsResponse | null = null;
+  @Input() carrerasOpciones: string[] = [];
+  @Input() provinciaResidenciaId: string = '';
+  @Input() cantonResidenciaId: string = '';
+  
+  private enumsService = inject(EnumsService);
+  private estudianteService = inject(EstudianteService);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  
+  // Autocompletado de colegios
+  colegioSearch: string = '';
+  filteredColegios: any[] = [];
+  showColegios: boolean = false;
+  allColegios: any[] = [];
+  
+  // Subida de título de bachiller
+  tituloBachillerUploading: boolean = false;
+  tituloBachillerError: string = '';
+
+  ngOnInit(): void {
+    this.initializeColegioSearch();
+  }
+  
+  private initializeColegioSearch(): void {
+    const nombreColegio = this.formGroup.get('nombreColegioProcedencia')?.value;
+    if (nombreColegio) {
+      this.colegioSearch = nombreColegio;
+    }
+  }
+  
+  clearColegiosCache(): void {
+    this.allColegios = [];
+    this.filteredColegios = [];
+    this.colegioSearch = '';
+    this.formGroup.get('nombreColegioProcedencia')?.setValue('');
+  }
+
+  hasError(fieldName: string): boolean {
+    const control = this.formGroup.get(fieldName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  getErrorMessage(fieldName: string): string {
+    const control = this.formGroup.get(fieldName);
+    if (!control || !control.errors) return '';
+    
+    if (control.errors['required']) return 'Este campo es requerido';
+    if (control.errors['min']) return `Valor mínimo: ${control.errors['min'].min}`;
+    if (control.errors['max']) return `Valor máximo: ${control.errors['max'].max}`;
+    
+    return 'Campo inválido';
+  }
+
+  getEnumLabel(value: string): string {
+    return value.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+  
+  getTipoColegioLabel(): string {
+    const value = this.formGroup.get('tipoColegioId')?.value;
+    if (!value) return '';
+    return this.getEnumLabel(value);
+  }
+  
+  // Lógica de autocompletado de colegios
+  loadColegiosFromAPI() {
+    if (!this.enums) return;
+    
+    let provinciaNombre = '';
+    let cantonNombre = '';
+
+    if (this.provinciaResidenciaId && this.enums.Provincia) {
+      const provincia = this.enums.Provincia.find(p => p.id === this.provinciaResidenciaId);
+      if (provincia) {
+        provinciaNombre = provincia.nombre;
+      }
+    }
+
+    if (this.cantonResidenciaId && this.enums.Canton) {
+      const canton = this.enums.Canton.find(c => c.id === this.cantonResidenciaId);
+      if (canton) {
+        cantonNombre = canton.nombre;
+      }
+    }
+
+    this.enumsService.getColegios(provinciaNombre, cantonNombre).subscribe({
+      next: (colegios) => {
+        this.allColegios = colegios;
+        this.filterColegiosLocally(this.colegioSearch);
+      },
+      error: (err) => {
+        console.error('Error al cargar colegios:', err);
+        this.allColegios = [];
+        this.filteredColegios = [];
+      }
+    });
+  }
+
+  filterColegiosLocally(searchTerm: string) {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      this.filteredColegios = this.allColegios;
+      return;
+    }
+
+    const term = this.normalizeText(searchTerm).trim();
+    this.filteredColegios = this.allColegios.filter(colegio => 
+      this.normalizeText(colegio.nombre).includes(term)
+    );
+  }
+
+  filterColegios(searchTerm: string) {
+    if (this.allColegios.length === 0) {
+      this.loadColegiosFromAPI();
+    } else {
+      this.filterColegiosLocally(searchTerm);
+    }
+  }
+
+  selectColegio(colegio: any) {
+    const nombreMayusculas = colegio.nombre.toUpperCase();
+    this.formGroup.get('nombreColegioProcedencia')?.setValue(nombreMayusculas);
+    this.colegioSearch = nombreMayusculas;
+    
+    if (colegio.sostenimiento) {
+      this.formGroup.get('tipoColegioId')?.setValue(colegio.sostenimiento);
+    }
+    
+    this.filteredColegios = [];
+    this.showColegios = false;
+    this.cdr.detectChanges();
+  }
+
+  onColegioInput(event: any) {
+    const value = event.target.value.toUpperCase();
+    this.colegioSearch = value;
+    this.formGroup.get('nombreColegioProcedencia')?.setValue(value, { emitEvent: false });
+    this.filterColegios(value);
+    this.showColegios = value.length > 0;
+  }
+
+  onColegioFocus() {
+    if (this.colegioSearch.length > 0) {
+      this.filterColegios(this.colegioSearch);
+      this.showColegios = true;
+    }
+  }
+
+  onColegioBlur() {
+    setTimeout(() => {
+      this.filteredColegios = [];
+      this.showColegios = false;
+    }, 200);
+  }
+  
+  private normalizeText(text: string): string {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+  
+  // Lógica de subida de título de bachiller
+  onTituloBachillerFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      this.tituloBachillerError = 'Formato no permitido. Use imagen (JPEG, PNG, WebP, GIF) o PDF.';
+      this.cdr.markForCheck();
+      return;
+    }
+    
+    this.tituloBachillerError = '';
+    this.tituloBachillerUploading = true;
+    this.cdr.markForCheck();
+    
+    this.estudianteService.uploadTituloBachiller(file).pipe(
+      finalize(() => {
+        this.tituloBachillerUploading = false;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
+      next: (res) => {
+        this.formGroup.get('tituloBachiller')?.setValue(res.url, { emitEvent: true });
+        input.value = '';
+      },
+      error: (err) => {
+        this.tituloBachillerError = err?.error?.message || err?.message || 'Error al subir el archivo.';
+      },
+    });
+  }
+
+  removeTituloBachiller(fileInput: HTMLInputElement): void {
+    const url = this.formGroup.get('tituloBachiller')?.value;
+    if (!url) {
+      this.formGroup.get('tituloBachiller')?.setValue('');
+      if (fileInput) fileInput.value = '';
+      this.cdr.markForCheck();
+      return;
+    }
+    
+    this.tituloBachillerError = '';
+    this.estudianteService.deleteTituloBachiller(url).subscribe({
+      next: () => {
+        this.formGroup.get('tituloBachiller')?.setValue('');
+        if (fileInput) fileInput.value = '';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.tituloBachillerError = err?.error?.message || err?.message || 'No se pudo eliminar el archivo del servidor.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+}

@@ -1,0 +1,31 @@
+<div class="form-group">
+  <label>
+    {{ label }}
+    <span class="required" *ngIf="required">*</span>
+  </label>
+  <div class="autocomplete-wrapper">
+    <input
+      type="text"
+      [value]="searchValue"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+      (focus)="onFocus()"
+      class="form-control"
+      [class.error]="errorMessage"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      autocomplete="off"
+    />
+    @if (showDropdown && items.length > 0) {
+      <div class="autocomplete-dropdown">
+        @for (item of items; track $index) {
+          <div class="autocomplete-item" (mousedown)="selectItem(item)">
+            {{ getDisplayValue(item) }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+  <small class="error-message" *ngIf="errorMessage">{{ errorMessage }}</small>
+  <small class="hint" *ngIf="hint && !errorMessage">{{ hint }}</small>
+</div>

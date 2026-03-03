@@ -1,0 +1,166 @@
+<div class="step-section" [formGroup]="formGroup">
+  <h2 class="step-title">
+    <span class="step-icon-large" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        <path d="M2 12h20"/>
+      </svg>
+    </span>
+    Nacionalidad y Residencia
+  </h2>
+  
+  <div class="form-grid">
+    <!-- País Nacionalidad -->
+    <div class="form-group">
+      <label>País Nacionalidad <span class="required">*</span></label>
+      <div class="autocomplete-wrapper">
+        <input
+          type="text"
+          [value]="paisNacionalidadSearch"
+          (input)="onPaisNacionalidadInput($event)"
+          (blur)="onPaisNacionalidadBlur()"
+          (focus)="onPaisNacionalidadFocus()"
+          class="form-control"
+          [class.error]="hasError('paisNacionalidadId')"
+          placeholder="Buscar país de nacionalidad..."
+          autocomplete="off"
+        />
+        @if (showPaisesNacionalidad && filteredPaisesNacionalidad.length > 0) {
+          <div class="autocomplete-dropdown">
+            @for (item of filteredPaisesNacionalidad; track $index) {
+              <div class="autocomplete-item" (mousedown)="selectPaisNacionalidad(item)">
+                {{ item.nombre }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <small class="error-message" *ngIf="hasError('paisNacionalidadId')">
+        {{ getErrorMessage('paisNacionalidadId') }}
+      </small>
+    </div>
+
+    <!-- Provincia Nacimiento -->
+    <div class="form-group">
+      <label>Provincia de Nacimiento</label>
+      <div class="autocomplete-wrapper">
+        <input
+          type="text"
+          [value]="provinciaNacimientoSearch"
+          (input)="onProvinciaNacimientoInput($event)"
+          (blur)="onProvinciaNacimientoBlur()"
+          (focus)="onProvinciaNacimientoFocus()"
+          class="form-control"
+          [class.error]="hasError('provinciaNacimientoId')"
+          placeholder="Buscar provincia..."
+          autocomplete="off"
+        />
+        @if (showProvinciasNacimiento && filteredProvinciasNacimiento.length > 0) {
+          <div class="autocomplete-dropdown">
+            @for (item of filteredProvinciasNacimiento; track $index) {
+              <div class="autocomplete-item" (mousedown)="selectProvinciaNacimiento(item)">
+                {{ item.nombre }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <small class="error-message" *ngIf="hasError('provinciaNacimientoId')">
+        {{ getErrorMessage('provinciaNacimientoId') }}
+      </small>
+    </div>
+
+    <!-- Cantón Nacimiento -->
+    <div class="form-group">
+      <label>Cantón de Nacimiento</label>
+      <div class="select-wrapper">
+        <select formControlName="cantonNacimientoId" class="form-control select-enhanced" [class.error]="hasError('cantonNacimientoId')">
+          <option value="">Seleccione el cantón</option>
+          @for (item of filteredCantonesNacimiento; track item.id) {
+            <option [value]="item.id">{{ item.nombre }}</option>
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('cantonNacimientoId')">
+        {{ getErrorMessage('cantonNacimientoId') }}
+      </small>
+    </div>
+
+    <!-- País Residencia -->
+    <div class="form-group">
+      <label>País de Residencia <span class="required">*</span></label>
+      <div class="autocomplete-wrapper">
+        <input
+          type="text"
+          [value]="paisResidenciaSearch"
+          (input)="onPaisResidenciaInput($event)"
+          (blur)="onPaisResidenciaBlur()"
+          (focus)="onPaisResidenciaFocus()"
+          class="form-control"
+          [class.error]="hasError('paisResidenciaId')"
+          placeholder="Buscar país de residencia..."
+          autocomplete="off"
+        />
+        @if (showPaisesResidencia && filteredPaisesResidencia.length > 0) {
+          <div class="autocomplete-dropdown">
+            @for (item of filteredPaisesResidencia; track $index) {
+              <div class="autocomplete-item" (mousedown)="selectPaisResidencia(item)">
+                {{ item.nombre }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <small class="error-message" *ngIf="hasError('paisResidenciaId')">
+        {{ getErrorMessage('paisResidenciaId') }}
+      </small>
+    </div>
+
+    <!-- Provincia Residencia -->
+    <div class="form-group">
+      <label>Provincia de Residencia</label>
+      <div class="autocomplete-wrapper">
+        <input
+          type="text"
+          [value]="provinciaResidenciaSearch"
+          (input)="onProvinciaResidenciaInput($event)"
+          (blur)="onProvinciaResidenciaBlur()"
+          (focus)="onProvinciaResidenciaFocus()"
+          class="form-control"
+          [class.error]="hasError('provinciaResidenciaId')"
+          placeholder="Buscar provincia..."
+          autocomplete="off"
+        />
+        @if (showProvinciasResidencia && filteredProvinciasResidencia.length > 0) {
+          <div class="autocomplete-dropdown">
+            @for (item of filteredProvinciasResidencia; track $index) {
+              <div class="autocomplete-item" (mousedown)="selectProvinciaResidencia(item)">
+                {{ item.nombre }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <small class="error-message" *ngIf="hasError('provinciaResidenciaId')">
+        {{ getErrorMessage('provinciaResidenciaId') }}
+      </small>
+    </div>
+
+    <!-- Cantón Residencia -->
+    <div class="form-group">
+      <label>Cantón de Residencia</label>
+      <div class="select-wrapper">
+        <select formControlName="cantonResidenciaId" class="form-control select-enhanced" [class.error]="hasError('cantonResidenciaId')">
+          <option value="">Seleccione el cantón</option>
+          @for (item of filteredCantonesResidencia; track item.id) {
+            <option [value]="item.id">{{ item.nombre }}</option>
+          }
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('cantonResidenciaId')">
+        {{ getErrorMessage('cantonResidenciaId') }}
+      </small>
+    </div>
+  </div>
+</div>

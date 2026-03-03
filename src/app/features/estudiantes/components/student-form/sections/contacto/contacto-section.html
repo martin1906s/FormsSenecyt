@@ -1,0 +1,71 @@
+<div class="step-section" [formGroup]="formGroup">
+  <h2 class="step-title">
+    <span class="step-icon-large" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect width="20" height="16" x="2" y="4" rx="2"/>
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+      </svg>
+    </span>
+    Contacto
+  </h2>
+  
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Correo Electrónico <span class="required">*</span></label>
+      <input
+        type="email"
+        formControlName="correoElectronico"
+        class="form-control"
+        [class.error]="hasError('correoElectronico')"
+        placeholder="correo@ejemplo.com"
+      />
+      <small class="error-message" *ngIf="hasError('correoElectronico')">
+        {{ getErrorMessage('correoElectronico') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Número Celular <span class="required">*</span></label>
+      <input
+        type="tel"
+        formControlName="numeroCelular"
+        class="form-control"
+        [class.error]="hasError('numeroCelular')"
+        placeholder="0999999999"
+        maxlength="10"
+      />
+      <small class="error-message" *ngIf="hasError('numeroCelular')">
+        {{ getErrorMessage('numeroCelular') }}
+      </small>
+      <small class="hint">10 dígitos</small>
+    </div>
+
+    <div class="form-group">
+      <label>Dirección Domicilio <span class="required">*</span></label>
+      <input
+        type="text"
+        formControlName="direccionDomicilio"
+        class="form-control"
+        [class.error]="hasError('direccionDomicilio')"
+        placeholder="Dirección completa"
+      />
+      <small class="error-message" *ngIf="hasError('direccionDomicilio')">
+        {{ getErrorMessage('direccionDomicilio') }}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Lugar de Residencia</label>
+      <input
+        type="text"
+        formControlName="lugarResidencia"
+        class="form-control"
+        [class.error]="hasError('lugarResidencia')"
+        placeholder="Lugar de residencia o NA"
+      />
+      <small class="error-message" *ngIf="hasError('lugarResidencia')">
+        {{ getErrorMessage('lugarResidencia') }}
+      </small>
+    </div>
+  </div>
+</div>

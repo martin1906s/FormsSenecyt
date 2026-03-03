@@ -1,0 +1,121 @@
+<div class="table-section">
+  <div class="table-header">
+    <h3>Ingresos Mensuales del Grupo Familiar</h3>
+    <button type="button" class="btn-add" (click)="onAddRow()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Agregar Ingreso
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombres y Apellidos</th>
+          <th>Parentesco</th>
+          <th>Actividad Laboral</th>
+          <th>Ingreso Mensual</th>
+          <th>Ingresos Extras</th>
+          <th>Total</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of formArray.controls; track $index) {
+          <tr [formGroup]="getRowGroup($index)">
+            <td>
+              <input 
+                type="text" 
+                formControlName="nombresApellidos" 
+                class="form-control table-input"
+                [class.error]="hasError(getRowGroup($index), 'nombresApellidos')"
+                placeholder="Nombres completos"
+              />
+            </td>
+            <td>
+              <select 
+                formControlName="parentesco" 
+                class="form-control table-input"
+                [class.error]="hasError(getRowGroup($index), 'parentesco')"
+              >
+                <option value="">Seleccione</option>
+                @for (opcion of parentescoOpciones; track opcion.value) {
+                  <option [value]="opcion.value">{{ opcion.label }}</option>
+                }
+              </select>
+            </td>
+            <td>
+              <input 
+                type="text" 
+                formControlName="actividadLaboral" 
+                class="form-control table-input"
+                [class.error]="hasError(getRowGroup($index), 'actividadLaboral')"
+                placeholder="Actividad"
+              />
+            </td>
+            <td>
+              <input 
+                type="number" 
+                formControlName="ingresoMensual" 
+                class="form-control table-input"
+                [class.error]="hasError(getRowGroup($index), 'ingresoMensual')"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </td>
+            <td>
+              <input 
+                type="number" 
+                formControlName="ingresosExtras" 
+                class="form-control table-input"
+                [class.error]="hasError(getRowGroup($index), 'ingresosExtras')"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </td>
+            <td>
+              <input 
+                type="text" 
+                formControlName="total" 
+                class="form-control table-input total-field"
+                readonly
+                [value]="formatCurrency(getRowGroup($index).get('total')?.value)"
+              />
+            </td>
+            <td>
+              <button 
+                type="button" 
+                class="btn-remove" 
+                (click)="onRemoveRow($index)"
+                [disabled]="formArray.length === 0"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        }
+        @if (formArray.length === 0) {
+          <tr>
+            <td colspan="7" class="empty-state">
+              No hay registros. Haga clic en "Agregar Ingreso" para comenzar.
+            </td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="5" class="total-label">Ingreso Total del Hogar:</td>
+          <td colspan="2" class="total-value">{{ formatCurrency(ingresoTotalHogar) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  
+  <small class="hint">El ingreso total del hogar se calcula automáticamente sumando todos los totales.</small>
+</div>

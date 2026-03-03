@@ -33,8 +33,8 @@ export interface SectorEconomicoItem extends CatalogoItem {
 })
 export class CatalogosService {
   private http = inject(HttpClient);
-  // private apiUrl = 'https://backendformsenecyt.onrender.com';
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = 'https://backendformsenecyt.onrender.com';
+  //private apiUrl = 'http://localhost:3000';
 
   getPaises(): Observable<PaisItem[]> {
     return this.http.get<PaisItem[]>(`${this.apiUrl}/paises`);

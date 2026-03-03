@@ -1,0 +1,120 @@
+// Movilis design system
+$brand-purple: #881e80;
+$brand-purple-dark: #6b1866;
+$brand-yellow: #f9eb1d;
+$brand-yellow-dark: #e6d91a;
+$surface: #5a1555;
+$v: #10b981;
+$r: #ef4444;
+
+.step-subtitle {
+  font-size: 1.2rem;
+  color: var(--brand-yellow);
+  margin: 24px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid $surface;
+}
+
+.step-hint {
+  color: var(--text-soft);
+  font-size: .85rem;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.table-actions {
+  margin-bottom: 12px;
+}
+
+.btn-add-row {
+  background: var(--brand-yellow);
+  color: var(--brand-purple-dark);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: .9rem;
+
+  &:hover {
+    opacity: .9;
+  }
+}
+
+.btn-remove-row {
+  background: transparent;
+  color: #fca5a5;
+  border: 1px solid #fca5a5;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(239, 68, 68, .2);
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border: 1px solid $surface;
+  border-radius: 8px;
+}
+
+.form-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+
+  th,
+  td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid $surface;
+  }
+
+  th {
+    background: $surface;
+    color: var(--brand-yellow);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}
+
+.form-control-sm {
+  padding: 8px 10px;
+  font-size: .85rem;
+  min-width: 80px;
+  background: $surface;
+  border: 2px solid $surface;
+  border-radius: 8px;
+  color: var(--text);
+  transition: all .2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--brand-yellow);
+    box-shadow: 0 0 0 3px rgba(249, 235, 29, .25);
+  }
+}
+
+select.form-control-sm {
+  cursor: pointer;
+  appearance: none;
+  padding-right: 30px;
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: .85rem;
+  }
+
+  .form-table {
+    th,
+    td {
+      padding: 8px 10px;
+    }
+  }
+}
