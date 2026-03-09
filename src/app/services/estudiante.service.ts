@@ -56,5 +56,29 @@ export class EstudianteService {
   deleteCroquisVivienda(url: string): Observable<{ ok: boolean }> {
     return this.http.post<{ ok: boolean }>(`${this.apiUrl}/delete-croquis-vivienda`, { url });
   }
+
+  /** Sube copia de cédula al bucket. Devuelve la URL pública. */
+  uploadCopiaCedula(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('archivo', file, file.name);
+    return this.http.post<{ url: string }>(`${this.apiUrl}/upload-copia-cedula`, formData);
+  }
+
+  /** Elimina del bucket el archivo de copia de cédula dada su URL. */
+  deleteCopiaCedula(url: string): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(`${this.apiUrl}/delete-copia-cedula`, { url });
+  }
+
+  /** Sube copia de papeleta de votación al bucket. Devuelve la URL pública. */
+  uploadCopiaPapeleta(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('archivo', file, file.name);
+    return this.http.post<{ url: string }>(`${this.apiUrl}/upload-copia-papeleta`, formData);
+  }
+
+  /** Elimina del bucket el archivo de copia de papeleta dada su URL. */
+  deleteCopiaPapeleta(url: string): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(`${this.apiUrl}/delete-copia-papeleta`, { url });
+  }
 }
 

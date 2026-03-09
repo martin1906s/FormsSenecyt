@@ -22,6 +22,9 @@ import { InformacionAcademicaSection } from './sections/informacion-academica/in
 import { DatosHogarSection } from './sections/datos-hogar/datos-hogar-section';
 import { ComposicionFamiliarSection } from './sections/composicion-familiar/composicion-familiar-section';
 import { IngresosFamiliaresSection } from './sections/ingresos-familiares/ingresos-familiares-section';
+import { BecasAyudasSection } from './sections/becas-ayudas/becas-ayudas-section';
+import { VinculacionSocialSection } from './sections/vinculacion-social/vinculacion-social-section';
+import { PracticasPreprofesionalesSection } from './sections/practicas-preprofesionales/practicas-preprofesionales-section';
 
 @Component({
   selector: 'app-student-form',
@@ -36,7 +39,10 @@ import { IngresosFamiliaresSection } from './sections/ingresos-familiares/ingres
     InformacionAcademicaSection,
     DatosHogarSection,
     ComposicionFamiliarSection,
-    IngresosFamiliaresSection
+    IngresosFamiliaresSection,
+    BecasAyudasSection,
+    VinculacionSocialSection,
+    PracticasPreprofesionalesSection
   ],
   templateUrl: './student-form.html',
   styleUrl: './student-form.scss',
@@ -96,6 +102,24 @@ export class StudentForm implements OnInit {
     { id: 'composicionFamiliar', title: 'Composición Familiar', icon: 'users', fields: ['composicionFamiliar'] },
     { id: 'ingresosFamiliares', title: 'Ingresos Familiares', icon: 'dollar-sign', fields: ['ingresosFamiliares'] }
   ];
+
+  // Propiedades para los grupos de pasos
+  get firstGroupSteps() {
+    return this.steps.slice(0, 7);
+  }
+
+  get secondGroupSteps() {
+    return this.steps.slice(7);
+  }
+
+  get currentGroup(): number {
+    return this.currentStep < 7 ? 1 : 2;
+  }
+
+  // Total de pasos visibles (solo FICHA ESTUDIANTIL por ahora)
+  get visibleTotalSteps(): number {
+    return 7;
+  }
   
   collapsedSections: { [key: string]: boolean } = {
     identificacion: false,
@@ -179,12 +203,13 @@ export class StudentForm implements OnInit {
       numCarnetConadis: e.numCarnetConadis ?? '',
       tipoDiscapacidad: e.tipoDiscapacidad ?? '',
       fechaNacimiento: e.fechaNacimiento ?? '',
-      paisNacionalidadId: e.paisNacionalidadId ?? '',
-      provinciaNacimientoId: e.provinciaNacimientoId ?? '',
-      cantonNacimientoId: e.cantonNacimientoId ?? '',
-      paisResidenciaId: e.paisResidenciaId ?? '',
-      provinciaResidenciaId: e.provinciaResidenciaId ?? '',
-      cantonResidenciaId: e.cantonResidenciaId ?? '',
+      // Extraer IDs de relaciones si existen, o usar el ID directo como fallback
+      paisNacionalidadId: e.Pais_Estudiante_paisNacionalidadIdToPais?.id || e.paisNacionalidadId || '',
+      provinciaNacimientoId: e.Provincia_Estudiante_provinciaNacimientoIdToProvincia?.id || e.provinciaNacimientoId || '',
+      cantonNacimientoId: e.Canton_Estudiante_cantonNacimientoIdToCanton?.id || e.cantonNacimientoId || '',
+      paisResidenciaId: e.Pais_Estudiante_paisResidenciaIdToPais?.id || e.paisResidenciaId || '',
+      provinciaResidenciaId: e.Provincia_Estudiante_provinciaResidenciaIdToProvincia?.id || e.provinciaResidenciaId || '',
+      cantonResidenciaId: e.Canton_Estudiante_cantonResidenciaIdToCanton?.id || e.cantonResidenciaId || '',
       tipoColegioId: e.tipoColegioId ?? '',
       modalidadCarrera: e.modalidadCarrera ?? '',
       jornadaCarrera: e.jornadaCarrera ?? '',
@@ -242,6 +267,8 @@ export class StudentForm implements OnInit {
       presentaAlergiaImportante: e.presentaAlergiaImportante ?? '',
       nombreColegioProcedencia: e.nombreColegioProcedencia ?? '',
       tituloBachiller: e.tituloBachiller ?? '',
+      copiaCedula: (e.copiaCedula && e.copiaCedula !== 'NA' && e.copiaCedula.trim() !== '') ? e.copiaCedula : '',
+      copiaPapeleta: (e.copiaPapeleta && e.copiaPapeleta !== 'NA' && e.copiaPapeleta.trim() !== '') ? e.copiaPapeleta : '',
       anioGraduacion: e.anioGraduacion ?? '',
       financiamientoQuienes: e.financiamientoQuienes ?? '',
       // Campos de financiamiento como checkboxes
@@ -278,6 +305,12 @@ export class StudentForm implements OnInit {
       familiaParentesco: e.familiaParentesco ?? '',
       familiaServiciosMedicos: e.familiaServiciosMedicos ?? '',
       familiaServiciosMedicosDetalle: e.familiaServiciosMedicosDetalle ?? '',
+      // Parsear servicios médicos desde familiaServiciosMedicosDetalle para marcar checkboxes
+      familiaServicioIees: this.parseServicioMedico(e.familiaServiciosMedicosDetalle, 'IEES'),
+      familiaServicioSeguroPrivado: this.parseServicioMedico(e.familiaServiciosMedicosDetalle, 'Seguro Privado'),
+      familiaServicioSeguroCampesino: this.parseServicioMedico(e.familiaServiciosMedicosDetalle, 'Seguro Campesino'),
+      familiaServicioOtro: this.parseServicioMedico(e.familiaServiciosMedicosDetalle, 'Otro'),
+      familiaServicioOtroEspecifique: this.parseServicioMedicoOtro(e.familiaServiciosMedicosDetalle),
       egresoVivienda: e.egresoVivienda ?? '',
       egresoAlimentacion: e.egresoAlimentacion ?? '',
       egresoEducacion: e.egresoEducacion ?? '',
@@ -1112,8 +1145,8 @@ export class StudentForm implements OnInit {
         quintaRazon?.setValue('NO_APLICA', { emitEvent: false });
         sextaRazon?.setValue('NO_APLICA', { emitEvent: false });
         montoBeca?.setValue('NA', { emitEvent: false });
-        porcientoArancel?.setValue('0', { emitEvent: false });
-        porcientoManuntencion?.setValue('0', { emitEvent: false });
+        porcientoArancel?.setValue('NA', { emitEvent: false });
+        porcientoManuntencion?.setValue('NA', { emitEvent: false });
 
         // Limpiar validadores y deshabilitar campos
         primeraRazon?.clearValidators();
@@ -1155,8 +1188,8 @@ export class StudentForm implements OnInit {
         if (quintaRazon?.value === 'NO_APLICA') quintaRazon?.setValue('', { emitEvent: false });
         if (sextaRazon?.value === 'NO_APLICA') sextaRazon?.setValue('', { emitEvent: false });
         if (montoBeca?.value === 'NA') montoBeca?.setValue('', { emitEvent: false });
-        if (porcientoArancel?.value === '0') porcientoArancel?.setValue('', { emitEvent: false });
-        if (porcientoManuntencion?.value === '0') porcientoManuntencion?.setValue('', { emitEvent: false });
+        if (porcientoArancel?.value === 'NA') porcientoArancel?.setValue('', { emitEvent: false });
+        if (porcientoManuntencion?.value === 'NA') porcientoManuntencion?.setValue('', { emitEvent: false });
 
         // Aplicar validaciones
         primeraRazon?.setValidators([Validators.required]);
@@ -1592,7 +1625,7 @@ export class StudentForm implements OnInit {
       presentaCarnetDiscapacidad: [''],
       presentaAlergiaImportante: [''],
       nombreColegioProcedencia: [''],
-      tituloBachiller: [''],
+      tituloBachiller: ['', [Validators.required]],
       anioGraduacion: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(4)]],
       financiamientoQuienes: [''],
       // Campos de financiamiento como checkboxes
@@ -1605,6 +1638,9 @@ export class StudentForm implements OnInit {
       trabajoEspecifique: ['', [Validators.maxLength(200)]],
       // Parroquia de procedencia
       parroquiaProcedencia: ['', [Validators.maxLength(100)]],
+      // Campos de archivos de identificación
+      copiaCedula: [''],
+      copiaPapeleta: [''],
       referenciaDomiciliaria: [''],
       barrioSector: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(100)]],
       zonaVivienda: [''],
@@ -1782,8 +1818,8 @@ export class StudentForm implements OnInit {
   }
 
   onSubmit(): void {
-    // Validar que estamos en el último paso
-    if (this.currentStep < this.totalSteps - 1) {
+    // Validar que estamos en el último paso de FICHA ESTUDIANTIL (paso 6 = paso 7 visible)
+    if (this.currentStep < this.visibleTotalSteps - 1) {
       this.submitError = true;
       this.submitMessage = 'Por favor, completa todos los pasos antes de enviar el formulario.';
       setTimeout(() => {
@@ -1793,20 +1829,9 @@ export class StudentForm implements OnInit {
       return;
     }
 
-    // Validar ingresoTotalHogar antes de continuar (debe estar lleno al guardar)
-    const ingresoTotalHogar = this.studentForm.get('ingresoTotalHogar')?.value;
-    if (!ingresoTotalHogar || ingresoTotalHogar === '' || ingresoTotalHogar === 'NA' || ingresoTotalHogar === null || ingresoTotalHogar === undefined) {
-      this.submitError = true;
-      this.submitMessage = 'Por favor, completa el campo "Ingreso Total del Hogar". Puedes ingresarlo manualmente en el Paso 10 (Datos del Hogar) o completar la sección de Ingresos Familiares en el Paso 12 para que se calcule automáticamente.';
-      // Ir al paso 10 para que el usuario vea el campo
-      this.currentStep = 10;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => {
-        this.submitMessage = '';
-        this.submitError = false;
-      }, 8000);
-      return;
-    }
+    // Validar ingresoTotalHogar antes de continuar (solo si está en los pasos de FICHA SOCIOECONOMICA)
+    // Por ahora, como solo estamos usando FICHA ESTUDIANTIL (7 pasos), esta validación no aplica
+    // Se activará cuando se habiliten los pasos 8-13
 
     // Validar el último paso antes de enviar
     if (!this.validateCurrentStep()) {
@@ -1909,14 +1934,21 @@ export class StudentForm implements OnInit {
               console.log('Estudiante guardado exitosamente:', response);
               this.isSubmitting = false;
               this.submitError = false;
-              this.submitMessage = ' ¡Estudiante guardado exitosamente!';
-              this.clearSavedData();
+              this.submitMessage = '¡Formulario guardado exitosamente! Los datos están disponibles para descargar en el panel de administración.';
+              
+              // Limpiar datos guardados en localStorage
+              localStorage.removeItem(this.STORAGE_KEY);
+              localStorage.removeItem(this.STORAGE_STEP_KEY);
+              
+              // Resetear formulario y regresar al paso 1
               this.studentForm.reset();
               this.currentStep = 0;
               this.cdr.detectChanges();
+              
               setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }, 100);
+              
               setTimeout(() => {
                 this.submitMessage = '';
                 this.cdr.detectChanges();
@@ -2371,15 +2403,18 @@ export class StudentForm implements OnInit {
       presentaAlergiaImportante: formValue.presentaAlergiaImportante || 'NA',
       nombreColegioProcedencia: formValue.nombreColegioProcedencia || 'NA',
       tituloBachiller: formValue.tituloBachiller || 'NA',
+      copiaCedula: formValue.copiaCedula || 'NA',
+      copiaPapeleta: formValue.copiaPapeleta || 'NA',
       anioGraduacion: formValue.anioGraduacion ? String(formValue.anioGraduacion) : 'NA',
       financiamientoQuienes: formValue.financiamientoQuienes || 'NA',
+      // Campos de financiamiento de la carrera universitaria (checkboxes)
+      financiamientoFondosPropios: formValue.financiamientoFondosPropios || false,
+      financiamientoAyudaPadres: formValue.financiamientoAyudaPadres || false,
+      financiamientoTarjetaCredito: formValue.financiamientoTarjetaCredito || false,
+      financiamientoEntidadFinanciera: formValue.financiamientoEntidadFinanciera || false,
+      financiamientoTercerasPersonas: formValue.financiamientoTercerasPersonas || false,
       // NOTA: Los siguientes campos se mantienen en el formulario para uso interno
       // pero NO se envían al backend porque no están en el schema del API:
-      // - financiamientoFondosPropios
-      // - financiamientoAyudaPadres
-      // - financiamientoTarjetaCredito
-      // - financiamientoEntidadFinanciera
-      // - financiamientoTercerasPersonas
       // - trabajoEspecifique
       // - parroquiaProcedencia
       referenciaDomiciliaria: formValue.referenciaDomiciliaria || 'NA',
@@ -2617,7 +2652,12 @@ export class StudentForm implements OnInit {
 
   // Métodos de navegación por pasos
   getProgress(): number {
-    return ((this.currentStep + 1) / this.totalSteps) * 100;
+    // Calcular progreso basado en los 7 pasos visibles (FICHA ESTUDIANTIL)
+    // Empieza en 0% cuando está en el paso 1 (currentStep = 0)
+    // Llega a 100% cuando completa los 7 pasos (currentStep = 6)
+    // Usamos (visibleTotalSteps - 1) como divisor para que el último paso muestre 100%
+    if (this.visibleTotalSteps === 1) return 100;
+    return (this.currentStep / (this.visibleTotalSteps - 1)) * 100;
   }
 
   isStepValid(stepIndex: number): boolean {
@@ -2768,7 +2808,8 @@ export class StudentForm implements OnInit {
       this.scrollToFirstError();
       return;
     }
-    if (this.currentStep >= this.totalSteps - 1) return;
+    // Solo permitir avanzar hasta el paso 6 (último paso de FICHA ESTUDIANTIL - paso 7 visible)
+    if (this.currentStep >= this.visibleTotalSteps - 1) return;
 
     this.doGuardarPasoYAvanzar();
   }
@@ -2888,7 +2929,8 @@ export class StudentForm implements OnInit {
   }
 
   goToStep(stepIndex: number): void {
-    if (stepIndex >= 0 && stepIndex < this.totalSteps) {
+    // Solo permitir ir a pasos del 0 al 6 (FICHA ESTUDIANTIL)
+    if (stepIndex >= 0 && stepIndex <= 6) {
       // Validar todos los pasos anteriores antes de permitir saltar
       let canGoToStep = true;
       for (let i = 0; i < stepIndex; i++) {
@@ -2926,6 +2968,99 @@ export class StudentForm implements OnInit {
     } else {
       return 'pending';
     }
+  }
+
+  // ============================================
+  // FUNCIONES HELPER PARA RELACIONES DEL BACKEND
+  // ============================================
+  // Estas funciones ayudan a obtener los nombres de lugares desde las relaciones
+  // que el backend ahora devuelve en lugar de solo IDs
+
+  /**
+   * Obtiene el nombre del país de nacionalidad desde las relaciones del backend
+   */
+  getPaisNacionalidadNombre(estudiante: any): string {
+    return estudiante?.Pais_Estudiante_paisNacionalidadIdToPais?.nombre || 'N/A';
+  }
+
+  /**
+   * Obtiene el nombre del país de residencia desde las relaciones del backend
+   */
+  getPaisResidenciaNombre(estudiante: any): string {
+    return estudiante?.Pais_Estudiante_paisResidenciaIdToPais?.nombre || 'N/A';
+  }
+
+  /**
+   * Obtiene el nombre de la provincia de nacimiento desde las relaciones del backend
+   */
+  getProvinciaNacimientoNombre(estudiante: any): string {
+    return estudiante?.Provincia_Estudiante_provinciaNacimientoIdToProvincia?.nombre || 'N/A';
+  }
+
+  /**
+   * Obtiene el nombre de la provincia de residencia desde las relaciones del backend
+   */
+  getProvinciaResidenciaNombre(estudiante: any): string {
+    return estudiante?.Provincia_Estudiante_provinciaResidenciaIdToProvincia?.nombre || 'N/A';
+  }
+
+  /**
+   * Obtiene el nombre del cantón de nacimiento desde las relaciones del backend
+   */
+  getCantonNacimientoNombre(estudiante: any): string {
+    return estudiante?.Canton_Estudiante_cantonNacimientoIdToCanton?.nombre || 'N/A';
+  }
+
+  /**
+   * Obtiene el nombre del cantón de residencia desde las relaciones del backend
+   */
+  getCantonResidenciaNombre(estudiante: any): string {
+    return estudiante?.Canton_Estudiante_cantonResidenciaIdToCanton?.nombre || 'N/A';
+  }
+
+  /**
+   * Obtiene el lugar de nacimiento completo (País, Provincia, Cantón)
+   */
+  getLugarNacimientoCompleto(estudiante: any): string {
+    const partes = [
+      this.getPaisNacionalidadNombre(estudiante),
+      this.getProvinciaNacimientoNombre(estudiante),
+      this.getCantonNacimientoNombre(estudiante)
+    ].filter(p => p !== 'N/A');
+    return partes.length > 0 ? partes.join(', ') : 'N/A';
+  }
+
+  /**
+   * Obtiene el lugar de procedencia completo (País, Provincia, Cantón, Parroquia)
+   */
+  getLugarProcedenciaCompleto(estudiante: any): string {
+    const partes = [
+      this.getPaisResidenciaNombre(estudiante),
+      this.getProvinciaResidenciaNombre(estudiante),
+      this.getCantonResidenciaNombre(estudiante),
+      estudiante?.parroquiaProcedencia || null
+    ].filter(p => p && p !== 'N/A' && p !== 'NA');
+    return partes.length > 0 ? partes.join(', ') : 'N/A';
+  }
+
+  /**
+   * Parsea el string de servicios médicos para determinar si un servicio está marcado
+   */
+  private parseServicioMedico(detalle: string | null | undefined, servicio: string): boolean {
+    if (!detalle || detalle === 'NA' || detalle === '') return false;
+    const detalleUpper = String(detalle).toUpperCase();
+    const servicioUpper = servicio.toUpperCase();
+    return detalleUpper.includes(servicioUpper);
+  }
+
+  /**
+   * Extrae el texto después de "Otro: " del detalle de servicios médicos
+   */
+  private parseServicioMedicoOtro(detalle: string | null | undefined): string {
+    if (!detalle || detalle === 'NA' || detalle === '') return '';
+    const detalleStr = String(detalle);
+    const match = detalleStr.match(/Otro:\s*(.+)/i);
+    return match ? match[1].trim() : '';
   }
 
 }

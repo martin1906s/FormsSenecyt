@@ -19,6 +19,16 @@ export class DatosHogarSection implements OnInit {
   private estudianteService = inject(EstudianteService);
   private cdr = inject(ChangeDetectorRef);
   
+  // Opciones para tipo de propiedad de la vivienda
+  tipoPropiedadViviendaOpciones: { value: string; label: string }[] = [
+    { value: 'PROPIA', label: 'Propia' },
+    { value: 'ARRENDADA', label: 'Arrendada' },
+    { value: 'CEDIDA_TRABAJO', label: 'Cedida por trabajo' },
+    { value: 'CEDIDA_FAMILIAR', label: 'Cedida por familiar' },
+    { value: 'OTRO', label: 'Otro' },
+    { value: 'NA', label: 'N/A' },
+  ];
+
   // Opciones para estructura de la vivienda
   estructuraViviendaOpciones: { value: string; label: string }[] = [
     { value: 'HORMIGON', label: 'Hormigón' },

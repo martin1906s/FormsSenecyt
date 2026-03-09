@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { EnumsResponse } from '../../../../../../services/enums.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-discapacidad-section',
@@ -10,10 +11,63 @@ import { EnumsResponse } from '../../../../../../services/enums.service';
   templateUrl: './discapacidad-section.html',
   styleUrl: './discapacidad-section.scss'
 })
-export class DiscapacidadSection {
+export class DiscapacidadSection implements OnInit, OnDestroy {
   @Input() formGroup!: FormGroup;
   @Input() enums: EnumsResponse | null = null;
   @Input() parentescoOpciones: { value: string; label: string }[] = [];
+
+  private cdr = inject(ChangeDetectorRef);
+  private discapacidadSubscription?: Subscription;
+
+  ngOnInit(): void {
+    // Suscribirse a cambios en el campo discapacidad para habilitar/deshabilitar campos
+    this.discapacidadSubscription = this.formGroup.get('discapacidad')?.valueChanges.subscribe((value: any) => {
+      this.updateDiscapacidadFields(value);
+      this.cdr.detectChanges();
+    });
+
+    // Aplicar estado inicial
+    const discapacidadValue = this.formGroup.get('discapacidad')?.value;
+    if (discapacidadValue) {
+      this.updateDiscapacidadFields(discapacidadValue);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.discapacidadSubscription?.unsubscribe();
+  }
+
+  private updateDiscapacidadFields(discapacidadValue: any): void {
+    const porcentaje = this.formGroup.get('porcentajeDiscapacidad');
+    const carnet = this.formGroup.get('numCarnetConadis');
+    const tipo = this.formGroup.get('tipoDiscapacidad');
+
+    if (discapacidadValue === 'NO') {
+      // Deshabilitar campos y establecer valores automáticos
+      porcentaje?.disable({ emitEvent: false });
+      porcentaje?.setValue('NA', { emitEvent: false });
+      
+      carnet?.disable({ emitEvent: false });
+      carnet?.setValue('NA', { emitEvent: false });
+      
+      tipo?.disable({ emitEvent: false });
+      tipo?.setValue('', { emitEvent: false });
+    } else if (discapacidadValue === 'SI') {
+      // Habilitar campos
+      porcentaje?.enable({ emitEvent: false });
+      carnet?.enable({ emitEvent: false });
+      tipo?.enable({ emitEvent: false });
+      
+      // Limpiar valores automáticos si existían
+      if (porcentaje?.value === 'NA') porcentaje?.setValue('', { emitEvent: false });
+      if (carnet?.value === 'NA') carnet?.setValue('', { emitEvent: false });
+    } else {
+      // Si no hay valor seleccionado, habilitar pero sin valores automáticos
+      porcentaje?.enable({ emitEvent: false });
+      carnet?.enable({ emitEvent: false });
+      tipo?.enable({ emitEvent: false });
+    }
+  }
 
   hasError(fieldName: string): boolean {
     const control = this.formGroup.get(fieldName);

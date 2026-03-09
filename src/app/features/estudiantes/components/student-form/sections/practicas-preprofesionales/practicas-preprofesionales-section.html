@@ -24,53 +24,55 @@
       </small>
     </div>
 
-    <div class="form-group">
-      <label>Número de horas de prácticas por periodo</label>
-      <input
-        type="number"
-        formControlName="nroHorasPracticasPreprofesionalesPorPeriodo"
-        class="form-control"
-        [class.error]="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')"
-        placeholder="Número de horas o NA"
-        min="0"
-      />
-      <small class="error-message" *ngIf="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')">
-        {{ getErrorMessage('nroHorasPracticasPreprofesionalesPorPeriodo') }}
-      </small>
-    </div>
-
-    <div class="form-group">
-      <label>Entorno institucional de prácticas</label>
-      <div class="select-wrapper">
-        <select formControlName="entornoInstitucionalPracticasProfesionales" class="form-control select-enhanced" [class.error]="hasError('entornoInstitucionalPracticasProfesionales')">
-          <option value="">Seleccione el entorno</option>
-          @if (enums?.EntornoInstitucionalPracticasProfesionales) {
-            @for (item of enums?.EntornoInstitucionalPracticasProfesionales; track $index) {
-              <option [value]="item">{{ getEnumLabel(item) }}</option>
-            }
-          }
-        </select>
+    @if (formGroup.get('haRealizadoPracticasPreprofesionales')?.value === 'SI') {
+      <div class="form-group">
+        <label>Número de horas de prácticas por periodo</label>
+        <input
+          type="number"
+          formControlName="nroHorasPracticasPreprofesionalesPorPeriodo"
+          class="form-control"
+          [class.error]="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')"
+          placeholder="Número de horas o NA"
+          min="0"
+        />
+        <small class="error-message" *ngIf="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')">
+          {{ getErrorMessage('nroHorasPracticasPreprofesionalesPorPeriodo') }}
+        </small>
       </div>
-      <small class="error-message" *ngIf="hasError('entornoInstitucionalPracticasProfesionales')">
-        {{ getErrorMessage('entornoInstitucionalPracticasProfesionales') }}
-      </small>
-    </div>
 
-    <div class="form-group">
-      <label>Sector económico de práctica profesional</label>
-      <div class="select-wrapper">
-        <select formControlName="sectorEconomicoPracticaProfesional" class="form-control select-enhanced" [class.error]="hasError('sectorEconomicoPracticaProfesional')">
-          <option value="">Seleccione el sector económico</option>
-          @if (enums?.SectorEconomicoPracticaProfesional) {
-            @for (item of enums?.SectorEconomicoPracticaProfesional; track $index) {
-              <option [value]="item">{{ getEnumLabel(item) }}</option>
+      <div class="form-group">
+        <label>Entorno institucional de prácticas</label>
+        <div class="select-wrapper">
+          <select formControlName="entornoInstitucionalPracticasProfesionales" class="form-control select-enhanced" [class.error]="hasError('entornoInstitucionalPracticasProfesionales')">
+            <option value="">Seleccione el entorno</option>
+            @if (enums?.EntornoInstitucionalPracticasProfesionales) {
+              @for (item of enums?.EntornoInstitucionalPracticasProfesionales; track $index) {
+                <option [value]="item">{{ getEnumLabel(item) }}</option>
+              }
             }
-          }
-        </select>
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('entornoInstitucionalPracticasProfesionales')">
+          {{ getErrorMessage('entornoInstitucionalPracticasProfesionales') }}
+        </small>
       </div>
-      <small class="error-message" *ngIf="hasError('sectorEconomicoPracticaProfesional')">
-        {{ getErrorMessage('sectorEconomicoPracticaProfesional') }}
-      </small>
-    </div>
+
+      <div class="form-group">
+        <label>Sector económico de práctica profesional</label>
+        <div class="select-wrapper">
+          <select formControlName="sectorEconomicoPracticaProfesional" class="form-control select-enhanced" [class.error]="hasError('sectorEconomicoPracticaProfesional')">
+            <option value="">Seleccione el sector económico</option>
+            @if (enums?.SectorEconomicoPracticaProfesional) {
+              @for (item of enums?.SectorEconomicoPracticaProfesional; track $index) {
+                <option [value]="item">{{ getEnumLabel(item) }}</option>
+              }
+            }
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('sectorEconomicoPracticaProfesional')">
+          {{ getErrorMessage('sectorEconomicoPracticaProfesional') }}
+        </small>
+      </div>
+    }
   </div>
 </div>

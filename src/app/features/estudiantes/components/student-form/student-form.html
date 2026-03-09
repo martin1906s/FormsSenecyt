@@ -2,12 +2,14 @@
   <!-- Barra superior con logos -->
   <header class="header-bar">
     <div class="logo-container">
-      <img src="assets/logoKrake.png" alt="Logo Krake" class="logo" />
       <img src="assets/logoMovilis.png" alt="Logo Movilis" class="logo" />
     </div>
     <div class="header-titles">
       <h1 class="form-title">Formulario de Inscripción</h1>
-      <h2 class="form-subtitle">Tecnología en Desarrollo de software y programación</h2>
+    </div>
+    <div class="header-developer">
+      <span class="developer-text">Desarrollado por:</span>
+      <img src="assets/logoKrake.png" alt="Logo Krake Dev" class="developer-logo" />
     </div>
   </header>
 
@@ -16,39 +18,77 @@
     <div class="progress-container">
       <div class="progress-header">
         <span class="progress-text">{{ getProgress() | number:'1.0-0' }}% completado</span>
-        <span class="progress-step-label">Paso {{ currentStep + 1 }} de {{ totalSteps }}</span>
+        <span class="progress-step-label">Paso {{ currentStep + 1 }} de {{ visibleTotalSteps }}</span>
       </div>
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="getProgress()"></div>
       </div>
-      <!-- Stepper horizontal: círculos conectados -->
-      <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario">
-        @for (step of steps; track step.id; let i = $index; let last = $last) {
-          <div
-            class="step-item"
-            [class.step-active]="i === currentStep"
-            [class.step-done]="i < currentStep && isStepValid(i)"
-            [class.step-invalid]="i < currentStep && !isStepValid(i)"
-            (click)="goToStep(i)"
-            [attr.aria-current]="i === currentStep ? 'step' : null"
-            [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
-          >
-            <div class="step-dot-row">
-              @if (i > 0) {
-                <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
-              }
-              <button type="button" class="step-dot" [title]="step.title">
-                @if (i < currentStep && isStepValid(i)) {
-                  <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                } @else {
-                  <span class="step-dot-num">{{ i + 1 }}</span>
+      <!-- Grupo 1: Pasos 1-7 - FICHA ESTUDIANTIL -->
+      <div class="steps-group">
+        <div class="steps-group-title">FICHA ESTUDIANTIL</div>
+        <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA ESTUDIANTIL">
+          @for (step of steps.slice(0, 7); track step.id; let i = $index) {
+            <div
+              class="step-item"
+              [class.step-active]="i === currentStep"
+              [class.step-done]="i < currentStep && isStepValid(i)"
+              [class.step-invalid]="i < currentStep && !isStepValid(i)"
+              (click)="goToStep(i)"
+              [attr.aria-current]="i === currentStep ? 'step' : null"
+              [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
+            >
+              <div class="step-dot-row">
+                @if (i > 0) {
+                  <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
                 }
-              </button>
+                <button type="button" class="step-dot" [title]="step.title">
+                  @if (i < currentStep && isStepValid(i)) {
+                    <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  } @else {
+                    <span class="step-dot-num">{{ i + 1 }}</span>
+                  }
+                </button>
+              </div>
+              <span class="step-label">{{ step.title }}</span>
             </div>
-            <span class="step-label">{{ step.title }}</span>
-          </div>
-        }
+          }
+        </div>
       </div>
+
+      <!-- Grupo 2: Pasos 8-13 - FICHA SOCIOECONOMICA (Oculto por ahora) -->
+      @if (false) {
+        <div class="steps-group">
+          <div class="steps-group-title">FICHA SOCIOECONOMICA</div>
+          <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA SOCIOECONOMICA">
+            @for (step of steps.slice(7); track step.id; let i = $index) {
+              @let stepIndex = i + 7;
+              <div
+                class="step-item"
+                [class.step-active]="stepIndex === currentStep"
+                [class.step-done]="stepIndex < currentStep && isStepValid(stepIndex)"
+                [class.step-invalid]="stepIndex < currentStep && !isStepValid(stepIndex)"
+                (click)="goToStep(stepIndex)"
+                [attr.aria-current]="stepIndex === currentStep ? 'step' : null"
+                [attr.aria-label]="'Paso ' + (stepIndex + 1) + ': ' + step.title"
+              >
+                <div class="step-dot-row">
+                  @if (i > 0) {
+                    <span class="step-connector" [class.connector-done]="stepIndex <= currentStep && isStepValid(stepIndex - 1)"></span>
+                  }
+                  <button type="button" class="step-dot" [title]="step.title">
+                    @if (stepIndex < currentStep && isStepValid(stepIndex)) {
+                      <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    } @else {
+                      <span class="step-dot-num">{{ stepIndex + 1 }}</span>
+                    }
+                  </button>
+                </div>
+                <span class="step-label">{{ step.title }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
 
     <!-- Mensajes de estado -->
@@ -70,8 +110,26 @@
       <p>Cargando opciones del formulario...</p>
     </div>
 
+    <!-- Skeleton Loader mientras se guarda el paso -->
+    @if (isSubmitting) {
+      <div class="skeleton-loader">
+        <div class="skeleton-header">
+          <div class="skeleton-line skeleton-title"></div>
+          <div class="skeleton-line skeleton-subtitle"></div>
+        </div>
+        <div class="skeleton-form">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="skeleton-field">
+              <div class="skeleton-line skeleton-label"></div>
+              <div class="skeleton-line skeleton-input"></div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Contenido del paso actual -->
-    <div class="step-content" *ngIf="!isLoadingEnums && enums">
+    <div class="step-content" *ngIf="!isLoadingEnums && enums && !isSubmitting">
       <!-- Paso 0: Identificación -->
       @if (currentStep === 0) {
         <app-identificacion-section
@@ -181,95 +239,26 @@
 
       <!-- Paso 6: Prácticas Preprofesionales -->
       @if (currentStep === 6) {
-        <div class="step-section">
-          <h2 class="step-title">
-            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
-            Prácticas Preprofesionales
-          </h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>¿Ha Realizado Prácticas Preprofesionales?</label>
-              <div class="select-wrapper">
-                <select formControlName="haRealizadoPracticasPreprofesionales" class="form-control select-enhanced" [class.error]="hasError('haRealizadoPracticasPreprofesionales')" >
-                  <option value="">Seleccione una opción</option>
-                  @if (enums.HaRealizadoPracticasPreprofesionales) {
-                    @for (item of enums.HaRealizadoPracticasPreprofesionales; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
-                    }
-                  }
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('haRealizadoPracticasPreprofesionales')">
-                {{ getErrorMessage('haRealizadoPracticasPreprofesionales') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Número de Horas de Prácticas por Periodo (o "NA")</label>
-              <input
-                type="text"
-                formControlName="nroHorasPracticasPreprofesionalesPorPeriodo"
-                class="form-control"
-                [class.error]="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')"
-                placeholder="Número de horas o NA"
-              />
-              <small class="error-message" *ngIf="hasError('nroHorasPracticasPreprofesionalesPorPeriodo')">
-                {{ getErrorMessage('nroHorasPracticasPreprofesionalesPorPeriodo') }}
-              </small>
-              <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 'NO'">
-                Se establece automáticamente como "NA"
-              </small>
-              <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 'SI'">
-                Entero de 3 dígitos (0-999) o "NA"
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Entorno Institucional de Prácticas Profesionales</label>
-              <div class="select-wrapper">
-                <select formControlName="entornoInstitucionalPracticasProfesionales" class="form-control select-enhanced" [class.error]="hasError('entornoInstitucionalPracticasProfesionales')">
-                  <option value="">Seleccione el entorno</option>
-                  @if (enums.EntornoInstitucionalPracticasProfesionales) {
-                    @for (item of enums.EntornoInstitucionalPracticasProfesionales; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
-                    }
-                  }
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('entornoInstitucionalPracticasProfesionales')">
-                {{ getErrorMessage('entornoInstitucionalPracticasProfesionales') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Sector Económico de Práctica Profesional</label>
-              <div class="select-wrapper">
-                <select formControlName="sectorEconomicoPracticaProfesional" class="form-control select-enhanced" [class.error]="hasError('sectorEconomicoPracticaProfesional')">
-                  <option value="">Seleccione el sector económico</option>
-                  @if (enums.SectorEconomicoPracticaProfesional) {
-                    @for (item of enums.SectorEconomicoPracticaProfesional; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
-                    }
-                  }
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('sectorEconomicoPracticaProfesional')">
-                {{ getErrorMessage('sectorEconomicoPracticaProfesional') }}
-              </small>
-              <small class="hint" *ngIf="studentForm.get('haRealizadoPracticasPreprofesionales')?.value === 'NO'">
-                Se establece automáticamente como "NO_APLICA"
-              </small>
-            </div>
-          </div>
-        </div>
+        <app-practicas-preprofesionales-section
+          [formGroup]="studentForm"
+          [enums]="enums">
+        </app-practicas-preprofesionales-section>
       }
 
       <!-- Paso 7: Becas y Ayudas -->
       @if (currentStep === 7) {
+        <app-becas-ayudas-section
+          [formGroup]="studentForm"
+          [enums]="enums">
+        </app-becas-ayudas-section>
+      }
+
+      <!-- Paso 7 (alternativo en HTML): Becas y Ayudas - DEPRECADO, usar componente -->
+      @if (false && currentStep === 7) {
         <div class="step-section">
           <h2 class="step-title">
             <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
-            Becas y Ayudas
+            Becas y Ayudas <span style="font-size: 0.7em; font-weight: normal; color: #666;">(Próximamente)</span>
           </h2>
           <div class="form-grid">
             <div class="form-group">
@@ -522,47 +511,10 @@
 
       <!-- Paso 8: Vinculación Social -->
       @if (currentStep === 8) {
-        <div class="step-section">
-          <h2 class="step-title">
-            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a1 1 0 0 0-1.41 1.41l.88.88"/><path d="M15 9 14.7 8.7a1 1 0 0 0-1.41 1.41l.88.88"/><path d="m9 11 3-3"/><path d="m15 15 2 2"/><path d="m3 21 2-2"/><path d="M5 3 3 5"/><path d="m3 9 2-2"/><path d="m9 3 2 2"/><path d="m21 15-2 2"/><path d="m21 9-2 2"/><path d="m15 21 2-2"/><path d="m9 21 2-2"/></svg></span>
-            Vinculación Social
-          </h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>¿Participa en Proyecto de Vinculación con la Sociedad?</label>
-              <div class="select-wrapper">
-                <select formControlName="participaEnProyectoVinculacionSociedad" class="form-control select-enhanced" [class.error]="hasError('participaEnProyectoVinculacionSociedad')" >
-                  <option value="">Seleccione una opción</option>
-                  @if (enums.ParticipaEnProyectoVinculacionSociedad) {
-                    @for (item of enums.ParticipaEnProyectoVinculacionSociedad; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
-                    }
-                  }
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('participaEnProyectoVinculacionSociedad')">
-                {{ getErrorMessage('participaEnProyectoVinculacionSociedad') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Tipo de Alcance del Proyecto de Vinculación (Opcional)</label>
-              <div class="select-wrapper">
-                <select formControlName="tipoAlcanceProyectoVinculacionId" class="form-control select-enhanced" [class.error]="hasError('tipoAlcanceProyectoVinculacionId')">
-                  <option value="">Seleccione el alcance</option>
-                  @if (enums.TipoAlcanceProyectoVinculacion) {
-                    @for (item of enums.TipoAlcanceProyectoVinculacion; track $index) {
-                      <option [value]="item">{{ getEnumLabel(item) }}</option>
-                    }
-                  }
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('tipoAlcanceProyectoVinculacionId')">
-                {{ getErrorMessage('tipoAlcanceProyectoVinculacionId') }}
-              </small>
-            </div>
-          </div>
-        </div>
+        <app-vinculacion-social-section
+          [formGroup]="studentForm"
+          [enums]="enums">
+        </app-vinculacion-social-section>
       }
 
       <!-- Paso 9: Contacto -->
@@ -690,7 +642,7 @@
         ← Anterior
       </button>
       
-      @if (currentStep < totalSteps - 1) {
+      @if (currentStep < visibleTotalSteps - 1) {
         <button 
           type="button" 
           class="btn btn-primary" 

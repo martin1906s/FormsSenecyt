@@ -185,5 +185,75 @@
         {{ getErrorMessage('tipoSangre') }}
       </small>
     </div>
+
+    <!-- Copia de Cédula -->
+    <div class="form-group">
+      <label>Copia de Cédula (PDF)</label>
+      <div class="file-upload-wrapper">
+        <input
+          type="file"
+          #copiaCedulaInput
+          (change)="onCopiaCedulaFileSelected($event)"
+          accept="application/pdf"
+          style="display: none;"
+        />
+        <button type="button" class="btn btn-secondary" (click)="copiaCedulaInput.click()" [disabled]="copiaCedulaUploading">
+          @if (copiaCedulaUploading) {
+            <span>Subiendo...</span>
+          } @else {
+            <span>📎 Seleccionar PDF</span>
+          }
+        </button>
+        @if (formGroup.get('copiaCedula')?.value && 
+             formGroup.get('copiaCedula')?.value !== '' && 
+             formGroup.get('copiaCedula')?.value !== 'NA' &&
+             formGroup.get('copiaCedula')?.value.trim().length > 0 &&
+             formGroup.get('copiaCedula')?.value.startsWith('http')) {
+          <div class="file-preview">
+            <a [href]="formGroup.get('copiaCedula')?.value" target="_blank" class="file-link">📄 Ver archivo</a>
+            <button type="button" class="btn btn-danger btn-sm" (click)="removeCopiaCedula(copiaCedulaInput)">🗑️ Eliminar</button>
+          </div>
+        }
+      </div>
+      @if (copiaCedulaError) {
+        <small class="error-message">{{ copiaCedulaError }}</small>
+      }
+      <small class="hint">Formato permitido: PDF</small>
+    </div>
+
+    <!-- Copia de Papeleta de Votación -->
+    <div class="form-group">
+      <label>Copia de Papeleta de Votación (PDF)</label>
+      <div class="file-upload-wrapper">
+        <input
+          type="file"
+          #copiaPapeletaInput
+          (change)="onCopiaPapeletaFileSelected($event)"
+          accept="application/pdf"
+          style="display: none;"
+        />
+        <button type="button" class="btn btn-secondary" (click)="copiaPapeletaInput.click()" [disabled]="copiaPapeletaUploading">
+          @if (copiaPapeletaUploading) {
+            <span>Subiendo...</span>
+          } @else {
+            <span>📎 Seleccionar PDF</span>
+          }
+        </button>
+        @if (formGroup.get('copiaPapeleta')?.value && 
+             formGroup.get('copiaPapeleta')?.value !== '' && 
+             formGroup.get('copiaPapeleta')?.value !== 'NA' &&
+             formGroup.get('copiaPapeleta')?.value.trim().length > 0 &&
+             formGroup.get('copiaPapeleta')?.value.startsWith('http')) {
+          <div class="file-preview">
+            <a [href]="formGroup.get('copiaPapeleta')?.value" target="_blank" class="file-link">📄 Ver archivo</a>
+            <button type="button" class="btn btn-danger btn-sm" (click)="removeCopiaPapeleta(copiaPapeletaInput)">🗑️ Eliminar</button>
+          </div>
+        }
+      </div>
+      @if (copiaPapeletaError) {
+        <small class="error-message">{{ copiaPapeletaError }}</small>
+      }
+      <small class="hint">Formato permitido: PDF</small>
+    </div>
   </div>
 </div>

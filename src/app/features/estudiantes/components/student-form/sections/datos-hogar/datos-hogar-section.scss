@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Movilis design system
 $brand-purple: #881e80;
 $brand-purple-dark: #6b1866;
@@ -62,7 +64,8 @@ $r: #ef4444;
 }
 
 .egresos-section,
-.salud-familiar-section {
+.salud-familiar-section,
+.caracteristicas-vivienda-section {
   margin-top: 32px;
   padding-top: 32px;
   border-top: 2px solid rgba($surface, .5);
@@ -292,4 +295,127 @@ select.form-control,
       font-size: .8rem;
     }
   }
+}
+
+// Estilos para el campo de Croquis de Vivienda
+.file-upload-wrapper {
+  width: 100%;
+}
+
+.file-upload-area {
+  border: 2px dashed rgba($brand-yellow, .5);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  background: rgba($surface, .1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--brand-yellow);
+    background: rgba($brand-yellow, .05);
+  }
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--brand-yellow);
+  color: var(--brand-purple-dark);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+
+  &:hover:not(:disabled) {
+    background: var(--brand-yellow-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.upload-hint {
+  margin-top: 1rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.file-preview {
+  margin-top: 1rem;
+  border: 2px solid rgba($brand-yellow, .3);
+  border-radius: 8px;
+  padding: 1rem;
+  background: rgba($surface, .1);
+}
+
+.preview-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.file-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-remove,
+.btn-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.btn-remove {
+  background: $r;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: color.adjust($r, $lightness: -10%);
+  }
+}
+
+.btn-change {
+  background: var(--brand-yellow);
+  color: var(--brand-purple-dark);
+
+  &:hover:not(:disabled) {
+    background: var(--brand-yellow-dark);
+  }
+}
+
+.btn-remove:disabled,
+.btn-change:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

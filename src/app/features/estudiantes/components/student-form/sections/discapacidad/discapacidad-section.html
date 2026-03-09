@@ -37,7 +37,6 @@
         formControlName="porcentajeDiscapacidad"
         class="form-control"
         [class.error]="hasError('porcentajeDiscapacidad')"
-        [disabled]="formGroup.get('discapacidad')?.value === 'NO'"
         placeholder="Porcentaje de discapacidad o NA"
       />
       <small class="error-message" *ngIf="hasError('porcentajeDiscapacidad')">
@@ -56,7 +55,6 @@
         class="form-control"
         maxlength="7"
         [class.error]="hasError('numCarnetConadis')"
-        [disabled]="formGroup.get('discapacidad')?.value === 'NO'"
         placeholder="Número de carnet CONADIS o NA"
       />
       <small class="error-message" *ngIf="hasError('numCarnetConadis')">
@@ -73,8 +71,7 @@
         <select 
           formControlName="tipoDiscapacidad" 
           class="form-control select-enhanced" 
-          [class.error]="hasError('tipoDiscapacidad')"
-          [disabled]="formGroup.get('discapacidad')?.value === 'NO'">
+          [class.error]="hasError('tipoDiscapacidad')">
           <option value="">Seleccione el tipo de discapacidad</option>
           @if (enums?.TipoDiscapacidad) {
             @for (item of enums?.TipoDiscapacidad; track $index) {

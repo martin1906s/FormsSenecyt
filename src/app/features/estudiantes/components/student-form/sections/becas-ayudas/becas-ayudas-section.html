@@ -8,7 +8,7 @@
         <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
       </svg>
     </span>
-    Becas y Ayudas
+    Becas y Ayudas <span style="font-size: 0.7em; font-weight: normal; color: #666;">(Próximamente)</span>
   </h2>
   
   <div class="form-grid">
@@ -154,12 +154,15 @@
         formControlName="porcientoBecaCoberturaArancel"
         class="form-control"
         [class.error]="hasError('porcientoBecaCoberturaArancel')"
-        placeholder="Porcentaje"
+        placeholder="Porcentaje (0-100)"
         min="0"
         max="100"
       />
       <small class="error-message" *ngIf="hasError('porcientoBecaCoberturaArancel')">
         {{ getErrorMessage('porcientoBecaCoberturaArancel') }}
+      </small>
+      <small class="hint" *ngIf="formGroup.get('tipoBecaId')?.value === 'NO_APLICA'">
+        Se establece automáticamente como "NA"
       </small>
     </div>
 
@@ -170,12 +173,15 @@
         formControlName="porcientoBecaCoberturaManuntencion"
         class="form-control"
         [class.error]="hasError('porcientoBecaCoberturaManuntencion')"
-        placeholder="Porcentaje"
+        placeholder="Porcentaje (0-100)"
         min="0"
         max="100"
       />
       <small class="error-message" *ngIf="hasError('porcientoBecaCoberturaManuntencion')">
         {{ getErrorMessage('porcientoBecaCoberturaManuntencion') }}
+      </small>
+      <small class="hint" *ngIf="formGroup.get('tipoBecaId')?.value === 'NO_APLICA'">
+        Se establece automáticamente como "NA"
       </small>
     </div>
 

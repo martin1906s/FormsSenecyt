@@ -406,4 +406,235 @@
       </div>
     </div>
   </div>
+
+  <!-- Sección de Características de la Vivienda -->
+  <div class="caracteristicas-vivienda-section">
+    <h3 class="subsection-title">Características de la Vivienda</h3>
+    
+    <div class="form-grid">
+      <!-- 5.5. Tipo de propiedad -->
+      <div class="form-group">
+        <label>5.5. Tipo de propiedad</label>
+        <div class="select-wrapper">
+          <select formControlName="tipoPropiedadVivienda" class="form-control select-enhanced" [class.error]="hasError('tipoPropiedadVivienda')">
+            <option value="">Seleccione el tipo de propiedad</option>
+            @for (opcion of tipoPropiedadViviendaOpciones; track opcion.value) {
+              <option [value]="opcion.value">{{ opcion.label }}</option>
+            }
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('tipoPropiedadVivienda')">
+          {{ getErrorMessage('tipoPropiedadVivienda') }}
+        </small>
+      </div>
+
+      <!-- 5.6. Estructura de la vivienda -->
+      <div class="form-group">
+        <label>5.6. Estructura de la vivienda</label>
+        <div class="select-wrapper">
+          <select formControlName="estructuraVivienda" class="form-control select-enhanced" [class.error]="hasError('estructuraVivienda')">
+            <option value="">Seleccione la estructura</option>
+            @for (opcion of estructuraViviendaOpciones; track opcion.value) {
+              <option [value]="opcion.value">{{ opcion.label }}</option>
+            }
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('estructuraVivienda')">
+          {{ getErrorMessage('estructuraVivienda') }}
+        </small>
+      </div>
+
+      <!-- Especifique estructura (condicional) -->
+      <div class="form-group" *ngIf="formGroup.get('estructuraVivienda')?.value === 'OTRO'">
+        <label>Especifique:</label>
+        <input
+          type="text"
+          formControlName="estructuraViviendaEspecifique"
+          class="form-control"
+          [class.error]="hasError('estructuraViviendaEspecifique')"
+          placeholder="Especifique la estructura de la vivienda"
+          maxlength="120"
+        />
+        <small class="error-message" *ngIf="hasError('estructuraViviendaEspecifique')">
+          {{ getErrorMessage('estructuraViviendaEspecifique') }}
+        </small>
+      </div>
+
+      <!-- 5.7. Tipo de vivienda -->
+      <div class="form-group">
+        <label>5.7. Tipo de vivienda</label>
+        <div class="select-wrapper">
+          <select formControlName="tipoVivienda" class="form-control select-enhanced" [class.error]="hasError('tipoVivienda')">
+            <option value="">Seleccione el tipo de vivienda</option>
+            @for (opcion of tipoViviendaOpciones; track opcion.value) {
+              <option [value]="opcion.value">{{ opcion.label }}</option>
+            }
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('tipoVivienda')">
+          {{ getErrorMessage('tipoVivienda') }}
+        </small>
+      </div>
+
+      <!-- 5.9. ¿Cuántos baños existen en su hogar? -->
+      <div class="form-group">
+        <label>5.9. ¿Cuántos baños existen en su hogar?</label>
+        <input
+          type="number"
+          formControlName="cantidadBanos"
+          class="form-control"
+          [class.error]="hasError('cantidadBanos')"
+          placeholder="Número de baños o NA"
+          min="0"
+          max="99"
+        />
+        <small class="error-message" *ngIf="hasError('cantidadBanos')">
+          {{ getErrorMessage('cantidadBanos') }}
+        </small>
+        <small class="hint">Ingrese el número de baños o "NA"</small>
+      </div>
+
+      <!-- 5.10. ¿Cuántas habitaciones existen en el hogar? -->
+      <div class="form-group">
+        <label>5.10. ¿Cuántas habitaciones existen en el hogar?</label>
+        <input
+          type="number"
+          formControlName="cantidadHabitaciones"
+          class="form-control"
+          [class.error]="hasError('cantidadHabitaciones')"
+          placeholder="Número de habitaciones o NA"
+          min="0"
+          max="99"
+        />
+        <small class="error-message" *ngIf="hasError('cantidadHabitaciones')">
+          {{ getErrorMessage('cantidadHabitaciones') }}
+        </small>
+        <small class="hint">Ingrese el número de habitaciones o "NA"</small>
+      </div>
+
+      <!-- 5.11. ¿Compartes habitación? -->
+      <div class="form-group full-width">
+        <label>5.11. ¿Compartes habitación? (madre, padre, primas, primos, sobrinos, tías, tíos, pareja)</label>
+        <input
+          type="text"
+          formControlName="comparteHabitacion"
+          class="form-control"
+          [class.error]="hasError('comparteHabitacion')"
+          placeholder="Especifique con quién comparte habitación o NA"
+          maxlength="200"
+        />
+        <small class="error-message" *ngIf="hasError('comparteHabitacion')">
+          {{ getErrorMessage('comparteHabitacion') }}
+        </small>
+        <small class="hint">Ejemplo: "madre, padre" o "NA"</small>
+      </div>
+
+      <!-- 5.12. ¿Actualmente con quien o quienes vives? -->
+      <div class="form-group full-width">
+        <label>5.12. ¿Actualmente con quien o quienes vives?</label>
+        <input
+          type="text"
+          formControlName="conQuienVive"
+          class="form-control"
+          [class.error]="hasError('conQuienVive')"
+          placeholder="Especifique con quién vive o NA"
+          maxlength="200"
+        />
+        <small class="error-message" *ngIf="hasError('conQuienVive')">
+          {{ getErrorMessage('conQuienVive') }}
+        </small>
+        <small class="hint">Ejemplo: "madre, padre, hermanos" o "NA"</small>
+      </div>
+
+      <!-- 5.14. ¿El tamaño de la vivienda es suficiente? -->
+      <div class="form-group">
+        <label>5.14. ¿El tamaño de la vivienda es suficiente respecto al número de personas que la habitan?</label>
+        <div class="select-wrapper">
+          <select formControlName="tamanoViviendaSuficiente" class="form-control select-enhanced" [class.error]="hasError('tamanoViviendaSuficiente')">
+            <option value="">Seleccione</option>
+            <option value="SI">Sí</option>
+            <option value="NO">No</option>
+            <option value="NA">N/A</option>
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('tamanoViviendaSuficiente')">
+          {{ getErrorMessage('tamanoViviendaSuficiente') }}
+        </small>
+      </div>
+
+      <!-- Croquis de la Vivienda -->
+      <div class="form-group full-width">
+        <label>Croquis de la Vivienda <span class="required">*</span></label>
+        <div class="file-upload-wrapper">
+          <input
+            type="file"
+            #croquisInput
+            (change)="onCroquisFileSelected($event)"
+            accept="image/*"
+            class="file-input"
+            [disabled]="croquisUploading"
+            style="display: none;"
+          />
+          
+          <div class="file-upload-area" *ngIf="!formGroup.get('croquisViviendaUrl')?.value || formGroup.get('croquisViviendaUrl')?.value === 'NA'">
+            <button
+              type="button"
+              class="btn-upload"
+              (click)="croquisInput.click()"
+              [disabled]="croquisUploading"
+            >
+              @if (croquisUploading) {
+                <span>Subiendo...</span>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span>Subir Croquis de Vivienda</span>
+              }
+            </button>
+            <p class="upload-hint">
+              (Foto de Google Maps). En caso que no aparezca su dirección en Google Maps, proceda a dibujar el croquis, esta debe estar legible con calles principales y secundarias.
+            </p>
+            <small class="hint">Formatos permitidos: JPG, PNG, WebP, GIF</small>
+          </div>
+
+          <div class="file-preview" *ngIf="formGroup.get('croquisViviendaUrl')?.value && formGroup.get('croquisViviendaUrl')?.value !== 'NA'">
+            <img 
+              [src]="formGroup.get('croquisViviendaUrl')?.value" 
+              alt="Croquis de Vivienda"
+              class="preview-image"
+            />
+            <div class="file-actions">
+              <button
+                type="button"
+                class="btn-remove"
+                (click)="removeCroquis(croquisInput)"
+                [disabled]="croquisUploading"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Eliminar
+              </button>
+              <button
+                type="button"
+                class="btn-change"
+                (click)="croquisInput.click()"
+                [disabled]="croquisUploading"
+              >
+                Cambiar Imagen
+              </button>
+            </div>
+          </div>
+
+          <small class="error-message" *ngIf="croquisError">
+            {{ croquisError }}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 // Movilis design system
 $brand-purple: #881e80;
 $brand-purple-dark: #6b1866;
@@ -198,6 +200,60 @@ $r: #ef4444;
 
     .error-message {
       font-size: .8rem;
+    }
+  }
+}
+
+.file-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+
+  .btn {
+    align-self: flex-start;
+  }
+
+  .file-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: $surface;
+    border-radius: 8px;
+    border: 2px solid rgba(249, 235, 29, .3);
+
+    .file-link {
+      color: var(--brand-yellow);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all .2s ease;
+
+      &:hover {
+        text-decoration: underline;
+        color: var(--brand-yellow-dark);
+      }
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: .85rem;
+    }
+
+    .btn-danger {
+      background: $r;
+      color: white;
+      box-shadow: 0 2px 0 0 color.adjust($r, $lightness: -10%);
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 0 0 color.adjust($r, $lightness: -10%);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(1px);
+        box-shadow: 0 1px 0 0 color.adjust($r, $lightness: -10%);
+      }
     }
   }
 }
