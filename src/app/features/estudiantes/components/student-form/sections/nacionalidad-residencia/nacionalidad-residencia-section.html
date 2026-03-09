@@ -162,5 +162,21 @@
         {{ getErrorMessage('cantonResidenciaId') }}
       </small>
     </div>
+
+    <!-- Parroquia de Procedencia -->
+    <div class="form-group">
+      <label>Parroquia de Procedencia</label>
+      <input
+        type="text"
+        formControlName="parroquiaProcedencia"
+        class="form-control"
+        [class.error]="hasError('parroquiaProcedencia')"
+        placeholder="Parroquia de procedencia"
+        maxlength="100"
+      />
+      <small class="error-message" *ngIf="hasError('parroquiaProcedencia')">
+        {{ getErrorMessage('parroquiaProcedencia') }}
+      </small>
+    </div>
   </div>
 </div>

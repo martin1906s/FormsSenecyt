@@ -137,9 +137,10 @@ export class DatosHogarSection implements OnInit {
       'egresoAlimentacion',
       'egresoEducacion',
       'egresoVivienda',
-      'egresoVestimenta',
+      'egresoIndumentaria',
       'egresoSalud',
       'egresoTransporte',
+      'egresoServiciosBasicos',
       'egresoOtros'
     ];
 
@@ -158,9 +159,10 @@ export class DatosHogarSection implements OnInit {
       'egresoAlimentacion',
       'egresoEducacion',
       'egresoVivienda',
-      'egresoVestimenta',
+      'egresoIndumentaria',
       'egresoSalud',
       'egresoTransporte',
+      'egresoServiciosBasicos',
       'egresoOtros'
     ];
 
@@ -179,6 +181,13 @@ export class DatosHogarSection implements OnInit {
     if (str === 'N/A' || str === 'NA') return 0;
     const num = parseFloat(str);
     return isNaN(num) ? 0 : Math.max(0, num);
+  }
+
+  // Método para formatear moneda
+  formatCurrency(value: any): string {
+    if (!value || value === 'NA') return '$0.00';
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
   }
   
   // Lógica de subida de croquis

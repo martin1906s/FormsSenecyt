@@ -57,6 +57,50 @@ $r: #ef4444;
   }
 }
 
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.egresos-section,
+.salud-familiar-section {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 2px solid rgba($surface, .5);
+}
+
+.subsection-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--brand-yellow);
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba($brand-yellow, .3);
+}
+
+.subsection-description {
+  color: var(--text-soft);
+  font-size: .9rem;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.total-field {
+  background-color: rgba($brand-yellow, .15);
+  font-weight: 600;
+  color: var(--brand-yellow);
+  border-color: var(--brand-yellow);
+}
+
+.section-description {
+  color: var(--text-soft);
+  font-size: .95rem;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba($surface, .3);
+  border-radius: 8px;
+  border-left: 4px solid var(--brand-yellow);
+}
+
 .step-subtitle {
   font-size: 1.2rem;
   color: var(--brand-yellow);

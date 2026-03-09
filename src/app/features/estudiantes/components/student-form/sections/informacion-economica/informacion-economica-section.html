@@ -27,6 +27,22 @@
       </small>
     </div>
 
+    <!-- Campo trabajoEspecifique (condicional) -->
+    <div class="form-group" *ngIf="formGroup.get('estudianteocupacionId')?.value === 'SI'">
+      <label>Si es así, especifique:</label>
+      <input
+        type="text"
+        formControlName="trabajoEspecifique"
+        class="form-control"
+        [class.error]="hasError('trabajoEspecifique')"
+        placeholder="Especifique su trabajo"
+        maxlength="200"
+      />
+      <small class="error-message" *ngIf="hasError('trabajoEspecifique')">
+        {{ getErrorMessage('trabajoEspecifique') }}
+      </small>
+    </div>
+
     <div class="form-group">
       <label>Ingresos del Estudiante</label>
       <div class="select-wrapper">

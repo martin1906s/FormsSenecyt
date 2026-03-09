@@ -50,7 +50,7 @@
         [class.error]="hasError('tipoColegioId')"
         readonly
         placeholder="Se llena automáticamente al seleccionar el colegio"
-        style="background-color: #f5f5f5; cursor: not-allowed;"
+        style="background-color: #f5f5f5; cursor: not-allowed; color: #000000; font-weight: 500;"
       />
       <small class="error-message" *ngIf="hasError('tipoColegioId')">
         {{ getErrorMessage('tipoColegioId') }}
@@ -313,6 +313,69 @@
       </div>
       <small class="error-message" *ngIf="hasError('recibePensionDiferenciada')">
         {{ getErrorMessage('recibePensionDiferenciada') }}
+      </small>
+    </div>
+
+    <!-- Financiamiento de la carrera universitaria -->
+    <div class="form-group full-width">
+      <label>Financiamiento de la carrera universitaria</label>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            formControlName="financiamientoFondosPropios"
+            [class.error]="hasError('financiamientoFondosPropios')"
+          />
+          <span>Fondos propios</span>
+        </label>
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            formControlName="financiamientoAyudaPadres"
+            [class.error]="hasError('financiamientoAyudaPadres')"
+          />
+          <span>Ayuda de sus padres</span>
+        </label>
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            formControlName="financiamientoTarjetaCredito"
+            [class.error]="hasError('financiamientoTarjetaCredito')"
+          />
+          <span>Tarjeta de crédito</span>
+        </label>
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            formControlName="financiamientoEntidadFinanciera"
+            [class.error]="hasError('financiamientoEntidadFinanciera')"
+          />
+          <span>Entidad financiera (préstamos)</span>
+        </label>
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            formControlName="financiamientoTercerasPersonas"
+            [class.error]="hasError('financiamientoTercerasPersonas')"
+          />
+          <span>Ayuda a terceras personas</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Campo condicional: ¿Quiénes? -->
+    <div class="form-group" *ngIf="formGroup.get('financiamientoTercerasPersonas')?.value">
+      <label>¿Quiénes? (si aplica ayuda de terceras personas)</label>
+      <input 
+        type="text" 
+        formControlName="financiamientoQuienes" 
+        class="form-control" 
+        [class.error]="hasError('financiamientoQuienes')"
+        placeholder="Especifique quiénes" 
+        maxlength="200"
+      />
+      <small class="error-message" *ngIf="hasError('financiamientoQuienes')">
+        {{ getErrorMessage('financiamientoQuienes') }}
       </small>
     </div>
   </div>

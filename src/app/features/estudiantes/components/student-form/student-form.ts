@@ -20,6 +20,8 @@ import { DiscapacidadSection } from './sections/discapacidad/discapacidad-sectio
 import { NacionalidadResidenciaSection } from './sections/nacionalidad-residencia/nacionalidad-residencia-section';
 import { InformacionAcademicaSection } from './sections/informacion-academica/informacion-academica-section';
 import { DatosHogarSection } from './sections/datos-hogar/datos-hogar-section';
+import { ComposicionFamiliarSection } from './sections/composicion-familiar/composicion-familiar-section';
+import { IngresosFamiliaresSection } from './sections/ingresos-familiares/ingresos-familiares-section';
 
 @Component({
   selector: 'app-student-form',
@@ -32,7 +34,9 @@ import { DatosHogarSection } from './sections/datos-hogar/datos-hogar-section';
     DiscapacidadSection,
     NacionalidadResidenciaSection,
     InformacionAcademicaSection,
-    DatosHogarSection
+    DatosHogarSection,
+    ComposicionFamiliarSection,
+    IngresosFamiliaresSection
   ],
   templateUrl: './student-form.html',
   styleUrl: './student-form.scss',
@@ -76,7 +80,7 @@ export class StudentForm implements OnInit {
   
   // Sistema de navegación por pasos
   currentStep: number = 0;
-  totalSteps: number = 11;
+  totalSteps: number = 13;
   steps: Array<{ id: string; title: string; icon: string; fields: string[] }> = [
       { id: 'identificacion', title: 'Identificación', icon: 'clipboard', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
     { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'pueblonacionalidadId', 'tipoSangre'] },
@@ -88,7 +92,9 @@ export class StudentForm implements OnInit {
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: 'gift', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
     { id: 'vinculacionSocial', title: 'Vinculación Social', icon: 'handshake', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
     { id: 'contacto', title: 'Contacto', icon: 'mail', fields: ['correoElectronico', 'numeroCelular', 'direccionDomicilio', 'lugarResidencia'] },
-    { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] }
+    { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] },
+    { id: 'composicionFamiliar', title: 'Composición Familiar', icon: 'users', fields: ['composicionFamiliar'] },
+    { id: 'ingresosFamiliares', title: 'Ingresos Familiares', icon: 'dollar-sign', fields: ['ingresosFamiliares'] }
   ];
   
   collapsedSections: { [key: string]: boolean } = {
@@ -102,7 +108,9 @@ export class StudentForm implements OnInit {
     becasAyudas: false,
     vinculacionSocial: false,
     contacto: false,
-    datosHogar: false
+    datosHogar: false,
+    composicionFamiliar: false,
+    ingresosFamiliares: false
   };
 
   // Clave para localStorage
@@ -236,6 +244,16 @@ export class StudentForm implements OnInit {
       tituloBachiller: e.tituloBachiller ?? '',
       anioGraduacion: e.anioGraduacion ?? '',
       financiamientoQuienes: e.financiamientoQuienes ?? '',
+      // Campos de financiamiento como checkboxes
+      financiamientoFondosPropios: e.financiamientoFondosPropios ?? false,
+      financiamientoAyudaPadres: e.financiamientoAyudaPadres ?? false,
+      financiamientoTarjetaCredito: e.financiamientoTarjetaCredito ?? false,
+      financiamientoEntidadFinanciera: e.financiamientoEntidadFinanciera ?? false,
+      financiamientoTercerasPersonas: e.financiamientoTercerasPersonas ?? false,
+      // Campo trabajoEspecifique
+      trabajoEspecifique: e.trabajoEspecifique ?? '',
+      // Parroquia de procedencia
+      parroquiaProcedencia: e.parroquiaProcedencia ?? '',
       referenciaDomiciliaria: e.referenciaDomiciliaria ?? '',
       parroquiaResidencia: e.parroquiaResidencia ?? '',
       barrioSector: e.barrioSector ?? '',
@@ -1540,11 +1558,12 @@ export class StudentForm implements OnInit {
       // 61. nivelFormacionMadre (Enum) - obligatorio
       nivelFormacionMadre: ['', [Validators.required]],
 
-      // 62. ingresoTotalHogar (Entero variable o "NA") - obligatorio
+      // 62. ingresoTotalHogar (Entero variable o "NA") - obligatorio solo al guardar
       ingresoTotalHogar: ['', [
-        Validators.required,
+        // Removemos Validators.required para permitir que esté vacío temporalmente
+        // Se validará al final cuando se guarde el formulario
         (control: AbstractControl) => {
-          if (!control.value || control.value === 'NA') return null;
+          if (!control.value || control.value === 'NA' || control.value === '') return null;
           // Validar que sea un número entero positivo (sin límite de dígitos)
           const num = Number(control.value);
           if (isNaN(num) || !Number.isInteger(num) || num < 0) {
@@ -1576,6 +1595,16 @@ export class StudentForm implements OnInit {
       tituloBachiller: [''],
       anioGraduacion: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(4)]],
       financiamientoQuienes: [''],
+      // Campos de financiamiento como checkboxes
+      financiamientoFondosPropios: [false],
+      financiamientoAyudaPadres: [false],
+      financiamientoTarjetaCredito: [false],
+      financiamientoEntidadFinanciera: [false],
+      financiamientoTercerasPersonas: [false],
+      // Campo trabajoEspecifique
+      trabajoEspecifique: ['', [Validators.maxLength(200)]],
+      // Parroquia de procedencia
+      parroquiaProcedencia: ['', [Validators.maxLength(100)]],
       referenciaDomiciliaria: [''],
       barrioSector: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(100)]],
       zonaVivienda: [''],
@@ -1761,6 +1790,21 @@ export class StudentForm implements OnInit {
         this.submitMessage = '';
         this.submitError = false;
       }, 5000);
+      return;
+    }
+
+    // Validar ingresoTotalHogar antes de continuar (debe estar lleno al guardar)
+    const ingresoTotalHogar = this.studentForm.get('ingresoTotalHogar')?.value;
+    if (!ingresoTotalHogar || ingresoTotalHogar === '' || ingresoTotalHogar === 'NA' || ingresoTotalHogar === null || ingresoTotalHogar === undefined) {
+      this.submitError = true;
+      this.submitMessage = 'Por favor, completa el campo "Ingreso Total del Hogar". Puedes ingresarlo manualmente en el Paso 10 (Datos del Hogar) o completar la sección de Ingresos Familiares en el Paso 12 para que se calcule automáticamente.';
+      // Ir al paso 10 para que el usuario vea el campo
+      this.currentStep = 10;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        this.submitMessage = '';
+        this.submitError = false;
+      }, 8000);
       return;
     }
 
@@ -2327,8 +2371,17 @@ export class StudentForm implements OnInit {
       presentaAlergiaImportante: formValue.presentaAlergiaImportante || 'NA',
       nombreColegioProcedencia: formValue.nombreColegioProcedencia || 'NA',
       tituloBachiller: formValue.tituloBachiller || 'NA',
-      anioGraduacion: formValue.anioGraduacion || 'NA',
+      anioGraduacion: formValue.anioGraduacion ? String(formValue.anioGraduacion) : 'NA',
       financiamientoQuienes: formValue.financiamientoQuienes || 'NA',
+      // NOTA: Los siguientes campos se mantienen en el formulario para uso interno
+      // pero NO se envían al backend porque no están en el schema del API:
+      // - financiamientoFondosPropios
+      // - financiamientoAyudaPadres
+      // - financiamientoTarjetaCredito
+      // - financiamientoEntidadFinanciera
+      // - financiamientoTercerasPersonas
+      // - trabajoEspecifique
+      // - parroquiaProcedencia
       referenciaDomiciliaria: formValue.referenciaDomiciliaria || 'NA',
       parroquiaResidencia: formValue.parroquiaResidencia || 'NA',
       barrioSector: formValue.barrioSector || 'NA',

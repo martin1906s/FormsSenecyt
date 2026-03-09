@@ -632,6 +632,51 @@
           [enums]="enums">
         </app-datos-hogar-section>
       }
+
+      <!-- Paso 11: Composición Familiar -->
+      @if (currentStep === 11) {
+        <div class="step-section">
+          <h2 class="step-title">
+            <span class="step-icon-large" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            Composición Familiar
+          </h2>
+          <p class="section-description">Agrega únicamente a las personas con las que vives en tu hogar</p>
+          <app-composicion-familiar-section
+            [formArray]="composicionFamiliarArray"
+            [parentescoOpciones]="parentescoOpciones"
+            (addRow)="addComposicionFamiliar()"
+            (removeRow)="removeComposicionFamiliar($event)">
+          </app-composicion-familiar-section>
+        </div>
+      }
+
+      <!-- Paso 12: Ingresos Familiares -->
+      @if (currentStep === 12) {
+        <div class="step-section">
+          <h2 class="step-title">
+            <span class="step-icon-large" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" x2="12" y1="2" y2="22"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </span>
+            Ingresos Familiares
+          </h2>
+          <app-ingresos-familiares-section
+            [formArray]="ingresosFamiliaresArray"
+            [parentescoOpciones]="parentescoOpciones"
+            [ingresoTotalHogar]="studentForm.get('ingresoTotalHogar')?.value || ''"
+            (addRow)="addIngresoFamiliar()"
+            (removeRow)="removeIngresoFamiliar($event)">
+          </app-ingresos-familiares-section>
+        </div>
+      }
     </div>
 
     <!-- Botones de navegación -->
