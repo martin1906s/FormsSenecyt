@@ -2879,7 +2879,7 @@ export class StudentForm implements OnInit {
     // El backend devuelve IngresoFamiliar (con mayúscula y singular)
     const ingresosData = estudiante.IngresoFamiliar || estudiante.ingresosFamiliares || [];
     ingresosData.forEach((r: any) => {
-      ingArr.push(this.createIngresoFamiliarGroup());
+      ingArr.push(this.createIngresoFamiliarGroup()); 
       const row = ingArr.at(ingArr.length - 1) as FormGroup;
       const ing = Number(r.ingresoMensual) || 0;
       const ext = Number(r.ingresosExtras) || 0;
