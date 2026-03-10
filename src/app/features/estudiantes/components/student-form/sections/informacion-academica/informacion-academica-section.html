@@ -52,36 +52,21 @@
     <div class="form-group">
       <label>Tipo de Colegio <span class="required">*</span></label>
       
-      <!-- Si el colegio viene de la BD, mostrar input readonly -->
-      @if (!isColegioNuevo && formGroup.get('tipoColegioId')?.value) {
-        <input 
-          type="text" 
+      <!-- Siempre mostrar select para que el estudiante elija el tipo -->
+      <div class="select-wrapper">
+        <select 
           formControlName="tipoColegioId" 
-          class="form-control" 
-          [class.error]="hasError('tipoColegioId')"
-          readonly
-          [value]="getTipoColegioLabel()"
-          placeholder="Se llena automáticamente al seleccionar el colegio"
-          style="background-color: #f5f5f5; cursor: not-allowed; color: #000000; font-weight: 500;"
-        />
-        <small class="hint">Se llena automáticamente al seleccionar el colegio</small>
-      } @else {
-        <!-- Si el colegio es nuevo, mostrar select -->
-        <div class="select-wrapper">
-          <select 
-            formControlName="tipoColegioId" 
-            class="form-control select-enhanced" 
-            [class.error]="hasError('tipoColegioId')">
-            <option value="">Seleccione el tipo de colegio</option>
-            @if (enums?.TipoColegio) {
-              @for (item of enums?.TipoColegio; track $index) {
-                <option [value]="item">{{ getEnumLabel(item) }}</option>
-              }
+          class="form-control select-enhanced" 
+          [class.error]="hasError('tipoColegioId')">
+          <option value="">Seleccione el tipo de colegio</option>
+          @if (enums?.TipoColegio) {
+            @for (item of enums?.TipoColegio; track $index) {
+              <option [value]="item">{{ getEnumLabel(item) }}</option>
             }
-          </select>
-        </div>
-        <small class="hint">Seleccione el tipo de colegio</small>
-      }
+          }
+        </select>
+      </div>
+      <small class="hint">Seleccione el tipo de colegio</small>
       
       <small class="error-message" *ngIf="hasError('tipoColegioId')">
         {{ getErrorMessage('tipoColegioId') }}

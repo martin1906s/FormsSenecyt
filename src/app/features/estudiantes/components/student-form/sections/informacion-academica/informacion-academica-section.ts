@@ -228,9 +228,10 @@ export class InformacionAcademicaSection implements OnInit {
     // Marcar que NO es un colegio nuevo (viene de la BD)
     this.isColegioNuevo = false;
     
-    if (colegio.sostenimiento) {
-      this.formGroup.get('tipoColegioId')?.setValue(colegio.sostenimiento);
-    }
+    // NO autocompletar el tipo de colegio - el estudiante debe seleccionarlo manualmente
+    // if (colegio.sostenimiento) {
+    //   this.formGroup.get('tipoColegioId')?.setValue(colegio.sostenimiento);
+    // }
     
     this.filteredColegios = [];
     this.showColegios = false;
@@ -257,11 +258,12 @@ export class InformacionAcademicaSection implements OnInit {
     // Actualizar isColegioNuevo basado en resultados filtrados
     this.isColegioNuevo = this.filteredColegios.length === 0 && value.trim().length > 2;
     
-    if (this.isColegioNuevo) {
-      this.formGroup.get('tipoColegioId')?.setValue('');
-    } else if (this.filteredColegios.length > 0) {
-      this.isColegioNuevo = false;
-    }
+    // Ya no limpiar el tipo de colegio - el estudiante debe seleccionarlo manualmente
+    // if (this.isColegioNuevo) {
+    //   this.formGroup.get('tipoColegioId')?.setValue('');
+    // } else if (this.filteredColegios.length > 0) {
+    //   this.isColegioNuevo = false;
+    // }
     
     this.cdr.detectChanges();
   }
@@ -353,8 +355,8 @@ export class InformacionAcademicaSection implements OnInit {
       this.formGroup.get('nombreColegioProcedencia')?.setValue(nombreMayusculas);
       // Marcar como colegio nuevo
       this.isColegioNuevo = true;
-      // Limpiar el tipo de colegio para que el usuario lo seleccione
-      this.formGroup.get('tipoColegioId')?.setValue('');
+      // Ya no limpiar el tipo de colegio - el estudiante debe seleccionarlo manualmente
+      // this.formGroup.get('tipoColegioId')?.setValue('');
       this.filteredColegios = [];
       this.showColegios = false;
       this.cdr.detectChanges();
