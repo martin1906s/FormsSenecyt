@@ -188,32 +188,34 @@ export class NacionalidadResidenciaSection implements OnInit {
   }
   
   // Filtrado de provincias
-  filterProvinciasNacimiento(searchTerm: string) {
+  filterProvinciasNacimiento(searchTerm: string, showAll: boolean = false) {
     if (!this.enums?.Provincia) return;
     const term = this.normalizeText(searchTerm).trim();
-    if (!term) {
+    if (!term || showAll) {
       this.filteredProvinciasNacimiento = [...this.enums.Provincia];
+      this.showProvinciasNacimiento = showAll || term.length > 0;
     } else {
       this.filteredProvinciasNacimiento = this.enums.Provincia.filter(provincia => {
         return this.normalizeText(provincia.nombre).includes(term) ||
                provincia.codigo.toString().includes(term);
       });
+      this.showProvinciasNacimiento = true;
     }
-    this.showProvinciasNacimiento = term.length > 0;
   }
 
-  filterProvinciasResidencia(searchTerm: string) {
+  filterProvinciasResidencia(searchTerm: string, showAll: boolean = false) {
     if (!this.enums?.Provincia) return;
     const term = this.normalizeText(searchTerm).trim();
-    if (!term) {
+    if (!term || showAll) {
       this.filteredProvinciasResidencia = [...this.enums.Provincia];
+      this.showProvinciasResidencia = showAll || term.length > 0;
     } else {
       this.filteredProvinciasResidencia = this.enums.Provincia.filter(provincia => {
         return this.normalizeText(provincia.nombre).includes(term) ||
                provincia.codigo.toString().includes(term);
       });
+      this.showProvinciasResidencia = true;
     }
-    this.showProvinciasResidencia = term.length > 0;
   }
   
   // Filtrado de cantones
@@ -403,8 +405,8 @@ export class NacionalidadResidenciaSection implements OnInit {
   }
 
   onProvinciaNacimientoFocus() {
-    this.filterProvinciasNacimiento(this.provinciaNacimientoSearch);
-    this.showProvinciasNacimiento = true;
+    // Mostrar todas las provincias cuando se hace focus para permitir cambiar
+    this.filterProvinciasNacimiento('', true);
   }
 
   onProvinciaNacimientoBlur() {
@@ -447,8 +449,8 @@ export class NacionalidadResidenciaSection implements OnInit {
   }
 
   onProvinciaResidenciaFocus() {
-    this.filterProvinciasResidencia(this.provinciaResidenciaSearch);
-    this.showProvinciasResidencia = true;
+    // Mostrar todas las provincias cuando se hace focus para permitir cambiar
+    this.filterProvinciasResidencia('', true);
   }
 
   onProvinciaResidenciaBlur() {

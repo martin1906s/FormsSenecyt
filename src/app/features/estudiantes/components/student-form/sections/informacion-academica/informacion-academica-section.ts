@@ -138,6 +138,10 @@ export class InformacionAcademicaSection implements OnInit {
         if (this.colegioSearch) {
           this.verifyColegioNuevo(this.colegioSearch);
         }
+        // Si se está mostrando el dropdown, actualizar la lista
+        if (this.showColegios) {
+          this.cdr.detectChanges();
+        }
       },
       error: (err) => {
         console.error('Error al cargar colegios:', err);
@@ -147,9 +151,10 @@ export class InformacionAcademicaSection implements OnInit {
     });
   }
 
-  filterColegiosLocally(searchTerm: string) {
-    if (!searchTerm || searchTerm.trim().length === 0) {
+  filterColegiosLocally(searchTerm: string, showAll: boolean = false) {
+    if (!searchTerm || searchTerm.trim().length === 0 || showAll) {
       this.filteredColegios = this.allColegios;
+      this.showColegios = showAll || !!(searchTerm && searchTerm.trim().length > 0);
       return;
     }
 
@@ -165,13 +170,14 @@ export class InformacionAcademicaSection implements OnInit {
       const palabras = term.split(/\s+/).filter(p => p.length > 0);
       return palabras.some(palabra => nombreNormalizado.includes(palabra));
     });
+    this.showColegios = true;
   }
 
-  filterColegios(searchTerm: string) {
+  filterColegios(searchTerm: string, showAll: boolean = false) {
     if (this.allColegios.length === 0) {
       this.loadColegiosFromAPI();
     } else {
-      this.filterColegiosLocally(searchTerm);
+      this.filterColegiosLocally(searchTerm, showAll);
     }
   }
 
@@ -216,10 +222,12 @@ export class InformacionAcademicaSection implements OnInit {
   }
 
   onColegioFocus() {
-    if (this.colegioSearch.length > 0) {
-      this.filterColegios(this.colegioSearch);
-      this.showColegios = true;
+    // Cargar colegios si no están cargados
+    if (this.allColegios.length === 0) {
+      this.loadColegiosFromAPI();
     }
+    // Mostrar todos los colegios cuando se hace focus para permitir seleccionar
+    this.filterColegios('', true);
   }
 
   onColegioBlur() {

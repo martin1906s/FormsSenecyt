@@ -35,7 +35,7 @@
             }
           </div>
         }
-        @if (showColegios && filteredColegios.length === 0 && colegioSearch.length > 2) {
+        @if (showColegios && filteredColegios.length === 0 && isColegioNuevo && colegioSearch.length > 2) {
           <div class="autocomplete-dropdown">
             <div class="autocomplete-item autocomplete-add" (mousedown)="agregarColegioNuevo()">
               ➕ Agregar "{{ colegioSearch }}" como nuevo colegio
