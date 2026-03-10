@@ -1824,6 +1824,17 @@ export class StudentForm implements OnInit {
     return this.studentForm.get('ingresosFamiliares') as FormArray;
   }
 
+  // Validar solo los pasos visibles (FICHA ESTUDIANTIL: pasos 0-6)
+  areVisibleStepsValid(): boolean {
+    // Validar solo los pasos 0-6 (FICHA ESTUDIANTIL)
+    for (let i = 0; i < this.visibleTotalSteps; i++) {
+      if (!this.isStepValid(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   onSubmit(): void {
     // Validar que estamos en el último paso de FICHA ESTUDIANTIL (paso 6 = paso 7 visible)
     if (this.currentStep < this.visibleTotalSteps - 1) {
@@ -1851,92 +1862,114 @@ export class StudentForm implements OnInit {
       return;
     }
 
-    if (this.studentForm.valid) {
-      this.isSubmitting = true;
-      this.submitMessage = '';
-      this.submitError = false;
+    // Validar solo los pasos visibles (0-6) en lugar de todo el formulario
+    if (!this.areVisibleStepsValid()) {
+      this.submitError = true;
+      // Obtener todos los campos con errores de los pasos visibles
+      const todosLosErrores: string[] = [];
+      for (let i = 0; i < this.visibleTotalSteps; i++) {
+        const errores = this.getCamposConErroresForStep(i);
+        todosLosErrores.push(...errores);
+      }
       
-      let formData = this.getFormDataForBackend();
-      
-      // Asegurar que los valores numéricos sean realmente números (doble verificación)
-      // Manejar valores "NA" o strings inválidos
-      if (formData.duracionPeriodoAcademico !== undefined && formData.duracionPeriodoAcademico !== null) {
-        const strValue = String(formData.duracionPeriodoAcademico).trim().toUpperCase();
-        if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
-          formData.duracionPeriodoAcademico = 1;
-        } else {
-          formData.duracionPeriodoAcademico = Number(formData.duracionPeriodoAcademico);
-          if (isNaN(formData.duracionPeriodoAcademico) || formData.duracionPeriodoAcademico < 1) {
-            formData.duracionPeriodoAcademico = 1;
-          }
-        }
+      if (todosLosErrores.length > 0) {
+        this.submitMessage = `Por favor, completa correctamente los siguientes campos:\n\n${todosLosErrores.join('\n')}`;
       } else {
+        this.submitMessage = 'Por favor, completa todos los campos requeridos correctamente antes de enviar.';
+      }
+      setTimeout(() => {
+        this.submitMessage = '';
+        this.submitError = false;
+      }, 5000);
+      return;
+    }
+
+    // Si llegamos aquí, los pasos visibles son válidos, proceder a guardar
+    this.isSubmitting = true;
+    this.submitMessage = '';
+    this.submitError = false;
+    
+    let formData = this.getFormDataForBackend();
+    
+    // Asegurar que los valores numéricos sean realmente números (doble verificación)
+    // Manejar valores "NA" o strings inválidos
+    if (formData.duracionPeriodoAcademico !== undefined && formData.duracionPeriodoAcademico !== null) {
+      const strValue = String(formData.duracionPeriodoAcademico).trim().toUpperCase();
+      if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
         formData.duracionPeriodoAcademico = 1;
-      }
-      
-      if (formData.cantidadMiembrosHogar !== undefined && formData.cantidadMiembrosHogar !== null) {
-        const strValue = String(formData.cantidadMiembrosHogar).trim().toUpperCase();
-        if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
-          formData.cantidadMiembrosHogar = 1;
-        } else {
-          formData.cantidadMiembrosHogar = Math.floor(Number(formData.cantidadMiembrosHogar));
-          if (isNaN(formData.cantidadMiembrosHogar) || formData.cantidadMiembrosHogar < 1) {
-            formData.cantidadMiembrosHogar = 1;
-          }
-        }
       } else {
+        formData.duracionPeriodoAcademico = Number(formData.duracionPeriodoAcademico);
+        if (isNaN(formData.duracionPeriodoAcademico) || formData.duracionPeriodoAcademico < 1) {
+          formData.duracionPeriodoAcademico = 1;
+        }
+      }
+    } else {
+      formData.duracionPeriodoAcademico = 1;
+    }
+    
+    if (formData.cantidadMiembrosHogar !== undefined && formData.cantidadMiembrosHogar !== null) {
+      const strValue = String(formData.cantidadMiembrosHogar).trim().toUpperCase();
+      if (strValue === 'NA' || strValue === '' || strValue === 'NULL') {
         formData.cantidadMiembrosHogar = 1;
-      }
-      
-      console.log('Formulario válido, enviando:', formData);
-      console.log('Datos completos del formulario:', JSON.stringify(formData, null, 2));
-      console.log('Verificación de tipos numéricos:', {
-        duracionPeriodoAcademico: { valor: formData.duracionPeriodoAcademico, tipo: typeof formData.duracionPeriodoAcademico },
-        cantidadMiembrosHogar: { valor: formData.cantidadMiembrosHogar, tipo: typeof formData.cantidadMiembrosHogar }
-      });
-      
-      // Asegurar que los valores numéricos sean realmente números (no strings) cuando se envía JSON
-      // Crear una copia del objeto para evitar mutar el original
-      const jsonData = { ...formData };
-      
-      // Convertir explícitamente los campos numéricos a números
-      if (jsonData.duracionPeriodoAcademico !== undefined && jsonData.duracionPeriodoAcademico !== null) {
-        jsonData.duracionPeriodoAcademico = Number(jsonData.duracionPeriodoAcademico);
-        if (isNaN(jsonData.duracionPeriodoAcademico) || jsonData.duracionPeriodoAcademico < 1) {
-          jsonData.duracionPeriodoAcademico = 1;
+      } else {
+        formData.cantidadMiembrosHogar = Math.floor(Number(formData.cantidadMiembrosHogar));
+        if (isNaN(formData.cantidadMiembrosHogar) || formData.cantidadMiembrosHogar < 1) {
+          formData.cantidadMiembrosHogar = 1;
         }
       }
-      
-      if (jsonData.cantidadMiembrosHogar !== undefined && jsonData.cantidadMiembrosHogar !== null) {
-        jsonData.cantidadMiembrosHogar = Math.floor(Number(jsonData.cantidadMiembrosHogar));
-        if (isNaN(jsonData.cantidadMiembrosHogar) || jsonData.cantidadMiembrosHogar < 1) {
-          jsonData.cantidadMiembrosHogar = 1;
-        }
+    } else {
+      formData.cantidadMiembrosHogar = 1;
+    }
+    
+    console.log('Formulario válido, enviando:', formData);
+    console.log('Datos completos del formulario:', JSON.stringify(formData, null, 2));
+    console.log('Verificación de tipos numéricos:', {
+      duracionPeriodoAcademico: { valor: formData.duracionPeriodoAcademico, tipo: typeof formData.duracionPeriodoAcademico },
+      cantidadMiembrosHogar: { valor: formData.cantidadMiembrosHogar, tipo: typeof formData.cantidadMiembrosHogar }
+    });
+    
+    // Asegurar que los valores numéricos sean realmente números (no strings) cuando se envía JSON
+    // Crear una copia del objeto para evitar mutar el original
+    const jsonData = { ...formData };
+    
+    // Convertir explícitamente los campos numéricos a números
+    if (jsonData.duracionPeriodoAcademico !== undefined && jsonData.duracionPeriodoAcademico !== null) {
+      jsonData.duracionPeriodoAcademico = Number(jsonData.duracionPeriodoAcademico);
+      if (isNaN(jsonData.duracionPeriodoAcademico) || jsonData.duracionPeriodoAcademico < 1) {
+        jsonData.duracionPeriodoAcademico = 1;
       }
-      
-      // Log final para verificar
-      console.log('Enviando JSON - Tipos finales:', {
-        duracionPeriodoAcademico: { 
-          valor: jsonData.duracionPeriodoAcademico, 
-          tipo: typeof jsonData.duracionPeriodoAcademico,
-          esNumber: typeof jsonData.duracionPeriodoAcademico === 'number'
-        },
-        cantidadMiembrosHogar: { 
-          valor: jsonData.cantidadMiembrosHogar, 
-          tipo: typeof jsonData.cantidadMiembrosHogar,
-          esNumber: typeof jsonData.cantidadMiembrosHogar === 'number'
-        }
-      });
-      
-      this.estudianteService.guardarPaso(jsonData)
-          .pipe(
-            finalize(() => {
-              console.log('Finalizando petición, desactivando isSubmitting');
-              this.isSubmitting = false;
-              this.cdr.detectChanges();
-            })
-          )
-          .subscribe({
+    }
+    
+    if (jsonData.cantidadMiembrosHogar !== undefined && jsonData.cantidadMiembrosHogar !== null) {
+      jsonData.cantidadMiembrosHogar = Math.floor(Number(jsonData.cantidadMiembrosHogar));
+      if (isNaN(jsonData.cantidadMiembrosHogar) || jsonData.cantidadMiembrosHogar < 1) {
+        jsonData.cantidadMiembrosHogar = 1;
+      }
+    }
+    
+    // Log final para verificar
+    console.log('Enviando JSON - Tipos finales:', {
+      duracionPeriodoAcademico: { 
+        valor: jsonData.duracionPeriodoAcademico, 
+        tipo: typeof jsonData.duracionPeriodoAcademico,
+        esNumber: typeof jsonData.duracionPeriodoAcademico === 'number'
+      },
+      cantidadMiembrosHogar: { 
+        valor: jsonData.cantidadMiembrosHogar, 
+        tipo: typeof jsonData.cantidadMiembrosHogar,
+        esNumber: typeof jsonData.cantidadMiembrosHogar === 'number'
+      }
+    });
+    
+    this.estudianteService.guardarPaso(jsonData)
+      .pipe(
+        finalize(() => {
+          console.log('Finalizando petición, desactivando isSubmitting');
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
             next: (response: any) => {
               console.log('Estudiante guardado exitosamente:', response);
               this.isSubmitting = false;
@@ -1991,17 +2024,6 @@ export class StudentForm implements OnInit {
               }, timeout);
             }
           });
-    } else {
-      console.log('Formulario inválido');
-      this.markFormGroupTouched(this.studentForm);
-      const camposConErrores = this.getCamposConErrores();
-      if (camposConErrores.length > 0) {
-        this.submitMessage = `Por favor, completa correctamente los siguientes campos:\n\n${camposConErrores.join('\n')}`;
-      } else {
-        this.submitMessage = 'Por favor, completa todos los campos requeridos correctamente';
-      }
-      this.submitError = true;
-    }
   }
 
   getCamposConErrores(): string[] {
