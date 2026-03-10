@@ -31,6 +31,7 @@ export class InformacionAcademicaSection implements OnInit {
   filteredColegios: any[] = [];
   showColegios: boolean = false;
   allColegios: any[] = [];
+  isColegioNuevo: boolean = false; // Rastrear si el colegio es nuevo o viene de la BD
   
   // Subida de título de bachiller
   tituloBachillerUploading: boolean = false;
@@ -44,7 +45,30 @@ export class InformacionAcademicaSection implements OnInit {
     const nombreColegio = this.formGroup.get('nombreColegioProcedencia')?.value;
     if (nombreColegio) {
       this.colegioSearch = nombreColegio;
+      // Verificar si el colegio existe en la lista cuando se carga el formulario
+      this.checkIfColegioIsNuevo(nombreColegio);
     }
+  }
+  
+  private checkIfColegioIsNuevo(nombreColegio: string): void {
+    if (this.allColegios.length === 0) {
+      // Si aún no se han cargado los colegios, cargarlos primero
+      this.loadColegiosFromAPI();
+      // Después de cargar, verificar
+      setTimeout(() => {
+        this.verifyColegioNuevo(nombreColegio);
+      }, 500);
+    } else {
+      this.verifyColegioNuevo(nombreColegio);
+    }
+  }
+  
+  private verifyColegioNuevo(nombreColegio: string): void {
+    const colegioEncontrado = this.allColegios.find(c => 
+      this.normalizeText(c.nombre) === this.normalizeText(nombreColegio)
+    );
+    this.isColegioNuevo = !colegioEncontrado && nombreColegio.trim().length > 0;
+    this.cdr.detectChanges();
   }
   
   clearColegiosCache(): void {
@@ -110,6 +134,10 @@ export class InformacionAcademicaSection implements OnInit {
       next: (colegios) => {
         this.allColegios = colegios;
         this.filterColegiosLocally(this.colegioSearch);
+        // Verificar si el colegio actual es nuevo después de cargar la lista
+        if (this.colegioSearch) {
+          this.verifyColegioNuevo(this.colegioSearch);
+        }
       },
       error: (err) => {
         console.error('Error al cargar colegios:', err);
@@ -152,6 +180,9 @@ export class InformacionAcademicaSection implements OnInit {
     this.formGroup.get('nombreColegioProcedencia')?.setValue(nombreMayusculas);
     this.colegioSearch = nombreMayusculas;
     
+    // Marcar que NO es un colegio nuevo (viene de la BD)
+    this.isColegioNuevo = false;
+    
     if (colegio.sostenimiento) {
       this.formGroup.get('tipoColegioId')?.setValue(colegio.sostenimiento);
     }
@@ -167,6 +198,21 @@ export class InformacionAcademicaSection implements OnInit {
     this.formGroup.get('nombreColegioProcedencia')?.setValue(value, { emitEvent: false });
     this.filterColegios(value);
     this.showColegios = value.length > 0;
+    
+    // Verificar si el valor escrito coincide con algún colegio de la lista
+    const colegioEncontrado = this.allColegios.find(c => 
+      this.normalizeText(c.nombre) === this.normalizeText(value)
+    );
+    
+    // Si no coincide con ningún colegio, es un colegio nuevo
+    this.isColegioNuevo = !colegioEncontrado && value.length > 0;
+    
+    // Si es nuevo, limpiar el tipo de colegio para que el usuario lo seleccione
+    if (this.isColegioNuevo) {
+      this.formGroup.get('tipoColegioId')?.setValue('');
+    }
+    
+    this.cdr.detectChanges();
   }
 
   onColegioFocus() {
@@ -251,7 +297,9 @@ export class InformacionAcademicaSection implements OnInit {
     const nombreMayusculas = this.colegioSearch.toUpperCase().trim();
     if (nombreMayusculas.length > 0) {
       this.formGroup.get('nombreColegioProcedencia')?.setValue(nombreMayusculas);
-      // Limpiar el tipo de colegio ya que es un colegio nuevo
+      // Marcar como colegio nuevo
+      this.isColegioNuevo = true;
+      // Limpiar el tipo de colegio para que el usuario lo seleccione
       this.formGroup.get('tipoColegioId')?.setValue('');
       this.filteredColegios = [];
       this.showColegios = false;

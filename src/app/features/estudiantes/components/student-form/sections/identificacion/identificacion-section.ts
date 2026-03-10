@@ -64,6 +64,7 @@ export class IdentificacionSection implements ControlValueAccessor {
     formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
     formatted = formatted.replace(/\blinea\b/gi, 'Línea');
     formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    formatted = formatted.replace(/\bcedula\b/gi, 'Cédula');
     return formatted;
   }
 
