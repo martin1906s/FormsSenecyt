@@ -2380,7 +2380,9 @@ export class StudentForm implements OnInit {
       
       // Campos de prácticas preprofesionales
       haRealizadoPracticasPreprofesionales: formValue.haRealizadoPracticasPreprofesionales || '',
-      nroHorasPracticasPreprofesionalesPorPeriodo: formValue.nroHorasPracticasPreprofesionalesPorPeriodo || 'NA',
+      nroHorasPracticasPreprofesionalesPorPeriodo: formValue.nroHorasPracticasPreprofesionalesPorPeriodo 
+        ? String(formValue.nroHorasPracticasPreprofesionalesPorPeriodo) 
+        : 'NA',
       entornoInstitucionalPracticasProfesionales: formValue.entornoInstitucionalPracticasProfesionales || 'NO_APLICA',
       sectorEconomicoPracticaProfesional: formValue.sectorEconomicoPracticaProfesional || 'NO_APLICA',
       
