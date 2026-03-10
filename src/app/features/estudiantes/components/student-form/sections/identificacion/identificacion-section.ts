@@ -56,10 +56,15 @@ export class IdentificacionSection implements ControlValueAccessor {
 
   getEnumLabel(value: string): string {
     if (!value) return '';
-    return value
+    let formatted = value
       .split('_')
       .map(word => word.charAt(0) + word.slice(1).toLowerCase())
       .join(' ');
+    // Correcciones de ortografía (agregar tildes)
+    formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
+    formatted = formatted.replace(/\blinea\b/gi, 'Línea');
+    formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    return formatted;
   }
 
   onCedulaBlur(): void {

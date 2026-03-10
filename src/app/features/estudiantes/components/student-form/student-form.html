@@ -28,31 +28,31 @@
         <div class="steps-group-title">FICHA ESTUDIANTIL</div>
         <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA ESTUDIANTIL">
           @for (step of steps.slice(0, 7); track step.id; let i = $index) {
-            <div
-              class="step-item"
-              [class.step-active]="i === currentStep"
-              [class.step-done]="i < currentStep && isStepValid(i)"
-              [class.step-invalid]="i < currentStep && !isStepValid(i)"
-              (click)="goToStep(i)"
-              [attr.aria-current]="i === currentStep ? 'step' : null"
-              [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
-            >
-              <div class="step-dot-row">
-                @if (i > 0) {
-                  <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
+          <div
+            class="step-item"
+            [class.step-active]="i === currentStep"
+            [class.step-done]="i < currentStep && isStepValid(i)"
+            [class.step-invalid]="i < currentStep && !isStepValid(i)"
+            (click)="goToStep(i)"
+            [attr.aria-current]="i === currentStep ? 'step' : null"
+            [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
+          >
+            <div class="step-dot-row">
+              @if (i > 0) {
+                <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
+              }
+              <button type="button" class="step-dot" [title]="step.title">
+                @if (i < currentStep && isStepValid(i)) {
+                  <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else {
+                  <span class="step-dot-num">{{ i + 1 }}</span>
                 }
-                <button type="button" class="step-dot" [title]="step.title">
-                  @if (i < currentStep && isStepValid(i)) {
-                    <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  } @else {
-                    <span class="step-dot-num">{{ i + 1 }}</span>
-                  }
-                </button>
-              </div>
-              <span class="step-label">{{ step.title }}</span>
+              </button>
             </div>
-          }
-        </div>
+            <span class="step-label">{{ step.title }}</span>
+          </div>
+        }
+      </div>
       </div>
 
       <!-- Grupo 2: Pasos 8-13 - FICHA SOCIOECONOMICA (Oculto por ahora) -->

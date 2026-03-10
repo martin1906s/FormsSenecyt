@@ -31,6 +31,11 @@ export class BecasAyudasSection {
   }
 
   getEnumLabel(value: string): string {
-    return value.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    let formatted = value.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    // Correcciones de ortografía (agregar tildes)
+    formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
+    formatted = formatted.replace(/\blinea\b/gi, 'Línea');
+    formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    return formatted;
   }
 }

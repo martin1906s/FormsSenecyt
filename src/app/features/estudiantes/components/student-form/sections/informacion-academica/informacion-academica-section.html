@@ -139,13 +139,13 @@
 
     <div class="form-group">
       <label>Periodo Académico</label>
-      <input
-        type="text"
-        formControlName="periodoAcademico"
-        class="form-control"
-        [class.error]="hasError('periodoAcademico')"
-        placeholder="Ej: 2024-1"
-      />
+      <div class="select-wrapper">
+        <select formControlName="periodoAcademico" class="form-control select-enhanced" [class.error]="hasError('periodoAcademico')">
+          <option value="">Seleccione el período académico</option>
+          <option value="2026-1">2026-1</option>
+          <option value="2026-2">2026-2</option>
+        </select>
+      </div>
       <small class="error-message" *ngIf="hasError('periodoAcademico')">
         {{ getErrorMessage('periodoAcademico') }}
       </small>
@@ -244,14 +244,16 @@
     </div>
 
     <div class="form-group">
-      <label>Nivel Académico que Cursa</label>
-      <input
-        type="text"
-        formControlName="nivelAcademicoQueCursa"
-        class="form-control"
-        [class.error]="hasError('nivelAcademicoQueCursa')"
-        placeholder="Ej: Primer nivel"
-      />
+      <label>Nivel Académico que Cursa <span class="required">*</span></label>
+      <div class="select-wrapper">
+        <select formControlName="nivelAcademicoQueCursa" class="form-control select-enhanced" [class.error]="hasError('nivelAcademicoQueCursa')">
+          <option value="">Seleccione el nivel académico</option>
+          <option value="PRIMERO">PRIMERO</option>
+          <option value="SEGUNDO">SEGUNDO</option>
+          <option value="TERCERO">TERCERO</option>
+          <option value="CUARTO">CUARTO</option>
+        </select>
+      </div>
       <small class="error-message" *ngIf="hasError('nivelAcademicoQueCursa')">
         {{ getErrorMessage('nivelAcademicoQueCursa') }}
       </small>

@@ -548,10 +548,17 @@ export class StudentForm implements OnInit {
     }
     
     // Formateo normal para otros enums
-    return enumValue
+    let formatted = enumValue
       .split('_')
       .map(word => word.charAt(0) + word.slice(1).toLowerCase())
       .join(' ');
+    
+    // Correcciones de ortografía (agregar tildes)
+    formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
+    formatted = formatted.replace(/\blinea\b/gi, 'Línea');
+    formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    
+    return formatted;
   }
 
   // Validadores personalizados
