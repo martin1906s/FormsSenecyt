@@ -126,7 +126,10 @@ export class InformacionAcademicaSection implements OnInit {
   
   // Lógica de autocompletado de colegios
   loadColegiosFromAPI() {
-    if (!this.enums) return;
+    if (!this.enums) {
+      console.warn('Enums no están disponibles aún');
+      return;
+    }
     
     let provinciaNombre = '';
     let cantonNombre = '';
@@ -145,23 +148,36 @@ export class InformacionAcademicaSection implements OnInit {
       }
     }
 
-    this.enumsService.getColegios(provinciaNombre, cantonNombre).subscribe({
+    // Si no hay provincia, cargar todos los colegios (o mostrar mensaje)
+    console.log('Cargando colegios para:', { provinciaNombre, cantonNombre });
+
+    this.enumsService.getColegios(provinciaNombre || undefined, cantonNombre || undefined).subscribe({
       next: (colegios) => {
-        this.allColegios = colegios;
-        this.filterColegiosLocally(this.colegioSearch);
+        console.log('Colegios cargados:', colegios?.length || 0);
+        this.allColegios = colegios || [];
+        
+        // Si hay texto de búsqueda, filtrar después de cargar
+        if (this.colegioSearch) {
+          this.filterColegiosLocally(this.colegioSearch);
+          this.showColegios = this.colegioSearch.length > 0;
+          this.isColegioNuevo = this.filteredColegios.length === 0 && this.colegioSearch.trim().length > 2;
+        } else {
+          // Si no hay búsqueda, mostrar todos
+          this.filteredColegios = this.allColegios;
+        }
+        
         // Verificar si el colegio actual es nuevo después de cargar la lista
         if (this.colegioSearch) {
           this.verifyColegioNuevo(this.colegioSearch);
         }
-        // Si se está mostrando el dropdown, actualizar la lista
-        if (this.showColegios) {
-          this.cdr.detectChanges();
-        }
+        
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar colegios:', err);
         this.allColegios = [];
         this.filteredColegios = [];
+        // Mostrar mensaje de error al usuario si es necesario
       }
     });
   }
@@ -226,24 +242,24 @@ export class InformacionAcademicaSection implements OnInit {
     this.colegioSearch = value;
     this.formGroup.get('nombreColegioProcedencia')?.setValue(value, { emitEvent: false });
     
-    // Cargar colegios si no están cargados
+    // Si no hay colegios cargados, cargarlos primero
     if (this.allColegios.length === 0) {
       this.loadColegiosFromAPI();
+      // No filtrar todavía, esperar a que se carguen (el filtrado se hará en loadColegiosFromAPI)
+      this.showColegios = false;
+      return;
     }
     
-    // Filtrar colegios según el texto escrito
+    // Si ya hay colegios cargados, filtrar inmediatamente
     this.filterColegios(value);
     this.showColegios = value.length > 0;
     
-    // Verificar si hay resultados después de filtrar
-    // Si NO hay resultados filtrados Y hay suficiente texto, es un colegio nuevo
+    // Actualizar isColegioNuevo basado en resultados filtrados
     this.isColegioNuevo = this.filteredColegios.length === 0 && value.trim().length > 2;
     
-    // Si es nuevo, limpiar el tipo de colegio para que el usuario lo seleccione
     if (this.isColegioNuevo) {
       this.formGroup.get('tipoColegioId')?.setValue('');
     } else if (this.filteredColegios.length > 0) {
-      // Si hay resultados, NO es nuevo
       this.isColegioNuevo = false;
     }
     
@@ -254,9 +270,10 @@ export class InformacionAcademicaSection implements OnInit {
     // Cargar colegios si no están cargados
     if (this.allColegios.length === 0) {
       this.loadColegiosFromAPI();
+    } else {
+      // Si ya están cargados, mostrar todos cuando se hace focus
+      this.filterColegios('', true);
     }
-    // Mostrar todos los colegios cuando se hace focus para permitir seleccionar
-    this.filterColegios('', true);
   }
 
   onColegioBlur() {
