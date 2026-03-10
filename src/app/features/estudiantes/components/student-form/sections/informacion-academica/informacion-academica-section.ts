@@ -126,9 +126,17 @@ export class InformacionAcademicaSection implements OnInit {
     }
 
     const term = this.normalizeText(searchTerm).trim();
-    this.filteredColegios = this.allColegios.filter(colegio => 
-      this.normalizeText(colegio.nombre).includes(term)
-    );
+    // Búsqueda más flexible: busca en cualquier parte del nombre y por palabras individuales
+    this.filteredColegios = this.allColegios.filter(colegio => {
+      const nombreNormalizado = this.normalizeText(colegio.nombre);
+      // Buscar el término completo
+      if (nombreNormalizado.includes(term)) {
+        return true;
+      }
+      // Buscar palabras individuales
+      const palabras = term.split(/\s+/).filter(p => p.length > 0);
+      return palabras.some(palabra => nombreNormalizado.includes(palabra));
+    });
   }
 
   filterColegios(searchTerm: string) {
@@ -237,5 +245,17 @@ export class InformacionAcademicaSection implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  agregarColegioNuevo() {
+    const nombreMayusculas = this.colegioSearch.toUpperCase().trim();
+    if (nombreMayusculas.length > 0) {
+      this.formGroup.get('nombreColegioProcedencia')?.setValue(nombreMayusculas);
+      // Limpiar el tipo de colegio ya que es un colegio nuevo
+      this.formGroup.get('tipoColegioId')?.setValue('');
+      this.filteredColegios = [];
+      this.showColegios = false;
+      this.cdr.detectChanges();
+    }
   }
 }

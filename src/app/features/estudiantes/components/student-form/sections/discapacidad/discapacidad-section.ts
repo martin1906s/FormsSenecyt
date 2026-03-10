@@ -18,6 +18,7 @@ export class DiscapacidadSection implements OnInit, OnDestroy {
 
   private cdr = inject(ChangeDetectorRef);
   private discapacidadSubscription?: Subscription;
+  private alergiaImportanteSubscription?: Subscription;
 
   ngOnInit(): void {
     // Suscribirse a cambios en el campo discapacidad para habilitar/deshabilitar campos
@@ -26,15 +27,27 @@ export class DiscapacidadSection implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
+    // Suscribirse a cambios en presentaAlergiaImportante para habilitar/deshabilitar campo alergias
+    this.alergiaImportanteSubscription = this.formGroup.get('presentaAlergiaImportante')?.valueChanges.subscribe((value: any) => {
+      this.updateAlergiasField(value);
+      this.cdr.detectChanges();
+    });
+
     // Aplicar estado inicial
     const discapacidadValue = this.formGroup.get('discapacidad')?.value;
     if (discapacidadValue) {
       this.updateDiscapacidadFields(discapacidadValue);
     }
+
+    const alergiaImportanteValue = this.formGroup.get('presentaAlergiaImportante')?.value;
+    if (alergiaImportanteValue) {
+      this.updateAlergiasField(alergiaImportanteValue);
+    }
   }
 
   ngOnDestroy(): void {
     this.discapacidadSubscription?.unsubscribe();
+    this.alergiaImportanteSubscription?.unsubscribe();
   }
 
   private updateDiscapacidadFields(discapacidadValue: any): void {
@@ -66,6 +79,19 @@ export class DiscapacidadSection implements OnInit, OnDestroy {
       porcentaje?.enable({ emitEvent: false });
       carnet?.enable({ emitEvent: false });
       tipo?.enable({ emitEvent: false });
+    }
+  }
+
+  private updateAlergiasField(alergiaImportanteValue: any): void {
+    const alergias = this.formGroup.get('alergias');
+
+    if (alergiaImportanteValue === 'SI') {
+      // Habilitar el campo de alergias
+      alergias?.enable({ emitEvent: false });
+    } else {
+      // Deshabilitar y limpiar el campo de alergias si no es "SI"
+      alergias?.disable({ emitEvent: false });
+      alergias?.setValue('NA', { emitEvent: false });
     }
   }
 

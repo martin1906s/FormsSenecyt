@@ -171,6 +171,20 @@ $r: #ef4444;
       small {
         color: #666;
       }
+
+      &.autocomplete-add {
+        background: rgba(249, 235, 29, .15);
+        color: var(--brand-yellow);
+        font-weight: 600;
+        border: 1px solid var(--brand-yellow);
+        border-radius: 4px;
+        margin: 4px;
+
+        &:hover {
+          background: rgba(249, 235, 29, .3);
+          color: var(--brand-yellow);
+        }
+      }
     }
   }
 }
