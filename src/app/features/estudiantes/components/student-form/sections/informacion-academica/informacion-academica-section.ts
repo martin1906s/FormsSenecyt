@@ -64,10 +64,25 @@ export class InformacionAcademicaSection implements OnInit {
   }
   
   private verifyColegioNuevo(nombreColegio: string): void {
-    const colegioEncontrado = this.allColegios.find(c => 
-      this.normalizeText(c.nombre) === this.normalizeText(nombreColegio)
-    );
-    this.isColegioNuevo = !colegioEncontrado && nombreColegio.trim().length > 0;
+    if (!nombreColegio || nombreColegio.trim().length === 0) {
+      this.isColegioNuevo = false;
+      this.cdr.detectChanges();
+      return;
+    }
+    
+    // Filtrar colegios con el nombre dado usando la misma lógica de búsqueda
+    const term = this.normalizeText(nombreColegio).trim();
+    const resultados = this.allColegios.filter(colegio => {
+      const nombreNormalizado = this.normalizeText(colegio.nombre);
+      if (nombreNormalizado.includes(term)) {
+        return true;
+      }
+      const palabras = term.split(/\s+/).filter(p => p.length > 0);
+      return palabras.some(palabra => nombreNormalizado.includes(palabra));
+    });
+    
+    // Es nuevo solo si NO hay resultados Y hay suficiente texto (más de 2 caracteres)
+    this.isColegioNuevo = resultados.length === 0 && term.length > 2;
     this.cdr.detectChanges();
   }
   
@@ -155,6 +170,10 @@ export class InformacionAcademicaSection implements OnInit {
     if (!searchTerm || searchTerm.trim().length === 0 || showAll) {
       this.filteredColegios = this.allColegios;
       this.showColegios = showAll || !!(searchTerm && searchTerm.trim().length > 0);
+      // Si se muestran todos, no es un colegio nuevo
+      if (showAll) {
+        this.isColegioNuevo = false;
+      }
       return;
     }
 
@@ -171,6 +190,10 @@ export class InformacionAcademicaSection implements OnInit {
       return palabras.some(palabra => nombreNormalizado.includes(palabra));
     });
     this.showColegios = true;
+    
+    // Actualizar isColegioNuevo basado en si hay resultados
+    // Solo es nuevo si NO hay resultados Y hay suficiente texto (más de 2 caracteres)
+    this.isColegioNuevo = this.filteredColegios.length === 0 && term.length > 2;
   }
 
   filterColegios(searchTerm: string, showAll: boolean = false) {
@@ -202,20 +225,26 @@ export class InformacionAcademicaSection implements OnInit {
     const value = event.target.value.toUpperCase();
     this.colegioSearch = value;
     this.formGroup.get('nombreColegioProcedencia')?.setValue(value, { emitEvent: false });
+    
+    // Cargar colegios si no están cargados
+    if (this.allColegios.length === 0) {
+      this.loadColegiosFromAPI();
+    }
+    
+    // Filtrar colegios según el texto escrito
     this.filterColegios(value);
     this.showColegios = value.length > 0;
     
-    // Verificar si el valor escrito coincide con algún colegio de la lista
-    const colegioEncontrado = this.allColegios.find(c => 
-      this.normalizeText(c.nombre) === this.normalizeText(value)
-    );
-    
-    // Si no coincide con ningún colegio, es un colegio nuevo
-    this.isColegioNuevo = !colegioEncontrado && value.length > 0;
+    // Verificar si hay resultados después de filtrar
+    // Si NO hay resultados filtrados Y hay suficiente texto, es un colegio nuevo
+    this.isColegioNuevo = this.filteredColegios.length === 0 && value.trim().length > 2;
     
     // Si es nuevo, limpiar el tipo de colegio para que el usuario lo seleccione
     if (this.isColegioNuevo) {
       this.formGroup.get('tipoColegioId')?.setValue('');
+    } else if (this.filteredColegios.length > 0) {
+      // Si hay resultados, NO es nuevo
+      this.isColegioNuevo = false;
     }
     
     this.cdr.detectChanges();
