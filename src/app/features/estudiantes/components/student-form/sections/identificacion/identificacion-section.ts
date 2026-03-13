@@ -94,26 +94,33 @@ export class IdentificacionSection implements ControlValueAccessor {
       next: (estudiante: any) => {
         this.isSearchingByCedula = false;
         if (estudiante != null) {
-          // Verificar si el estudiante ya está completamente registrado
-          // Lista de campos principales que indican registro completo
-          const camposRequeridos = [
-            'primerApellido', 'primerNombre', 'sexoId', 'fechaNacimiento',
-            'nacionalidadId', 'paisNacimientoId', 'provinciaNacimientoId',
-            'cantonNacimientoId', 'parroquiaNacimientoId', 'direccionResidencia',
-            'telefonoCelular', 'correoElectronico', 'carreraId'
+          // Verificar si el estudiante ya completó la FICHA ESTUDIANTIL (pasos 1-7)
+          // Solo verificamos campos de los pasos 1-7, NO los de ficha socioeconómica (pasos 8-13)
+          const camposRequeridosFichaEstudiantil = [
+            // Paso 1: Identificación
+            'tipoDocumento', 'numeroIdentificacion', 'fechaNacimiento',
+            // Paso 2: Datos Personales
+            'primerApellido', 'primerNombre', 'sexo',
+            // Paso 4: Nacionalidad y Residencia
+            'paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId',
+            'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId',
+            // Paso 5: Información Académica
+            'carrera', 'modalidadCarrera', 'jornadaCarrera',
+            // Paso 10: Contacto
+            'correoElectronico', 'numeroCelular'
           ];
           
-          const estaCompleto = camposRequeridos.every(campo => {
+          const estaCompleto = camposRequeridosFichaEstudiantil.every(campo => {
             const valor = estudiante[campo];
-            return valor !== null && valor !== undefined && valor !== '';
+            return valor !== null && valor !== undefined && valor !== '' && valor !== 'NA';
           });
           
           if (estaCompleto) {
-            // Estudiante ya está completamente registrado
+            // Estudiante ya completó la FICHA ESTUDIANTIL (pasos 1-7)
             this.estudianteYaRegistrado.emit();
             this.cedulaSearchMessage = '';
           } else {
-            // Estudiante existe pero no está completo, cargar datos
+            // Estudiante existe pero no completó la ficha estudiantil, cargar datos
             this.estudianteEncontrado.emit(estudiante);
             this.cedulaSearchMessage = 'Datos cargados. Puede editar y guardar.';
           }

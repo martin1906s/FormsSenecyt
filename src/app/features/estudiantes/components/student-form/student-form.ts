@@ -360,8 +360,36 @@ export class StudentForm implements OnInit {
    * Maneja cuando se encuentra un estudiante ya registrado completamente
    */
   onEstudianteYaRegistrado(): void {
-    this.showModalEstudianteYaRegistrado = true;
-    this.cdr.detectChanges();
+    // Cargar todos los datos del estudiante y mostrar progreso al 100%
+    const tipo = this.studentForm.get('tipoDocumentoId')?.value;
+    const num = this.studentForm.get('numeroIdentificacion')?.value;
+    
+    if (tipo && num) {
+      this.estudianteService.getEstudianteByCedula(tipo, num).subscribe({
+        next: (estudiante: any) => {
+          if (estudiante) {
+            // Cargar todos los datos del estudiante
+            this.patchFormFromEstudiante(estudiante);
+            
+            // Establecer el progreso al 100% (último paso visible)
+            this.currentStep = this.visibleTotalSteps - 1;
+            
+            // Mostrar el modal
+            this.showModalEstudianteYaRegistrado = true;
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err: any) => {
+          console.error('Error al cargar datos del estudiante:', err);
+          this.showModalEstudianteYaRegistrado = true;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      // Si no hay datos de identificación, solo mostrar el modal
+      this.showModalEstudianteYaRegistrado = true;
+      this.cdr.detectChanges();
+    }
   }
 
   /**
