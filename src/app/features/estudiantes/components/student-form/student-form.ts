@@ -82,6 +82,10 @@ export class StudentForm implements OnInit {
   submitMessage = '';
   submitError = false;
 
+  // Propiedades para los modales
+  showModalRegistroCompletado = false;
+  showModalEstudianteYaRegistrado = false;
+
   studentForm: FormGroup;
   
   // Sistema de navegación por pasos
@@ -330,6 +334,50 @@ export class StudentForm implements OnInit {
    */
   onEstudianteEncontrado(estudiante: any): void {
     this.patchFormFromEstudiante(estudiante);
+  }
+
+  /**
+   * Cierra el modal de registro completado y resetea el formulario
+   */
+  cerrarModalRegistroCompletado(): void {
+    this.showModalRegistroCompletado = false;
+    
+    // Limpiar datos guardados en localStorage
+    localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem(this.STORAGE_STEP_KEY);
+    
+    // Resetear formulario y regresar al paso 1
+    this.studentForm.reset();
+    this.currentStep = 0;
+    this.cdr.detectChanges();
+    
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  }
+
+  /**
+   * Maneja cuando se encuentra un estudiante ya registrado completamente
+   */
+  onEstudianteYaRegistrado(): void {
+    this.showModalEstudianteYaRegistrado = true;
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Cierra el modal de estudiante ya registrado y resetea el formulario
+   */
+  cerrarModalEstudianteYaRegistrado(): void {
+    this.showModalEstudianteYaRegistrado = false;
+    
+    // Limpiar formulario y regresar al paso 1
+    this.studentForm.reset();
+    this.currentStep = 0;
+    this.cdr.detectChanges();
+    
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   }
 
   // Configurar guardado automático en localStorage
@@ -1974,25 +2022,10 @@ export class StudentForm implements OnInit {
               console.log('Estudiante guardado exitosamente:', response);
               this.isSubmitting = false;
               this.submitError = false;
-              this.submitMessage = '¡Formulario guardado exitosamente! Los datos están disponibles para descargar en el panel de administración.';
               
-              // Limpiar datos guardados en localStorage
-              localStorage.removeItem(this.STORAGE_KEY);
-              localStorage.removeItem(this.STORAGE_STEP_KEY);
-              
-              // Resetear formulario y regresar al paso 1
-              this.studentForm.reset();
-              this.currentStep = 0;
+              // Mostrar modal de registro completado
+              this.showModalRegistroCompletado = true;
               this.cdr.detectChanges();
-              
-              setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }, 100);
-              
-              setTimeout(() => {
-                this.submitMessage = '';
-                this.cdr.detectChanges();
-              }, 8000);
             },
             error: (error: any) => {
               console.error('Error al guardar estudiante:', error);

@@ -23,6 +23,7 @@ export class IdentificacionSection implements ControlValueAccessor {
   @Input() enums: EnumsResponse | null = null;
   
   @Output() estudianteEncontrado = new EventEmitter<any>();
+  @Output() estudianteYaRegistrado = new EventEmitter<void>();
   
   private estudianteService = inject(EstudianteService);
   private cdr = inject(ChangeDetectorRef);
@@ -93,8 +94,29 @@ export class IdentificacionSection implements ControlValueAccessor {
       next: (estudiante: any) => {
         this.isSearchingByCedula = false;
         if (estudiante != null) {
-          this.estudianteEncontrado.emit(estudiante);
-          this.cedulaSearchMessage = 'Datos cargados. Puede editar y guardar.';
+          // Verificar si el estudiante ya está completamente registrado
+          // Lista de campos principales que indican registro completo
+          const camposRequeridos = [
+            'primerApellido', 'primerNombre', 'sexoId', 'fechaNacimiento',
+            'nacionalidadId', 'paisNacimientoId', 'provinciaNacimientoId',
+            'cantonNacimientoId', 'parroquiaNacimientoId', 'direccionResidencia',
+            'telefonoCelular', 'correoElectronico', 'carreraId'
+          ];
+          
+          const estaCompleto = camposRequeridos.every(campo => {
+            const valor = estudiante[campo];
+            return valor !== null && valor !== undefined && valor !== '';
+          });
+          
+          if (estaCompleto) {
+            // Estudiante ya está completamente registrado
+            this.estudianteYaRegistrado.emit();
+            this.cedulaSearchMessage = '';
+          } else {
+            // Estudiante existe pero no está completo, cargar datos
+            this.estudianteEncontrado.emit(estudiante);
+            this.cedulaSearchMessage = 'Datos cargados. Puede editar y guardar.';
+          }
         } else {
           this.cedulaSearchMessage = 'No hay registro. Complete todos los campos del formulario.';
         }

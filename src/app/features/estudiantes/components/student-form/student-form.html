@@ -136,7 +136,8 @@
         <app-identificacion-section
           [formGroup]="studentForm"
           [enums]="enums"
-          (estudianteEncontrado)="onEstudianteEncontrado($event)">
+          (estudianteEncontrado)="onEstudianteEncontrado($event)"
+          (estudianteYaRegistrado)="onEstudianteYaRegistrado()">
         </app-identificacion-section>
       }
 
@@ -664,4 +665,46 @@
       }
     </div>
   </form>
+
+  <!-- Modal de Registro Completado Exitosamente -->
+  @if (showModalRegistroCompletado) {
+    <div class="modal-overlay" (click)="cerrarModalRegistroCompletado()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-icon success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2 class="modal-title">¡Registro Completado Exitosamente!</h2>
+          <p class="modal-message">Tu registro ha sido completado exitosamente. Los datos están disponibles para descargar en el panel de administración.</p>
+          <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalRegistroCompletado()">
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Estudiante Ya Registrado -->
+  @if (showModalEstudianteYaRegistrado) {
+    <div class="modal-overlay" (click)="cerrarModalEstudianteYaRegistrado()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-icon success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2 class="modal-title">Tu Registro Ya Fue Completado</h2>
+          <p class="modal-message">El estudiante con esta cédula ya tiene un registro completado exitosamente.</p>
+          <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalEstudianteYaRegistrado()">
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
