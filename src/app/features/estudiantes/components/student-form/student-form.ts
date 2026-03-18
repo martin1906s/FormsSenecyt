@@ -447,7 +447,7 @@ export class StudentForm implements OnInit {
             this.patchFormFromEstudiante(estudiante);
             // Mantener en fase 1 para que pueda actualizar sus datos
             this.formPhase = 1;
-            this.currentStep = 1;
+            this.currentStep = 0;
             this.estudianteEnModoActualizacion = true;
             this.showModalEstudianteYaRegistrado = true;
             this.cdr.detectChanges();
