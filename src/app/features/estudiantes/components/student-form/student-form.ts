@@ -409,40 +409,10 @@ export class StudentForm implements OnInit {
    * Cuando la pestaña se abrió con ?fase=2: cargar estudiante desde sessionStorage y mostrar solo pasos 8-14.
    */
   private cargarFase2DesdeNuevaPestana(): void {
-    let data: { tipoDocumentoId: string; numeroIdentificacion: string } | null = null;
-    try {
-      const raw = sessionStorage.getItem(this.FASE2_STORAGE_KEY);
-      if (raw) data = JSON.parse(raw);
-    } catch (_) {}
-    if (!data?.tipoDocumentoId || !data?.numeroIdentificacion) {
-      try {
-        sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
-      } catch (_) {}
-      return;
-    }
-    this.estudianteService.getEstudianteByCedula(data.tipoDocumentoId, data.numeroIdentificacion).subscribe({
-      next: (estudiante: any) => {
-        try {
-          sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
-        } catch (_) {}
-        if (estudiante) {
-          this.patchFormFromEstudiante(estudiante);
-          this.formPhase = 2;
-          this.currentStep = 7;
-          this.saveFormData();
-        }
-        this.router.navigate([], { queryParams: {}, replaceUrl: true });
-        this.cdr.detectChanges();
-        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
-      },
-      error: () => {
-        try {
-          sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
-        } catch (_) {}
-        this.router.navigate([], { queryParams: {}, replaceUrl: true });
-        this.cdr.detectChanges();
-      }
-    });
+    // Fase 2 no habilitada aún — limpiar y quedarse en fase 1
+    try { sessionStorage.removeItem(this.FASE2_STORAGE_KEY); } catch (_) {}
+    this.router.navigate([], { queryParams: {}, replaceUrl: true });
+    this.cdr.detectChanges();
   }
 
   /**
@@ -576,15 +546,28 @@ export class StudentForm implements OnInit {
           formData.estructuraVivienda = 'OTRO';
           formData.estructuraViviendaEspecifique = spec;
         }
+        // Limpiar IDs de relación que pueden ser inválidos entre entornos (local vs producción)
+        formData.paisNacionalidadId = '';
+        formData.provinciaNacimientoId = '';
+        formData.cantonNacimientoId = '';
+        formData.paisResidenciaId = '';
+        formData.provinciaResidenciaId = '';
+        formData.cantonResidenciaId = '';
+        formData.pueblonacionalidadId = '';
+
         // Restaurar datos del formulario
         this.studentForm.patchValue(formData, { emitEvent: false });
 
-        // Restaurar paso actual y fase
+        // Restaurar paso actual — solo fase 1 (pasos 0-6), nunca restaurar fase 2
         if (savedStep) {
           const step = parseInt(JSON.parse(savedStep), 10);
-          if (step >= 0 && step < this.totalSteps) {
+          if (step >= 0 && step < 7) {
             this.currentStep = step;
-            this.formPhase = step >= 7 ? 2 : 1;
+            this.formPhase = 1;
+          } else {
+            // Si había un paso de fase 2 guardado, resetear a paso 0
+            this.currentStep = 0;
+            this.formPhase = 1;
           }
         }
       }
