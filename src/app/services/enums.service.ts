@@ -64,10 +64,8 @@ export interface EnumsResponse {
 })
 export class EnumsService {
   private http = inject(HttpClient);
-  // private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
-  private apiUrl = '/api/estudiantes';
-  // private catalogosUrl = 'https://backendformsenecyt.onrender.com';
-  private catalogosUrl = '/api';
+  private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
+  private catalogosUrl = 'https://backendformsenecyt.onrender.com';
 
   getEnums(): Observable<EnumsResponse> {
     return this.http.get<EnumsResponse>(`${this.apiUrl}/enums`);
