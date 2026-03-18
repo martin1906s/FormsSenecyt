@@ -24,6 +24,10 @@ export class DatosPersonalesSection implements OnInit {
   copiaCedulaError: string = '';
   copiaPapeletaUploading: boolean = false;
   copiaPapeletaError: string = '';
+  tituloBachillerUploading: boolean = false;
+  tituloBachillerError: string = '';
+  certificadoTituloUploading: boolean = false;
+  certificadoTituloError: string = '';
 
   ngOnInit(): void {
     this.setupAutoUppercase();
@@ -42,6 +46,16 @@ export class DatosPersonalesSection implements OnInit {
     const copiaPapeletaValue = this.formGroup.get('copiaPapeleta')?.value;
     if (!copiaPapeletaValue || copiaPapeletaValue === 'NA' || (typeof copiaPapeletaValue === 'string' && copiaPapeletaValue.trim() === '')) {
       this.formGroup.get('copiaPapeleta')?.setValue('', { emitEvent: false });
+    }
+
+    const tituloBachillerValue = this.formGroup.get('tituloBachiller')?.value;
+    if (!tituloBachillerValue || tituloBachillerValue === 'NA' || (typeof tituloBachillerValue === 'string' && tituloBachillerValue.trim() === '')) {
+      this.formGroup.get('tituloBachiller')?.setValue('', { emitEvent: false });
+    }
+
+    const certValue = this.formGroup.get('certificadoRegistroTitulo')?.value;
+    if (!certValue || certValue === 'NA' || (typeof certValue === 'string' && certValue.trim() === '')) {
+      this.formGroup.get('certificadoRegistroTitulo')?.setValue('', { emitEvent: false });
     }
   }
 
@@ -246,6 +260,66 @@ export class DatosPersonalesSection implements OnInit {
         this.copiaPapeletaError = err?.error?.message || err?.message || 'No se pudo eliminar el archivo.';
         this.cdr.detectChanges();
       },
+    });
+  }
+
+  // Métodos para subida de título de bachiller
+  onTituloBachillerFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.tituloBachillerError = '';
+    this.tituloBachillerUploading = true;
+    this.cdr.detectChanges();
+    this.estudianteService.uploadTituloBachiller(file).pipe(
+      finalize(() => { this.tituloBachillerUploading = false; this.cdr.detectChanges(); })
+    ).subscribe({
+      next: (res) => { this.formGroup.get('tituloBachiller')?.setValue(res.url); input.value = ''; },
+      error: (err) => { this.tituloBachillerError = err?.error?.message || 'Error al subir el archivo.'; }
+    });
+  }
+
+  removeTituloBachiller(fileInput: HTMLInputElement): void {
+    const url = this.formGroup.get('tituloBachiller')?.value;
+    if (!url || !url.startsWith('http')) {
+      this.formGroup.get('tituloBachiller')?.setValue('');
+      if (fileInput) fileInput.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.estudianteService.deleteTituloBachiller(url).subscribe({
+      next: () => { this.formGroup.get('tituloBachiller')?.setValue(''); if (fileInput) fileInput.value = ''; this.cdr.detectChanges(); },
+      error: (err) => { this.tituloBachillerError = err?.error?.message || 'No se pudo eliminar.'; this.cdr.detectChanges(); }
+    });
+  }
+
+  // Métodos para subida de certificado de registro del título
+  onCertificadoTituloFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.certificadoTituloError = '';
+    this.certificadoTituloUploading = true;
+    this.cdr.detectChanges();
+    this.estudianteService.uploadCertificadoRegistroTitulo(file).pipe(
+      finalize(() => { this.certificadoTituloUploading = false; this.cdr.detectChanges(); })
+    ).subscribe({
+      next: (res) => { this.formGroup.get('certificadoRegistroTitulo')?.setValue(res.url); input.value = ''; },
+      error: (err) => { this.certificadoTituloError = err?.error?.message || 'Error al subir el archivo.'; }
+    });
+  }
+
+  removeCertificadoTitulo(fileInput: HTMLInputElement): void {
+    const url = this.formGroup.get('certificadoRegistroTitulo')?.value;
+    if (!url || !url.startsWith('http')) {
+      this.formGroup.get('certificadoRegistroTitulo')?.setValue('');
+      if (fileInput) fileInput.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.estudianteService.deleteCertificadoRegistroTitulo(url).subscribe({
+      next: () => { this.formGroup.get('certificadoRegistroTitulo')?.setValue(''); if (fileInput) fileInput.value = ''; this.cdr.detectChanges(); },
+      error: (err) => { this.certificadoTituloError = err?.error?.message || 'No se pudo eliminar.'; this.cdr.detectChanges(); }
     });
   }
 }

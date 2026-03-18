@@ -257,3 +257,143 @@ $r: #ef4444;
     }
   }
 }
+
+// Sección de documentos
+.docs-section {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 2px solid $surface;
+}
+
+.docs-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--brand-yellow);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.docs-hint {
+  color: var(--text-soft);
+  font-size: .85rem;
+  margin-bottom: 20px;
+  opacity: .85;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doc-upload-card {
+  background: $surface;
+  border: 2px solid rgba(249, 235, 29, .2);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color .2s;
+
+  &:hover {
+    border-color: rgba(249, 235, 29, .45);
+  }
+}
+
+.doc-upload-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  .doc-upload-icon {
+    flex-shrink: 0;
+    color: var(--brand-yellow);
+    margin-top: 1px;
+  }
+
+  .doc-upload-label {
+    color: var(--text);
+    font-weight: 600;
+    font-size: .9rem;
+    line-height: 1.4;
+
+    .doc-required {
+      color: var(--text-soft);
+      font-weight: 400;
+      font-size: .82rem;
+    }
+  }
+}
+
+.doc-upload-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.doc-uploaded {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .doc-link {
+    color: #22c55e;
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.doc-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  background: rgba(249, 235, 29, .12);
+  border: 1.5px dashed rgba(249, 235, 29, .5);
+  border-radius: 8px;
+  color: var(--brand-yellow);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  width: fit-content;
+
+  input[type="file"] {
+    display: none;
+  }
+
+  &:hover:not(.uploading) {
+    background: rgba(249, 235, 29, .2);
+    border-color: var(--brand-yellow);
+  }
+
+  &.uploading {
+    opacity: .6;
+    cursor: not-allowed;
+  }
+}
+
+.doc-msg {
+  font-size: .8rem;
+  font-style: italic;
+
+  &.doc-msg-ok {
+    color: #22c55e;
+  }
+
+  &.doc-msg-err {
+    color: #fca5a5;
+  }
+}

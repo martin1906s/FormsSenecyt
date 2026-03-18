@@ -8,7 +8,6 @@ import { Observable } from 'rxjs';
 export class EstudianteService {
   private http = inject(HttpClient);
   private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
-  //private apiUrl = 'http://localhost:3008/estudiantes';
 
   createEstudiante(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}`, data);
@@ -79,6 +78,18 @@ export class EstudianteService {
   /** Elimina del bucket el archivo de copia de papeleta dada su URL. */
   deleteCopiaPapeleta(url: string): Observable<{ ok: boolean }> {
     return this.http.post<{ ok: boolean }>(`${this.apiUrl}/delete-copia-papeleta`, { url });
+  }
+
+  /** Sube certificado de registro del título de bachiller al bucket. Devuelve la URL pública. */
+  uploadCertificadoRegistroTitulo(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('archivo', file, file.name);
+    return this.http.post<{ url: string }>(`${this.apiUrl}/upload-certificado-registro-titulo`, formData);
+  }
+
+  /** Elimina del bucket el certificado de registro del título dada su URL. */
+  deleteCertificadoRegistroTitulo(url: string): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(`${this.apiUrl}/delete-certificado-registro-titulo`, { url });
   }
 }
 

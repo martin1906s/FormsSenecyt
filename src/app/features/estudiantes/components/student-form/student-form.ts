@@ -85,12 +85,16 @@ export class StudentForm implements OnInit {
   // Propiedades para los modales
   showModalRegistroCompletado = false;
   showModalEstudianteYaRegistrado = false;
+  /** Si el estudiante ya tiene ficha 1 pero le falta completar ficha socioeconómica (pasos 8-14) */
+  faltaCompletarFase2 = false;
+  /** Si el estudiante ya completó fase 1 y está en modo actualización (barra al 100%) */
+  estudianteEnModoActualizacion = false;
 
   studentForm: FormGroup;
   
   // Sistema de navegación por pasos
   currentStep: number = 0;
-  totalSteps: number = 13;
+  totalSteps: number = 14;
   steps: Array<{ id: string; title: string; icon: string; fields: string[] }> = [
       { id: 'identificacion', title: 'Identificación', icon: 'clipboard', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
     { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'pueblonacionalidadId', 'tipoSangre'] },
@@ -104,7 +108,8 @@ export class StudentForm implements OnInit {
     { id: 'contacto', title: 'Contacto', icon: 'mail', fields: ['correoElectronico', 'numeroCelular', 'direccionDomicilio', 'lugarResidencia'] },
     { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] },
     { id: 'composicionFamiliar', title: 'Composición Familiar', icon: 'users', fields: ['composicionFamiliar'] },
-    { id: 'ingresosFamiliares', title: 'Ingresos Familiares', icon: 'dollar-sign', fields: ['ingresosFamiliares'] }
+    { id: 'ingresosFamiliares', title: 'Ingresos Familiares', icon: 'dollar-sign', fields: ['ingresosFamiliares'] },
+    { id: 'datosFacturacion', title: 'Datos de Facturación', icon: 'credit-card', fields: ['tipoComprobante', 'facturacionNombre', 'facturacionTipoIdentificacion', 'facturacionIdentificacion', 'facturacionDireccion', 'facturacionCorreo', 'facturacionTelefono'] }
   ];
 
   // Propiedades para los grupos de pasos
@@ -120,9 +125,15 @@ export class StudentForm implements OnInit {
     return this.currentStep < 7 ? 1 : 2;
   }
 
-  // Total de pasos visibles (solo FICHA ESTUDIANTIL por ahora)
+  /** Fase del formulario: 1 = solo pasos 1-7 (Ficha Estudiantil), 2 = solo pasos 8-14 (Ficha Socioeconómica) */
+  formPhase: 1 | 2 = 1;
+
+  /** Mensaje al entrar a fase 2: completar ficha socioeconómica */
+  mensajeFase2 = 'Complete los siguientes pasos de FICHA SOCIOECONÓMICA Y DATOS DE FACTURACIÓN.';
+
+  // Total de pasos visibles según la fase actual
   get visibleTotalSteps(): number {
-    return 7;
+    return this.formPhase === 1 ? 7 : 14;
   }
   
   collapsedSections: { [key: string]: boolean } = {
@@ -138,12 +149,15 @@ export class StudentForm implements OnInit {
     contacto: false,
     datosHogar: false,
     composicionFamiliar: false,
-    ingresosFamiliares: false
+    ingresosFamiliares: false,
+    datosFacturacion: false
   };
 
   // Clave para localStorage
   private readonly STORAGE_KEY = 'student_form_data';
   private readonly STORAGE_STEP_KEY = 'student_form_current_step';
+  /** Clave para pasar datos a la pestaña de fase 2 (pasos 8-14) */
+  private readonly FASE2_STORAGE_KEY = 'studentForm_continuarFase2';
 
   constructor(private fb: FormBuilder) {
     this.studentForm = this.createForm();
@@ -273,6 +287,7 @@ export class StudentForm implements OnInit {
       tituloBachiller: e.tituloBachiller ?? '',
       copiaCedula: (e.copiaCedula && e.copiaCedula !== 'NA' && e.copiaCedula.trim() !== '') ? e.copiaCedula : '',
       copiaPapeleta: (e.copiaPapeleta && e.copiaPapeleta !== 'NA' && e.copiaPapeleta.trim() !== '') ? e.copiaPapeleta : '',
+      certificadoRegistroTitulo: (e.certificadoRegistroTitulo && e.certificadoRegistroTitulo !== 'NA' && e.certificadoRegistroTitulo.trim() !== '') ? e.certificadoRegistroTitulo : '',
       anioGraduacion: e.anioGraduacion ?? '',
       financiamientoQuienes: e.financiamientoQuienes ?? '',
       // Campos de financiamiento como checkboxes
@@ -341,40 +356,129 @@ export class StudentForm implements OnInit {
    */
   cerrarModalRegistroCompletado(): void {
     this.showModalRegistroCompletado = false;
-    
-    // Limpiar datos guardados en localStorage
-    localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem(this.STORAGE_STEP_KEY);
-    
-    // Resetear formulario y regresar al paso 1
-    this.studentForm.reset();
-    this.currentStep = 0;
-    this.cdr.detectChanges();
-    
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+
+    if (this.estudianteEnModoActualizacion) {
+      // Modo actualización: mantener datos, ir al paso de identificación con 100%
+      this.currentStep = 0;
+      this.formPhase = 1;
+      this.cdr.detectChanges();
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    } else {
+      // Registro nuevo: resetear todo
+      this.estudianteEnModoActualizacion = false;
+      localStorage.removeItem(this.STORAGE_KEY);
+      localStorage.removeItem(this.STORAGE_STEP_KEY);
+      this.studentForm.reset();
+      this.currentStep = 0;
+      this.formPhase = 1;
+      this.cdr.detectChanges();
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
   }
 
   /**
-   * Maneja cuando se encuentra un estudiante ya registrado completamente
+   * Desde el modal de "Registro completado" (fase 1): abre una pestaña nueva con los pasos 8-14
+   * y en esta pestaña vuelve el formulario estudiantil al paso 1.
    */
-  onEstudianteYaRegistrado(): void {
-    // Cargar todos los datos del estudiante y mostrar progreso al 100%
+  irAFase2(): void {
+    this.showModalRegistroCompletado = false;
     const tipo = this.studentForm.get('tipoDocumentoId')?.value;
     const num = this.studentForm.get('numeroIdentificacion')?.value;
-    
+    if (tipo && num) {
+      try {
+        sessionStorage.setItem(this.FASE2_STORAGE_KEY, JSON.stringify({ tipoDocumentoId: tipo, numeroIdentificacion: num }));
+      } catch (_) {}
+      const url = this.getUrlFase2();
+      window.open(url, '_blank');
+    }
+    // Dejar el formulario de esta pestaña en paso 1 (Ficha Estudiantil)
+    this.formPhase = 1;
+    this.currentStep = 0;
+    this.cdr.detectChanges();
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+  }
+
+  /** URL de esta misma app con query ?fase=2 para abrir en nueva pestaña. */
+  private getUrlFase2(): string {
+    const base = window.location.origin + window.location.pathname;
+    const sep = base.includes('?') ? '&' : '?';
+    return `${base}${sep}fase=2`;
+  }
+
+  /**
+   * Cuando la pestaña se abrió con ?fase=2: cargar estudiante desde sessionStorage y mostrar solo pasos 8-14.
+   */
+  private cargarFase2DesdeNuevaPestana(): void {
+    let data: { tipoDocumentoId: string; numeroIdentificacion: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem(this.FASE2_STORAGE_KEY);
+      if (raw) data = JSON.parse(raw);
+    } catch (_) {}
+    if (!data?.tipoDocumentoId || !data?.numeroIdentificacion) {
+      try {
+        sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
+      } catch (_) {}
+      return;
+    }
+    this.estudianteService.getEstudianteByCedula(data.tipoDocumentoId, data.numeroIdentificacion).subscribe({
+      next: (estudiante: any) => {
+        try {
+          sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
+        } catch (_) {}
+        if (estudiante) {
+          this.patchFormFromEstudiante(estudiante);
+          this.formPhase = 2;
+          this.currentStep = 7;
+          this.saveFormData();
+        }
+        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+        this.cdr.detectChanges();
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+      },
+      error: () => {
+        try {
+          sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
+        } catch (_) {}
+        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Indica si la ficha socioeconómica (pasos 8-14) está completa según los datos del estudiante.
+   * Usa registroFichaSocioeconomicaCompletado del backend si existe; si no, infiere por campos clave.
+   */
+  private esFichaSocioeconomicaCompleta(estudiante: any): boolean {
+    if (estudiante?.registroFichaSocioeconomicaCompletado === true) return true;
+    const v = (x: any) => x != null && x !== '' && String(x).trim().toUpperCase() !== 'NA';
+    return !!(
+      v(estudiante?.facturacionNombre) &&
+      v(estudiante?.facturacionIdentificacion) &&
+      v(estudiante?.facturacionDireccion) &&
+      v(estudiante?.facturacionCorreo)
+    );
+  }
+
+  /**
+   * Maneja cuando se encuentra un estudiante que ya completó la Ficha Estudiantil (pasos 1-7).
+   * Carga sus datos, los muestra en fase 1 para que pueda actualizar, y muestra el modal.
+   */
+  onEstudianteYaRegistrado(): void {
+    const tipo = this.studentForm.get('tipoDocumentoId')?.value;
+    const num = this.studentForm.get('numeroIdentificacion')?.value;
+
+    this.faltaCompletarFase2 = false;
+
     if (tipo && num) {
       this.estudianteService.getEstudianteByCedula(tipo, num).subscribe({
         next: (estudiante: any) => {
           if (estudiante) {
-            // Cargar todos los datos del estudiante
             this.patchFormFromEstudiante(estudiante);
-            
-            // Establecer el progreso al 100% (último paso visible)
-            this.currentStep = this.visibleTotalSteps - 1;
-            
-            // Mostrar el modal
+            // Mantener en fase 1 para que pueda actualizar sus datos
+            this.formPhase = 1;
+            this.currentStep = 1;
+            this.estudianteEnModoActualizacion = true;
             this.showModalEstudianteYaRegistrado = true;
             this.cdr.detectChanges();
           }
@@ -386,23 +490,40 @@ export class StudentForm implements OnInit {
         }
       });
     } else {
-      // Si no hay datos de identificación, solo mostrar el modal
       this.showModalEstudianteYaRegistrado = true;
       this.cdr.detectChanges();
     }
   }
 
   /**
-   * Cierra el modal de estudiante ya registrado y resetea el formulario
+   * Desde el modal "Tu registro ya fue completado": abre una pestaña nueva con los pasos 8-14
+   * y en esta pestaña vuelve el formulario al paso 1.
+   */
+  irAFase2DesdeModalYaRegistrado(): void {
+    this.showModalEstudianteYaRegistrado = false;
+    this.faltaCompletarFase2 = false;
+    const tipo = this.studentForm.get('tipoDocumentoId')?.value;
+    const num = this.studentForm.get('numeroIdentificacion')?.value;
+    if (tipo && num) {
+      try {
+        sessionStorage.setItem(this.FASE2_STORAGE_KEY, JSON.stringify({ tipoDocumentoId: tipo, numeroIdentificacion: num }));
+      } catch (_) {}
+      const url = this.getUrlFase2();
+      window.open(url, '_blank');
+    }
+    this.formPhase = 1;
+    this.currentStep = 0;
+    this.cdr.detectChanges();
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+  }
+
+  /**
+   * Cierra el modal de estudiante ya registrado — mantiene los datos cargados para que pueda actualizar
    */
   cerrarModalEstudianteYaRegistrado(): void {
     this.showModalEstudianteYaRegistrado = false;
-    
-    // Limpiar formulario y regresar al paso 1
-    this.studentForm.reset();
-    this.currentStep = 0;
+    this.faltaCompletarFase2 = false;
     this.cdr.detectChanges();
-    
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
@@ -458,11 +579,12 @@ export class StudentForm implements OnInit {
         // Restaurar datos del formulario
         this.studentForm.patchValue(formData, { emitEvent: false });
 
-        // Restaurar paso actual
+        // Restaurar paso actual y fase
         if (savedStep) {
           const step = parseInt(JSON.parse(savedStep), 10);
           if (step >= 0 && step < this.totalSteps) {
             this.currentStep = step;
+            this.formPhase = step >= 7 ? 2 : 1;
           }
         }
       }
@@ -491,17 +613,19 @@ export class StudentForm implements OnInit {
         console.log('Enums recibidos:', enums);
         console.log('PuebloNacionalidad:', enums.PuebloNacionalidad);
         this.enums = enums;
-        
+
         this.isLoadingEnums = false;
-        // Habilitar todos los controles que dependen de enums
         this.enableEnumDependentControls();
-        // Verificar estado inicial de tipoAlcanceProyectoVinculacionId
         this.updateTipoAlcanceState();
-        
-        // Forzar detección de cambios múltiples veces para asegurar que Angular actualice la vista
+
         this.cdr.detectChanges();
         setTimeout(() => this.cdr.detectChanges(), 0);
         setTimeout(() => this.cdr.detectChanges(), 100);
+
+        // Si se abrió esta pestaña con ?fase=2, cargar estudiante y mostrar solo pasos 8-14
+        if (this.route.snapshot.queryParams['fase'] === '2') {
+          this.cargarFase2DesdeNuevaPestana();
+        }
       },
       error: (err: any) => {
         console.error('Error fetching enums:', err);
@@ -1724,6 +1848,7 @@ export class StudentForm implements OnInit {
       // Campos de archivos de identificación
       copiaCedula: [''],
       copiaPapeleta: [''],
+      certificadoRegistroTitulo: [''],
       referenciaDomiciliaria: [''],
       barrioSector: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(100)]],
       zonaVivienda: [''],
@@ -1783,6 +1908,15 @@ export class StudentForm implements OnInit {
       ingresosMensuales: [''],
       tieneCuentaBancaria: [''],
       banco: [''],
+
+      // SECCIÓN 7: Datos de facturación
+      tipoComprobante: ['', [Validators.required]],
+      facturacionNombre: ['', [Validators.required, Validators.maxLength(120)]],
+      facturacionTipoIdentificacion: ['', [Validators.required]],
+      facturacionIdentificacion: ['', [Validators.required, Validators.maxLength(13)]],
+      facturacionDireccion: ['', [Validators.required, Validators.maxLength(200)]],
+      facturacionCorreo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+      facturacionTelefono: ['', [Validators.required, Validators.maxLength(20)]],
 
     });
   }
@@ -1900,13 +2034,12 @@ export class StudentForm implements OnInit {
     return this.studentForm.get('ingresosFamiliares') as FormArray;
   }
 
-  // Validar solo los pasos visibles (FICHA ESTUDIANTIL: pasos 0-6)
+  // Validar solo los pasos visibles según la fase actual
   areVisibleStepsValid(): boolean {
-    // Validar solo los pasos 0-6 (FICHA ESTUDIANTIL)
-    for (let i = 0; i < this.visibleTotalSteps; i++) {
-      if (!this.isStepValid(i)) {
-        return false;
-      }
+    const start = this.formPhase === 1 ? 0 : 7;
+    const end = this.formPhase === 1 ? 6 : 13;
+    for (let i = start; i <= end; i++) {
+      if (!this.isStepValid(i)) return false;
     }
     return true;
   }
@@ -2050,8 +2183,7 @@ export class StudentForm implements OnInit {
               console.log('Estudiante guardado exitosamente:', response);
               this.isSubmitting = false;
               this.submitError = false;
-              
-              // Mostrar modal de registro completado
+              // En ambos casos mostrar el modal (el texto cambia según estudianteEnModoActualizacion)
               this.showModalRegistroCompletado = true;
               this.cdr.detectChanges();
             },
@@ -2497,6 +2629,7 @@ export class StudentForm implements OnInit {
       tituloBachiller: formValue.tituloBachiller || 'NA',
       copiaCedula: formValue.copiaCedula || 'NA',
       copiaPapeleta: formValue.copiaPapeleta || 'NA',
+      certificadoRegistroTitulo: formValue.certificadoRegistroTitulo || 'NA',
       anioGraduacion: formValue.anioGraduacion ? String(formValue.anioGraduacion) : 'NA',
       financiamientoQuienes: formValue.financiamientoQuienes || 'NA',
       // Campos de financiamiento de la carrera universitaria (checkboxes)
@@ -2744,12 +2877,14 @@ export class StudentForm implements OnInit {
 
   // Métodos de navegación por pasos
   getProgress(): number {
-    // Calcular progreso basado en los 7 pasos visibles (FICHA ESTUDIANTIL)
-    // Empieza en 0% cuando está en el paso 1 (currentStep = 0)
-    // Llega a 100% cuando completa los 7 pasos (currentStep = 6)
-    // Usamos (visibleTotalSteps - 1) como divisor para que el último paso muestre 100%
-    if (this.visibleTotalSteps === 1) return 100;
-    return (this.currentStep / (this.visibleTotalSteps - 1)) * 100;
+    if (this.estudianteEnModoActualizacion) return 100;
+    if (this.formPhase === 1) {
+      if (this.currentStep >= 6) return 100;
+      return (this.currentStep / 6) * 100;
+    }
+    // Fase 2: pasos 7-13 (índices), 0% en paso 7 y 100% en paso 13
+    if (this.currentStep >= 13) return 100;
+    return ((this.currentStep - 7) / 6) * 100;
   }
 
   isStepValid(stepIndex: number): boolean {
@@ -3012,39 +3147,38 @@ export class StudentForm implements OnInit {
   }
 
   previousStep(): void {
-    if (this.currentStep > 0) {
+    const minStep = this.formPhase === 1 ? 0 : 7;
+    if (this.currentStep > minStep) {
       this.currentStep--;
-      // Guardar el paso actual
       this.saveFormData();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   goToStep(stepIndex: number): void {
-    // Solo permitir ir a pasos del 0 al 6 (FICHA ESTUDIANTIL)
-    if (stepIndex >= 0 && stepIndex <= 6) {
-      // Validar todos los pasos anteriores antes de permitir saltar
-      let canGoToStep = true;
-      for (let i = 0; i < stepIndex; i++) {
-        if (!this.isStepValid(i)) {
-          canGoToStep = false;
-          break;
-        }
+    const minStep = this.formPhase === 1 ? 0 : 7;
+    const maxStep = this.formPhase === 1 ? 6 : 13;
+    if (stepIndex < minStep || stepIndex > maxStep) return;
+
+    let canGoToStep = true;
+    for (let i = minStep; i < stepIndex; i++) {
+      if (!this.isStepValid(i)) {
+        canGoToStep = false;
+        break;
       }
-      
-      if (canGoToStep || stepIndex <= this.currentStep) {
-        this.currentStep = stepIndex;
-        // Guardar el paso actual
-        this.saveFormData();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        this.submitError = true;
-        this.submitMessage = 'Debes completar los pasos anteriores antes de avanzar.';
-        setTimeout(() => {
-          this.submitMessage = '';
-          this.submitError = false;
-        }, 3000);
-      }
+    }
+
+    if (canGoToStep || stepIndex <= this.currentStep) {
+      this.currentStep = stepIndex;
+      this.saveFormData();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      this.submitError = true;
+      this.submitMessage = 'Debes completar los pasos anteriores antes de avanzar.';
+      setTimeout(() => {
+        this.submitMessage = '';
+        this.submitError = false;
+      }, 3000);
     }
   }
 

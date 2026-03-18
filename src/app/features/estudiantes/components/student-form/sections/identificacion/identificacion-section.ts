@@ -3,6 +3,7 @@ import { ControlValueAccessor, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule
 import { CommonModule } from '@angular/common';
 import { EnumsResponse } from '../../../../../../services/enums.service';
 import { EstudianteService } from '../../../../../../services/estudiante.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-identificacion-section',
@@ -30,6 +31,17 @@ export class IdentificacionSection implements ControlValueAccessor {
   
   isSearchingByCedula = false;
   cedulaSearchMessage = '';
+
+  // Estado de uploads de documentos
+  isUploadingCopiaCedula = false;
+  isUploadingCopiaPapeleta = false;
+  isUploadingTituloBachiller = false;
+  isUploadingCertificadoTitulo = false;
+
+  uploadMsgCopiaCedula = '';
+  uploadMsgCopiaPapeleta = '';
+  uploadMsgTituloBachiller = '';
+  uploadMsgCertificadoTitulo = '';
 
   onChange: any = () => {};
   onTouched: any = () => {};
@@ -143,5 +155,73 @@ export class IdentificacionSection implements ControlValueAccessor {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private handleUpload(
+    file: File,
+    fieldName: string,
+    uploadFn: (f: File) => any,
+    setLoading: (v: boolean) => void,
+    setMsg: (m: string) => void
+  ): void {
+    setLoading(true);
+    setMsg('Subiendo...');
+    this.cdr.detectChanges();
+    uploadFn(file).pipe(finalize(() => { setLoading(false); this.cdr.detectChanges(); }))
+      .subscribe({
+        next: (res: { url: string }) => {
+          this.formGroup.get(fieldName)?.setValue(res.url);
+          setMsg('Archivo subido correctamente.');
+          setTimeout(() => { setMsg(''); this.cdr.detectChanges(); }, 3000);
+        },
+        error: (err: any) => {
+          setMsg(err?.error?.message || 'Error al subir el archivo.');
+          setTimeout(() => { setMsg(''); this.cdr.detectChanges(); }, 4000);
+        }
+      });
+  }
+
+  onCopiaCedulaChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.handleUpload(
+      file, 'copiaCedula',
+      (f) => this.estudianteService.uploadCopiaCedula(f),
+      (v) => this.isUploadingCopiaCedula = v,
+      (m) => this.uploadMsgCopiaCedula = m
+    );
+  }
+
+  onCopiaPapeletaChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.handleUpload(
+      file, 'copiaPapeleta',
+      (f) => this.estudianteService.uploadCopiaPapeleta(f),
+      (v) => this.isUploadingCopiaPapeleta = v,
+      (m) => this.uploadMsgCopiaPapeleta = m
+    );
+  }
+
+  onTituloBachillerChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.handleUpload(
+      file, 'tituloBachiller',
+      (f) => this.estudianteService.uploadTituloBachiller(f),
+      (v) => this.isUploadingTituloBachiller = v,
+      (m) => this.uploadMsgTituloBachiller = m
+    );
+  }
+
+  onCertificadoTituloChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.handleUpload(
+      file, 'certificadoRegistroTitulo',
+      (f) => this.estudianteService.uploadCertificadoRegistroTitulo(f),
+      (v) => this.isUploadingCertificadoTitulo = v,
+      (m) => this.uploadMsgCertificadoTitulo = m
+    );
   }
 }

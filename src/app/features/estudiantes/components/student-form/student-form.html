@@ -24,43 +24,45 @@
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="getProgress()"></div>
       </div>
-      <!-- Grupo 1: Pasos 1-7 - FICHA ESTUDIANTIL -->
-      <div class="steps-group">
-        <div class="steps-group-title">FICHA ESTUDIANTIL</div>
-        <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA ESTUDIANTIL">
-          @for (step of steps.slice(0, 7); track step.id; let i = $index) {
-          <div
-            class="step-item"
-            [class.step-active]="i === currentStep"
-            [class.step-done]="i < currentStep && isStepValid(i)"
-            [class.step-invalid]="i < currentStep && !isStepValid(i)"
-            (click)="goToStep(i)"
-            [attr.aria-current]="i === currentStep ? 'step' : null"
-            [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
-          >
-            <div class="step-dot-row">
-              @if (i > 0) {
-                <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
-              }
-              <button type="button" class="step-dot" [title]="step.title">
-                @if (i < currentStep && isStepValid(i)) {
-                  <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                } @else {
-                  <span class="step-dot-num">{{ i + 1 }}</span>
-                }
-              </button>
-            </div>
-            <span class="step-label">{{ step.title }}</span>
-          </div>
-        }
-      </div>
-      </div>
-
-      <!-- Grupo 2: Pasos 8-13 - FICHA SOCIOECONOMICA (Oculto por ahora) -->
-      @if (false) {
+      <!-- Grupo 1: Pasos 1-7 - FICHA ESTUDIANTIL (solo visible en fase 1) -->
+      @if (formPhase === 1) {
         <div class="steps-group">
-          <div class="steps-group-title">FICHA SOCIOECONOMICA</div>
-          <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA SOCIOECONOMICA">
+          <div class="steps-group-title">FICHA ESTUDIANTIL</div>
+          <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA ESTUDIANTIL">
+            @for (step of steps.slice(0, 7); track step.id; let i = $index) {
+            <div
+              class="step-item"
+              [class.step-active]="i === currentStep"
+              [class.step-done]="i < currentStep && isStepValid(i)"
+              [class.step-invalid]="i < currentStep && !isStepValid(i)"
+              (click)="goToStep(i)"
+              [attr.aria-current]="i === currentStep ? 'step' : null"
+              [attr.aria-label]="'Paso ' + (i + 1) + ': ' + step.title"
+            >
+              <div class="step-dot-row">
+                @if (i > 0) {
+                  <span class="step-connector" [class.connector-done]="i <= currentStep && isStepValid(i - 1)"></span>
+                }
+                <button type="button" class="step-dot" [title]="step.title">
+                  @if (i < currentStep && isStepValid(i)) {
+                    <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  } @else {
+                    <span class="step-dot-num">{{ i + 1 }}</span>
+                  }
+                </button>
+              </div>
+              <span class="step-label">{{ step.title }}</span>
+            </div>
+          }
+        </div>
+        </div>
+      }
+
+      <!-- Grupo 2: Pasos 8-14 - FICHA SOCIOECONÓMICA (solo visible en fase 2) -->
+      @if (formPhase === 2) {
+        <div class="steps-group">
+          <div class="steps-group-title">FICHA SOCIOECONÓMICA Y DATOS DE FACTURACIÓN</div>
+          <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA SOCIOECONOMICA Y DATOS DE FACTURACIÓN">
             @for (step of steps.slice(7); track step.id; let i = $index) {
               @let stepIndex = i + 7;
               <div
@@ -523,6 +525,224 @@
       @if (currentStep === 9) {
         <div class="step-section">
           <h2 class="step-title">
+            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12 18 2 11 12"/><circle cx="12" cy="13" r="8"/></svg></span>
+            Datos de Contacto
+          </h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Correo Electrónico <span class="required">*</span></label>
+              <input
+                type="email"
+                formControlName="correoElectronico"
+                class="form-control"
+                [class.error]="hasError('correoElectronico')"
+                placeholder="ejemplo@correo.com"
+              />
+              <small class="error-message" *ngIf="hasError('correoElectronico')">
+                {{ getErrorMessage('correoElectronico') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Número de Celular <span class="required">*</span></label>
+              <input
+                type="tel"
+                formControlName="numeroCelular"
+                class="form-control"
+                [class.error]="hasError('numeroCelular')"
+                placeholder="09XXXXXXXX"
+              />
+              <small class="error-message" *ngIf="hasError('numeroCelular')">
+                {{ getErrorMessage('numeroCelular') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Dirección Domiciliaria</label>
+              <textarea
+                formControlName="direccionDomicilio"
+                class="form-control"
+                [class.error]="hasError('direccionDomicilio')"
+                rows="3"
+                placeholder="Calle principal, número, intersección, referencia"
+              ></textarea>
+              <small class="error-message" *ngIf="hasError('direccionDomicilio')">
+                {{ getErrorMessage('direccionDomicilio') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Lugar de Residencia</label>
+              <input
+                type="text"
+                formControlName="lugarResidencia"
+                class="form-control"
+                [class.error]="hasError('lugarResidencia')"
+                placeholder="Ciudad / Sector"
+              />
+              <small class="error-message" *ngIf="hasError('lugarResidencia')">
+                {{ getErrorMessage('lugarResidencia') }}
+              </small>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Paso 10: Datos del Hogar -->
+      @if (currentStep === 10) {
+        <app-datos-hogar-section
+          [formGroup]="studentForm"
+          [enums]="enums">
+        </app-datos-hogar-section>
+      }
+
+      <!-- Paso 11: Composición Familiar -->
+      @if (currentStep === 11) {
+        <app-composicion-familiar-section
+          [formGroup]="studentForm"
+          [parentescoOpciones]="parentescoOpciones">
+        </app-composicion-familiar-section>
+      }
+
+      <!-- Paso 12: Ingresos Familiares -->
+      @if (currentStep === 12) {
+        <app-ingresos-familiares-section
+          [formGroup]="studentForm"
+          [parentescoOpciones]="parentescoOpciones">
+        </app-ingresos-familiares-section>
+      }
+
+      <!-- Paso 13: Datos de Facturación -->
+      @if (currentStep === 13) {
+        <div class="step-section">
+          <h2 class="step-title">
+            <span class="step-icon-large" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+                <line x1="7" y1="16" x2="9" y2="16"></line>
+                <line x1="11" y1="16" x2="13" y2="16"></line>
+              </svg>
+            </span>
+            Datos de Facturación
+          </h2>
+          <p class="step-hint">
+            Completa estos datos para la emisión de facturas y comprobantes electrónicos.
+          </p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tipo de Comprobante <span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select formControlName="tipoComprobante" class="form-control select-enhanced" [class.error]="hasError('tipoComprobante')">
+                  <option value="">Seleccione el tipo de comprobante</option>
+                  <option value="FACTURA">Factura</option>
+                  <option value="NOTA_VENTA">Nota de venta</option>
+                </select>
+              </div>
+              <small class="error-message" *ngIf="hasError('tipoComprobante')">
+                {{ getErrorMessage('tipoComprobante') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Nombre / Razón Social <span class="required">*</span></label>
+              <input
+                type="text"
+                formControlName="facturacionNombre"
+                class="form-control"
+                [class.error]="hasError('facturacionNombre')"
+                placeholder="Nombre completo o razón social para la factura"
+              />
+              <small class="error-message" *ngIf="hasError('facturacionNombre')">
+                {{ getErrorMessage('facturacionNombre') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de Identificación <span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select formControlName="facturacionTipoIdentificacion" class="form-control select-enhanced" [class.error]="hasError('facturacionTipoIdentificacion')">
+                  <option value="">Seleccione el tipo de identificación</option>
+                  <option value="CEDULA">Cédula</option>
+                  <option value="RUC">RUC</option>
+                </select>
+              </div>
+              <small class="error-message" *ngIf="hasError('facturacionTipoIdentificacion')">
+                {{ getErrorMessage('facturacionTipoIdentificacion') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Número de Identificación <span class="required">*</span></label>
+              <input
+                type="text"
+                formControlName="facturacionIdentificacion"
+                class="form-control"
+                [class.error]="hasError('facturacionIdentificacion')"
+                placeholder="Cédula o RUC"
+              />
+              <small class="error-message" *ngIf="hasError('facturacionIdentificacion')">
+                {{ getErrorMessage('facturacionIdentificacion') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Dirección de Facturación <span class="required">*</span></label>
+              <textarea
+                formControlName="facturacionDireccion"
+                class="form-control"
+                [class.error]="hasError('facturacionDireccion')"
+                rows="3"
+                placeholder="Dirección donde se emite la factura"
+              ></textarea>
+              <small class="error-message" *ngIf="hasError('facturacionDireccion')">
+                {{ getErrorMessage('facturacionDireccion') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Correo para Envío de Factura <span class="required">*</span></label>
+              <input
+                type="email"
+                formControlName="facturacionCorreo"
+                class="form-control"
+                [class.error]="hasError('facturacionCorreo')"
+                placeholder="correo@ejemplo.com"
+              />
+              <small class="error-message" *ngIf="hasError('facturacionCorreo')">
+                {{ getErrorMessage('facturacionCorreo') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Teléfono de Facturación <span class="required">*</span></label>
+              <input
+                type="tel"
+                formControlName="facturacionTelefono"
+                class="form-control"
+                [class.error]="hasError('facturacionTelefono')"
+                placeholder="Teléfono de contacto para facturación"
+              />
+              <small class="error-message" *ngIf="hasError('facturacionTelefono')">
+                {{ getErrorMessage('facturacionTelefono') }}
+              </small>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Paso 8: Vinculación Social -->
+      @if (currentStep === 8) {
+        <app-vinculacion-social-section
+          [formGroup]="studentForm"
+          [enums]="enums">
+        </app-vinculacion-social-section>
+      }
+
+      <!-- Paso 9: Contacto -->
+      @if (currentStep === 9) {
+        <div class="step-section">
+          <h2 class="step-title">
             <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
             Contacto
           </h2>
@@ -639,7 +859,7 @@
         type="button" 
         class="btn btn-secondary" 
         (click)="previousStep()"
-        [disabled]="currentStep === 0"
+        [disabled]="(formPhase === 1 && currentStep === 0) || (formPhase === 2 && currentStep === 7)"
       >
         ← Anterior
       </button>
@@ -666,7 +886,7 @@
     </div>
   </form>
 
-  <!-- Modal de Registro Completado Exitosamente -->
+  <!-- Modal de Registro Completado / Actualizado -->
   @if (showModalRegistroCompletado) {
     <div class="modal-overlay" (click)="cerrarModalRegistroCompletado()">
       <div class="modal-container" (click)="$event.stopPropagation()">
@@ -677,11 +897,25 @@
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
           </div>
-          <h2 class="modal-title">¡Registro Completado Exitosamente!</h2>
-          <p class="modal-message">Tu registro ha sido completado exitosamente.</p>
-          <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalRegistroCompletado()">
-            Listo
-          </button>
+          <h2 class="modal-title">
+            {{ estudianteEnModoActualizacion ? '¡Datos Actualizados!' : '¡Registro Completado!' }}
+          </h2>
+          <div class="modal-progress-complete">
+            <div class="modal-progress-bar">
+              <div class="modal-progress-fill"></div>
+            </div>
+            <span class="modal-progress-label">100% completado</span>
+          </div>
+          <p class="modal-message">
+            {{ estudianteEnModoActualizacion
+              ? 'Tus datos fueron actualizados con éxito. Puedes revisar tu información o volver a guardar cuando quieras.'
+              : 'Tu Ficha Estudiantil de la primera fase fue completada con éxito.' }}
+          </p>
+          <div class="modal-buttons">
+            <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalRegistroCompletado()">
+              Listo
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -699,10 +933,18 @@
             </svg>
           </div>
           <h2 class="modal-title">Tu Registro Ya Fue Completado</h2>
-          <p class="modal-message">El estudiante con esta cédula ya tiene un registro completado exitosamente.</p>
-          <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalEstudianteYaRegistrado()">
-            Listo
-          </button>
+          <div class="modal-progress-complete">
+            <div class="modal-progress-bar">
+              <div class="modal-progress-fill"></div>
+            </div>
+            <span class="modal-progress-label">100% completado</span>
+          </div>
+          <p class="modal-message">El estudiante con esta cédula ya tiene un registro completado. Puedes actualizar tus datos y volver a guardar.</p>
+          <div class="modal-buttons">
+            <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalEstudianteYaRegistrado()">
+              Listo
+            </button>
+          </div>
         </div>
       </div>
     </div>
