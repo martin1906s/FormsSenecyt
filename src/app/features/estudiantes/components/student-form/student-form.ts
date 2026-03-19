@@ -288,6 +288,7 @@ export class StudentForm implements OnInit {
       copiaCedula: (e.copiaCedula && e.copiaCedula !== 'NA' && e.copiaCedula.trim() !== '') ? e.copiaCedula : '',
       copiaPapeleta: (e.copiaPapeleta && e.copiaPapeleta !== 'NA' && e.copiaPapeleta.trim() !== '') ? e.copiaPapeleta : '',
       certificadoRegistroTitulo: (e.certificadoRegistroTitulo && e.certificadoRegistroTitulo !== 'NA' && e.certificadoRegistroTitulo.trim() !== '') ? e.certificadoRegistroTitulo : '',
+      justificacionRetrasoDocumentos: (e.justificacionRetrasoDocumentos && e.justificacionRetrasoDocumentos !== 'NA') ? e.justificacionRetrasoDocumentos : '',
       anioGraduacion: e.anioGraduacion ?? '',
       financiamientoQuienes: e.financiamientoQuienes ?? '',
       // Campos de financiamiento como checkboxes
@@ -1832,6 +1833,7 @@ export class StudentForm implements OnInit {
       copiaCedula: [''],
       copiaPapeleta: [''],
       certificadoRegistroTitulo: [''],
+      justificacionRetrasoDocumentos: [''],
       referenciaDomiciliaria: [''],
       barrioSector: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(100)]],
       zonaVivienda: [''],
@@ -2613,6 +2615,7 @@ export class StudentForm implements OnInit {
       copiaCedula: formValue.copiaCedula || 'NA',
       copiaPapeleta: formValue.copiaPapeleta || 'NA',
       certificadoRegistroTitulo: formValue.certificadoRegistroTitulo || 'NA',
+      justificacionRetrasoDocumentos: formValue.justificacionRetrasoDocumentos || undefined,
       anioGraduacion: formValue.anioGraduacion ? String(formValue.anioGraduacion) : 'NA',
       financiamientoQuienes: formValue.financiamientoQuienes || 'NA',
       // Campos de financiamiento de la carrera universitaria (checkboxes)
