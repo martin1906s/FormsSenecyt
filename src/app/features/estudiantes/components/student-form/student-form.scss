@@ -265,3 +265,19 @@ select.form-control,.select-enhanced{cursor:pointer;appearance:none;background-i
     height: 70px;
   }
 }
+
+.subsection-divider {
+  margin: 28px 0 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 20px;
+
+  .subsection-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f9eb1d;
+    margin: 0;
+  }
+}

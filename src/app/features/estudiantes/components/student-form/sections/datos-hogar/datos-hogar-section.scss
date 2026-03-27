@@ -419,3 +419,7 @@ select.form-control,
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+fieldset.disabled-section {
+  display: none;
+}

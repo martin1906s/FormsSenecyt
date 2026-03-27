@@ -85,6 +85,7 @@ export class DatosPersonalesSection implements OnInit {
     formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
     formatted = formatted.replace(/\blinea\b/gi, 'Línea');
     formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    formatted = formatted.replace(/\bIndigena\b/g, 'Indígena');
     return formatted;
   }
 

@@ -27,7 +27,7 @@
     </div>
 
     <div class="form-group">
-      <label>Segundo Apellido (o "NA")</label>
+      <label>Segundo Apellido (o "NA") <span class="required">*</span></label>
       <input
         type="text"
         formControlName="segundoApellido"
@@ -59,7 +59,7 @@
     </div>
 
     <div class="form-group">
-      <label>Segundo Nombre (o "NA")</label>
+      <label>Segundo Nombre (o "NA") <span class="required">*</span></label>
       <input
         type="text"
         formControlName="segundoNombre"
@@ -72,6 +72,34 @@
       <small class="error-message" *ngIf="hasError('segundoNombre')">
         {{ getErrorMessage('segundoNombre') }}
       </small>
+    </div>
+
+    <div class="form-group">
+      <label>Correo Electrónico <span class="required">*</span></label>
+      <input
+        type="email"
+        formControlName="correoElectronico"
+        class="form-control"
+        maxlength="30"
+        [class.error]="hasError('correoElectronico')"
+        placeholder="correo@ejemplo.com"
+      />
+      <small class="error-message" *ngIf="hasError('correoElectronico')">{{ getErrorMessage('correoElectronico') }}</small>
+    </div>
+
+    <div class="form-group">
+      <label>Número de Celular <span class="required">*</span></label>
+      <input
+        type="tel"
+        formControlName="numeroCelular"
+        class="form-control"
+        maxlength="10"
+        minlength="10"
+        [class.error]="hasError('numeroCelular')"
+        placeholder="0987654321"
+      />
+      <small class="error-message" *ngIf="hasError('numeroCelular')">{{ getErrorMessage('numeroCelular') }}</small>
+      <small class="hint">10 dígitos</small>
     </div>
 
     <div class="form-group">

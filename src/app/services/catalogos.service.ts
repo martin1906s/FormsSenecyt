@@ -1,39 +1,26 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
+// ... interfaces ...
 export interface CatalogoItem {
   id: string;
   codigo: number;
   nombre: string;
 }
-
-export interface PaisItem extends CatalogoItem {
-  // Pais no tiene campos adicionales
-}
-
-export interface ProvinciaItem extends CatalogoItem {
-  paisId: string;
-}
-
-export interface CantonItem extends CatalogoItem {
-  provinciaId: string;
-}
-
-export interface PuebloNacionalidadItem extends CatalogoItem {
-  // PuebloYNacionalidad no tiene campos adicionales
-}
-
-export interface SectorEconomicoItem extends CatalogoItem {
-  // SectorEconomico no tiene campos adicionales
-}
+export interface PaisItem extends CatalogoItem {}
+export interface ProvinciaItem extends CatalogoItem { paisId: string; }
+export interface CantonItem extends CatalogoItem { provinciaId: string; }
+export interface PuebloNacionalidadItem extends CatalogoItem {}
+export interface SectorEconomicoItem extends CatalogoItem {}
 
 @Injectable({
   providedIn: 'root'
 })
 export class CatalogosService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://backendformsenecyt.onrender.com';
+  private apiUrl = environment.apiUrl;
 
   getPaises(): Observable<PaisItem[]> {
     return this.http.get<PaisItem[]>(`${this.apiUrl}/paises`);

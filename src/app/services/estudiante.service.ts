@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';  
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EstudianteService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://backendformsenecyt.onrender.com/estudiantes';
+  private apiUrl = `${environment.apiUrl}/estudiantes`;
 
   createEstudiante(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}`, data);

@@ -11,7 +11,7 @@
   
   <div class="form-grid">
     <div class="form-group">
-      <label>Nivel de Formación del Padre</label>
+      <label>Nivel de Formación del Padre <span class="required">*</span></label>
       <div class="select-wrapper">
         <select formControlName="nivelFormacionPadre" class="form-control select-enhanced" [class.error]="hasError('nivelFormacionPadre')">
           <option value="">Seleccione el nivel de formación</option>
@@ -28,7 +28,7 @@
     </div>
 
     <div class="form-group">
-      <label>Nivel de Formación de la Madre</label>
+      <label>Nivel de Formación de la Madre <span class="required">*</span></label>
       <div class="select-wrapper">
         <select formControlName="nivelFormacionMadre" class="form-control select-enhanced" [class.error]="hasError('nivelFormacionMadre')">
           <option value="">Seleccione el nivel de formación</option>
@@ -62,7 +62,7 @@
     </div>
 
     <div class="form-group">
-      <label>Cantidad de Miembros del Hogar</label>
+      <label>Cantidad de Miembros del Hogar <span class="required">*</span></label>
       <input
         type="number"
         formControlName="cantidadMiembrosHogar"
@@ -77,6 +77,7 @@
     </div>
 
     <!-- Servicios Disponibles -->
+    <fieldset disabled class="disabled-section">
     <div class="form-group full-width">
       <label>Servicios disponibles en la vivienda</label>
       <div class="checkbox-group">
@@ -155,9 +156,11 @@
         {{ getErrorMessage('estudianteCabezaFamiliar') }}
       </small>
     </div>
+    </fieldset>
   </div>
 
   <!-- Sección de Egresos Familiares -->
+  <fieldset disabled class="disabled-section">
   <div class="egresos-section">
     <h3 class="subsection-title">Egresos Familiares del Grupo Familiar</h3>
     <p class="subsection-description">Colocar cuánto gasta aproximadamente por cada uno de los ítems:</p>
@@ -304,8 +307,10 @@
       </div>
     </div>
   </div>
+  </fieldset>
 
   <!-- Sección de Salud Familiar -->
+  <fieldset disabled class="disabled-section">
   <div class="salud-familiar-section">
     <h3 class="subsection-title">Situación de la Salud de la Familia</h3>
     
@@ -406,8 +411,10 @@
       </div>
     </div>
   </div>
+  </fieldset>
 
   <!-- Sección de Características de la Vivienda -->
+  <fieldset disabled class="disabled-section">
   <div class="caracteristicas-vivienda-section">
     <h3 class="subsection-title">Características de la Vivienda</h3>
     
@@ -637,4 +644,5 @@
       </div>
     </div>
   </div>
+  </fieldset>
 </div>

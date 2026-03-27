@@ -34,6 +34,7 @@ export class InformacionEconomicaSection {
     formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
     formatted = formatted.replace(/\blinea\b/gi, 'Línea');
     formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    formatted = formatted.replace(/Trabaja Y Estudia/g, 'Trabaja, Estudia');
     return formatted;
   }
 }

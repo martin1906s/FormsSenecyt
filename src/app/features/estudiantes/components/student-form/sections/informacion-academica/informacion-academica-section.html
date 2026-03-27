@@ -89,37 +89,6 @@
       </small>
     </div>
 
-    <!-- Título de Bachiller (Upload) -->
-    <div class="form-group">
-      <label>Título de Bachiller <span class="required">*</span></label>
-      <div class="file-upload-wrapper">
-        <input
-          type="file"
-          #tituloBachillerInput
-          (change)="onTituloBachillerFileSelected($event)"
-          accept="image/*,application/pdf"
-          style="display: none;"
-        />
-        <button type="button" class="btn btn-secondary" (click)="tituloBachillerInput.click()" [disabled]="tituloBachillerUploading">
-          @if (tituloBachillerUploading) {
-            <span>Subiendo...</span>
-          } @else {
-            <span>📎 Seleccionar archivo</span>
-          }
-        </button>
-        @if (formGroup.get('tituloBachiller')?.value) {
-          <div class="file-preview">
-            <a [href]="formGroup.get('tituloBachiller')?.value" target="_blank" class="file-link">📄 Ver archivo</a>
-            <button type="button" class="btn btn-danger btn-sm" (click)="removeTituloBachiller(tituloBachillerInput)">🗑️ Eliminar</button>
-          </div>
-        }
-      </div>
-      @if (tituloBachillerError) {
-        <small class="error-message">{{ tituloBachillerError }}</small>
-      }
-      <small class="hint">Formatos permitidos: JPG, PNG, WebP, GIF, PDF</small>
-    </div>
-
     <div class="form-group">
       <label>Carrera</label>
       <div class="select-wrapper">
@@ -214,19 +183,6 @@
     </div>
 
     <div class="form-group">
-      <label>Fecha de Matrícula</label>
-      <input
-        type="date"
-        formControlName="fechaMatricula"
-        class="form-control"
-        [class.error]="hasError('fechaMatricula')"
-      />
-      <small class="error-message" *ngIf="hasError('fechaMatricula')">
-        {{ getErrorMessage('fechaMatricula') }}
-      </small>
-    </div>
-
-    <div class="form-group">
       <label>Tipo de Matrícula</label>
       <div class="select-wrapper">
         <select formControlName="tipoMatriculaId" class="form-control select-enhanced" [class.error]="hasError('tipoMatriculaId')">
@@ -306,20 +262,6 @@
     </div>
 
     <div class="form-group">
-      <label>¿Ha perdido la gratuidad?</label>
-      <div class="select-wrapper">
-        <select formControlName="haPerdidoLaGratuidad" class="form-control select-enhanced" [class.error]="hasError('haPerdidoLaGratuidad')">
-          <option value="">Seleccione</option>
-          <option value="SI">Sí</option>
-          <option value="NO">No</option>
-        </select>
-      </div>
-      <small class="error-message" *ngIf="hasError('haPerdidoLaGratuidad')">
-        {{ getErrorMessage('haPerdidoLaGratuidad') }}
-      </small>
-    </div>
-
-    <div class="form-group">
       <label>¿Recibe pensión diferenciada?</label>
       <div class="select-wrapper">
         <select formControlName="recibePensionDiferenciada" class="form-control select-enhanced" [class.error]="hasError('recibePensionDiferenciada')">
@@ -333,67 +275,5 @@
       </small>
     </div>
 
-    <!-- Financiamiento de la carrera universitaria -->
-    <div class="form-group full-width">
-      <label>Financiamiento de la carrera universitaria</label>
-      <div class="checkbox-group">
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            formControlName="financiamientoFondosPropios"
-            [class.error]="hasError('financiamientoFondosPropios')"
-          />
-          <span>Fondos propios</span>
-        </label>
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            formControlName="financiamientoAyudaPadres"
-            [class.error]="hasError('financiamientoAyudaPadres')"
-          />
-          <span>Ayuda de sus padres</span>
-        </label>
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            formControlName="financiamientoTarjetaCredito"
-            [class.error]="hasError('financiamientoTarjetaCredito')"
-          />
-          <span>Tarjeta de crédito</span>
-        </label>
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            formControlName="financiamientoEntidadFinanciera"
-            [class.error]="hasError('financiamientoEntidadFinanciera')"
-          />
-          <span>Entidad financiera (préstamos)</span>
-        </label>
-        <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            formControlName="financiamientoTercerasPersonas"
-            [class.error]="hasError('financiamientoTercerasPersonas')"
-          />
-          <span>Ayuda a terceras personas</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Campo condicional: ¿Quiénes? -->
-    <div class="form-group" *ngIf="formGroup.get('financiamientoTercerasPersonas')?.value">
-      <label>¿Quiénes? (si aplica ayuda de terceras personas)</label>
-      <input 
-        type="text" 
-        formControlName="financiamientoQuienes" 
-        class="form-control" 
-        [class.error]="hasError('financiamientoQuienes')"
-        placeholder="Especifique quiénes" 
-        maxlength="200"
-      />
-      <small class="error-message" *ngIf="hasError('financiamientoQuienes')">
-        {{ getErrorMessage('financiamientoQuienes') }}
-      </small>
-    </div>
   </div>
 </div>

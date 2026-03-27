@@ -19,7 +19,7 @@
     <div class="progress-container">
       <div class="progress-header">
         <span class="progress-text">{{ getProgress() | number:'1.0-0' }}% completado</span>
-        <span class="progress-step-label">Paso {{ currentStep + 1 }} de {{ visibleTotalSteps }}</span>
+        <span class="progress-step-label">Paso {{ formPhase === 1 ? (currentStep + 1) : getVisibleStepNumber(currentStep) }} de {{ visibleTotalSteps }}</span>
       </div>
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="getProgress()"></div>
@@ -65,6 +65,8 @@
           <div class="steps-stepper" role="navigation" aria-label="Pasos del formulario - FICHA SOCIOECONOMICA Y DATOS DE FACTURACIÓN">
             @for (step of steps.slice(7); track step.id; let i = $index) {
               @let stepIndex = i + 7;
+              @if (stepIndex !== 7 && stepIndex !== 8 && stepIndex !== 11 && stepIndex !== 12) {
+              @let visibleNum = getVisibleStepNumber(stepIndex);
               <div
                 class="step-item"
                 [class.step-active]="stepIndex === currentStep"
@@ -72,22 +74,23 @@
                 [class.step-invalid]="stepIndex < currentStep && !isStepValid(stepIndex)"
                 (click)="goToStep(stepIndex)"
                 [attr.aria-current]="stepIndex === currentStep ? 'step' : null"
-                [attr.aria-label]="'Paso ' + (stepIndex + 1) + ': ' + step.title"
+                [attr.aria-label]="'Paso ' + visibleNum + ': ' + step.title"
               >
                 <div class="step-dot-row">
-                  @if (i > 0) {
+                  @if (visibleNum > 8) {
                     <span class="step-connector" [class.connector-done]="stepIndex <= currentStep && isStepValid(stepIndex - 1)"></span>
                   }
                   <button type="button" class="step-dot" [title]="step.title">
                     @if (stepIndex < currentStep && isStepValid(stepIndex)) {
                       <svg class="step-dot-check" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     } @else {
-                      <span class="step-dot-num">{{ stepIndex + 1 }}</span>
+                      <span class="step-dot-num">{{ visibleNum }}</span>
                     }
                   </button>
                 </div>
                 <span class="step-label">{{ step.title }}</span>
               </div>
+              }
             }
           </div>
         </div>
@@ -222,7 +225,7 @@
             </div>
 
             <div class="form-group">
-              <label>Bono de Desarrollo Humano</label>
+              <label>¿Algún miembro de su familia recibe el bono humano?</label>
               <div class="select-wrapper">
                 <select formControlName="bonodesarrolloId" class="form-control select-enhanced" [class.error]="hasError('bonodesarrolloId')" >
                   <option value="">Seleccione si recibe bono</option>
@@ -249,8 +252,8 @@
         </app-practicas-preprofesionales-section>
       }
 
-      <!-- Paso 7: Becas y Ayudas -->
-      @if (currentStep === 7) {
+      <!-- Paso 7: Becas y Ayudas (DESHABILITADO) -->
+      @if (false && currentStep === 7) {
         <app-becas-ayudas-section
           [formGroup]="studentForm"
           [enums]="enums">
@@ -513,226 +516,8 @@
         </div>
       }
 
-      <!-- Paso 8: Vinculación Social -->
-      @if (currentStep === 8) {
-        <app-vinculacion-social-section
-          [formGroup]="studentForm"
-          [enums]="enums">
-        </app-vinculacion-social-section>
-      }
-
-      <!-- Paso 9: Contacto -->
-      @if (currentStep === 9) {
-        <div class="step-section">
-          <h2 class="step-title">
-            <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12 18 2 11 12"/><circle cx="12" cy="13" r="8"/></svg></span>
-            Datos de Contacto
-          </h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Correo Electrónico <span class="required">*</span></label>
-              <input
-                type="email"
-                formControlName="correoElectronico"
-                class="form-control"
-                [class.error]="hasError('correoElectronico')"
-                placeholder="ejemplo@correo.com"
-              />
-              <small class="error-message" *ngIf="hasError('correoElectronico')">
-                {{ getErrorMessage('correoElectronico') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Número de Celular <span class="required">*</span></label>
-              <input
-                type="tel"
-                formControlName="numeroCelular"
-                class="form-control"
-                [class.error]="hasError('numeroCelular')"
-                placeholder="09XXXXXXXX"
-              />
-              <small class="error-message" *ngIf="hasError('numeroCelular')">
-                {{ getErrorMessage('numeroCelular') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Dirección Domiciliaria</label>
-              <textarea
-                formControlName="direccionDomicilio"
-                class="form-control"
-                [class.error]="hasError('direccionDomicilio')"
-                rows="3"
-                placeholder="Calle principal, número, intersección, referencia"
-              ></textarea>
-              <small class="error-message" *ngIf="hasError('direccionDomicilio')">
-                {{ getErrorMessage('direccionDomicilio') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Lugar de Residencia</label>
-              <input
-                type="text"
-                formControlName="lugarResidencia"
-                class="form-control"
-                [class.error]="hasError('lugarResidencia')"
-                placeholder="Ciudad / Sector"
-              />
-              <small class="error-message" *ngIf="hasError('lugarResidencia')">
-                {{ getErrorMessage('lugarResidencia') }}
-              </small>
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Paso 10: Datos del Hogar -->
-      @if (currentStep === 10) {
-        <app-datos-hogar-section
-          [formGroup]="studentForm"
-          [enums]="enums">
-        </app-datos-hogar-section>
-      }
-
-      <!-- Paso 11: Composición Familiar -->
-      @if (currentStep === 11) {
-        <app-composicion-familiar-section
-          [formGroup]="studentForm"
-          [parentescoOpciones]="parentescoOpciones">
-        </app-composicion-familiar-section>
-      }
-
-      <!-- Paso 12: Ingresos Familiares -->
-      @if (currentStep === 12) {
-        <app-ingresos-familiares-section
-          [formGroup]="studentForm"
-          [parentescoOpciones]="parentescoOpciones">
-        </app-ingresos-familiares-section>
-      }
-
-      <!-- Paso 13: Datos de Facturación -->
-      @if (currentStep === 13) {
-        <div class="step-section">
-          <h2 class="step-title">
-            <span class="step-icon-large" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                <line x1="2" y1="10" x2="22" y2="10"></line>
-                <line x1="7" y1="16" x2="9" y2="16"></line>
-                <line x1="11" y1="16" x2="13" y2="16"></line>
-              </svg>
-            </span>
-            Datos de Facturación
-          </h2>
-          <p class="step-hint">
-            Completa estos datos para la emisión de facturas y comprobantes electrónicos.
-          </p>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Tipo de Comprobante <span class="required">*</span></label>
-              <div class="select-wrapper">
-                <select formControlName="tipoComprobante" class="form-control select-enhanced" [class.error]="hasError('tipoComprobante')">
-                  <option value="">Seleccione el tipo de comprobante</option>
-                  <option value="FACTURA">Factura</option>
-                  <option value="NOTA_VENTA">Nota de venta</option>
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('tipoComprobante')">
-                {{ getErrorMessage('tipoComprobante') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Nombre / Razón Social <span class="required">*</span></label>
-              <input
-                type="text"
-                formControlName="facturacionNombre"
-                class="form-control"
-                [class.error]="hasError('facturacionNombre')"
-                placeholder="Nombre completo o razón social para la factura"
-              />
-              <small class="error-message" *ngIf="hasError('facturacionNombre')">
-                {{ getErrorMessage('facturacionNombre') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Tipo de Identificación <span class="required">*</span></label>
-              <div class="select-wrapper">
-                <select formControlName="facturacionTipoIdentificacion" class="form-control select-enhanced" [class.error]="hasError('facturacionTipoIdentificacion')">
-                  <option value="">Seleccione el tipo de identificación</option>
-                  <option value="CEDULA">Cédula</option>
-                  <option value="RUC">RUC</option>
-                </select>
-              </div>
-              <small class="error-message" *ngIf="hasError('facturacionTipoIdentificacion')">
-                {{ getErrorMessage('facturacionTipoIdentificacion') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Número de Identificación <span class="required">*</span></label>
-              <input
-                type="text"
-                formControlName="facturacionIdentificacion"
-                class="form-control"
-                [class.error]="hasError('facturacionIdentificacion')"
-                placeholder="Cédula o RUC"
-              />
-              <small class="error-message" *ngIf="hasError('facturacionIdentificacion')">
-                {{ getErrorMessage('facturacionIdentificacion') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Dirección de Facturación <span class="required">*</span></label>
-              <textarea
-                formControlName="facturacionDireccion"
-                class="form-control"
-                [class.error]="hasError('facturacionDireccion')"
-                rows="3"
-                placeholder="Dirección donde se emite la factura"
-              ></textarea>
-              <small class="error-message" *ngIf="hasError('facturacionDireccion')">
-                {{ getErrorMessage('facturacionDireccion') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Correo para Envío de Factura <span class="required">*</span></label>
-              <input
-                type="email"
-                formControlName="facturacionCorreo"
-                class="form-control"
-                [class.error]="hasError('facturacionCorreo')"
-                placeholder="correo@ejemplo.com"
-              />
-              <small class="error-message" *ngIf="hasError('facturacionCorreo')">
-                {{ getErrorMessage('facturacionCorreo') }}
-              </small>
-            </div>
-
-            <div class="form-group">
-              <label>Teléfono de Facturación <span class="required">*</span></label>
-              <input
-                type="tel"
-                formControlName="facturacionTelefono"
-                class="form-control"
-                [class.error]="hasError('facturacionTelefono')"
-                placeholder="Teléfono de contacto para facturación"
-              />
-              <small class="error-message" *ngIf="hasError('facturacionTelefono')">
-                {{ getErrorMessage('facturacionTelefono') }}
-              </small>
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Paso 8: Vinculación Social -->
-      @if (currentStep === 8) {
+      <!-- Paso 8: Vinculación Social (DESHABILITADO) -->
+      @if (false && currentStep === 8) {
         <app-vinculacion-social-section
           [formGroup]="studentForm"
           [enums]="enums">
@@ -746,49 +531,68 @@
             <span class="step-icon-large" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
             Contacto
           </h2>
+
+          <!-- Datos de contacto del estudiante (ocultos) -->
+          <div style="display:none">
+            <input type="email" formControlName="correoElectronico" />
+            <input type="tel" formControlName="numeroCelular" />
+            <input type="text" formControlName="direccionDomicilio" />
+            <input type="text" formControlName="lugarResidencia" />
+            <input type="tel" formControlName="numeroConvencional" />
+          </div>
+
+          <!-- Contacto de Emergencia -->
+          <div class="subsection-divider" style="border-top: none; padding-top: 0; margin-top: 0;">
+            <h3 class="subsection-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Contacto de Emergencia
+            </h3>
+          </div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Correo Electrónico (o "NA")</label>
-              <input
-                type="email"
-                formControlName="correoElectronico"
-                class="form-control"
-                maxlength="30"
-                [class.error]="hasError('correoElectronico')"
-                placeholder="correo@ejemplo.com o NA"
-              />
-              <small class="error-message" *ngIf="hasError('correoElectronico')">
-                {{ getErrorMessage('correoElectronico') }}
-              </small>
-              <small class="hint">Máximo 30 caracteres o "NA"</small>
+              <label>Nombre completo <span class="required">*</span></label>
+              <input type="text" formControlName="referenciaPersonalNombre" class="form-control" maxlength="120" [class.error]="hasError('referenciaPersonalNombre')" placeholder="Nombre y apellido" />
+              <small class="error-message" *ngIf="hasError('referenciaPersonalNombre')">{{ getErrorMessage('referenciaPersonalNombre') }}</small>
             </div>
-
             <div class="form-group">
-              <label>Número de Celular <span class="required">*</span></label>
-              <input
-                type="tel"
-                formControlName="numeroCelular"
-                class="form-control"
-                maxlength="10"
-                minlength="10"
-                [class.error]="hasError('numeroCelular')"
-                placeholder="0987654321"
-              />
-              <small class="error-message" *ngIf="hasError('numeroCelular')">
-                {{ getErrorMessage('numeroCelular') }}
-              </small>
-              <small class="hint">10 dígitos numéricos o "0000000000"</small>
+              <label>Parentesco con el estudiante <span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select formControlName="referenciaPersonalParentesco" class="form-control select-enhanced" [class.error]="hasError('referenciaPersonalParentesco')">
+                  <option value="">Seleccione el parentesco</option>
+                  <option value="Madre">Mamá</option>
+                  <option value="Padre">Papá</option>
+                  <option value="Hermano">Hermano</option>
+                  <option value="Hermana">Hermana</option>
+                  <option value="Abuelo">Abuelo</option>
+                  <option value="Abuela">Abuela</option>
+                  <option value="Tío">Tío</option>
+                  <option value="Tía">Tía</option>
+                  <option value="Primo">Primo</option>
+                  <option value="Prima">Prima</option>
+                  <option value="Cónyuge">Cónyuge</option>
+                  <option value="Pareja">Pareja</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <small class="error-message" *ngIf="hasError('referenciaPersonalParentesco')">{{ getErrorMessage('referenciaPersonalParentesco') }}</small>
             </div>
-
+            <div class="form-group">
+              <label>Teléfono de contacto <span class="required">*</span></label>
+              <input type="tel" formControlName="referenciaPersonalTelefono" class="form-control" maxlength="15" [class.error]="hasError('referenciaPersonalTelefono')" placeholder="0987654321" />
+              <small class="error-message" *ngIf="hasError('referenciaPersonalTelefono')">{{ getErrorMessage('referenciaPersonalTelefono') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Correo electrónico (o "NA")</label>
+              <input type="email" formControlName="referenciaPersonalCorreo" class="form-control" maxlength="60" [class.error]="hasError('referenciaPersonalCorreo')" placeholder="correo@ejemplo.com o NA" />
+              <small class="error-message" *ngIf="hasError('referenciaPersonalCorreo')">{{ getErrorMessage('referenciaPersonalCorreo') }}</small>
+              <small class="hint">Máximo 60 caracteres o "NA"</small>
+            </div>
             <div class="form-group">
               <label>Dirección domicilio</label>
               <input type="text" formControlName="direccionDomicilio" class="form-control" [class.error]="hasError('direccionDomicilio')" placeholder="Dirección de domicilio" />
               <small class="error-message" *ngIf="hasError('direccionDomicilio')">{{ getErrorMessage('direccionDomicilio') }}</small>
-            </div>
-            <div class="form-group">
-              <label>Lugar (ej. Quito)</label>
-              <input type="text" formControlName="lugarResidencia" class="form-control" [class.error]="hasError('lugarResidencia')" placeholder="Quito, Guayaquil, etc." />
-              <small class="error-message" *ngIf="hasError('lugarResidencia')">{{ getErrorMessage('lugarResidencia') }}</small>
             </div>
             <div class="form-group">
               <label>Número convencional</label>
@@ -801,14 +605,12 @@
 
       <!-- Paso 10: Datos del Hogar -->
       @if (currentStep === 10) {
-        <app-datos-hogar-section
-          [formGroup]="studentForm"
-          [enums]="enums">
+        <app-datos-hogar-section [formGroup]="studentForm" [enums]="enums">
         </app-datos-hogar-section>
       }
 
-      <!-- Paso 11: Composición Familiar -->
-      @if (currentStep === 11) {
+      <!-- Paso 11: Composición Familiar (DESHABILITADO) -->
+      @if (false && currentStep === 11) {
         <div class="step-section">
           <h2 class="step-title">
             <span class="step-icon-large" aria-hidden="true">
@@ -830,8 +632,8 @@
         </div>
       }
 
-      <!-- Paso 12: Ingresos Familiares -->
-      @if (currentStep === 12) {
+      <!-- Paso 12: Ingresos Familiares (DESHABILITADO) -->
+      @if (false && currentStep === 12) {
         <div class="step-section">
           <h2 class="step-title">
             <span class="step-icon-large" aria-hidden="true">
@@ -851,6 +653,73 @@
           </app-ingresos-familiares-section>
         </div>
       }
+
+      <!-- Paso 13: Datos de Facturación -->
+      @if (currentStep === 13) {
+        <div class="step-section">
+          <h2 class="step-title">
+            <span class="step-icon-large" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+                <line x1="7" y1="16" x2="9" y2="16"></line>
+                <line x1="11" y1="16" x2="13" y2="16"></line>
+              </svg>
+            </span>
+            Datos de Facturación
+          </h2>
+          <p class="step-hint">Completa estos datos para la emisión de facturas y comprobantes electrónicos.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre y Apellido (a quien va la factura) <span class="required">*</span></label>
+              <input type="text" formControlName="facturacionNombre" class="form-control" [class.error]="hasError('facturacionNombre')" placeholder="Nombre completo" />
+              <small class="error-message" *ngIf="hasError('facturacionNombre')">{{ getErrorMessage('facturacionNombre') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Tipo de Identificación <span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select formControlName="facturacionTipoIdentificacion" class="form-control select-enhanced" [class.error]="hasError('facturacionTipoIdentificacion')">
+                  <option value="">Seleccione el tipo de identificación</option>
+                  <option value="CEDULA">Cédula</option>
+                  <option value="RUC">RUC</option>
+                </select>
+              </div>
+              <small class="error-message" *ngIf="hasError('facturacionTipoIdentificacion')">{{ getErrorMessage('facturacionTipoIdentificacion') }}</small>
+            </div>
+            <div class="form-group">
+              <label>RUC / Número de Identificación <span class="required">*</span></label>
+              <input type="text" formControlName="facturacionIdentificacion" class="form-control" [class.error]="hasError('facturacionIdentificacion')" placeholder="Cédula o RUC" />
+              <small class="error-message" *ngIf="hasError('facturacionIdentificacion')">{{ getErrorMessage('facturacionIdentificacion') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Dirección de Facturación <span class="required">*</span></label>
+              <textarea formControlName="facturacionDireccion" class="form-control" [class.error]="hasError('facturacionDireccion')" rows="3" placeholder="Dirección donde se emite la factura"></textarea>
+              <small class="error-message" *ngIf="hasError('facturacionDireccion')">{{ getErrorMessage('facturacionDireccion') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Correo para Envío de Factura <span class="required">*</span></label>
+              <input type="email" formControlName="facturacionCorreo" class="form-control" [class.error]="hasError('facturacionCorreo')" placeholder="correo@ejemplo.com" />
+              <small class="error-message" *ngIf="hasError('facturacionCorreo')">{{ getErrorMessage('facturacionCorreo') }}</small>
+            </div>
+            <div class="form-group">
+              <label>Teléfono de Facturación <span class="required">*</span></label>
+              <input type="tel" formControlName="facturacionTelefono" class="form-control" [class.error]="hasError('facturacionTelefono')" placeholder="Teléfono de contacto para facturación" />
+              <small class="error-message" *ngIf="hasError('facturacionTelefono')">{{ getErrorMessage('facturacionTelefono') }}</small>
+            </div>
+            <div class="form-group full-width">
+              <label>¿Desea mantener estos datos para todas las facturas?</label>
+              <div class="select-wrapper">
+                <select formControlName="mantenerDatosFacturacion" class="form-control select-enhanced">
+                  <option value="">Seleccione</option>
+                  <option value="SI">Sí</option>
+                  <option value="NO">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
     </div>
 
     <!-- Botones de navegación -->
@@ -912,6 +781,9 @@
               : 'Tu Ficha Estudiantil de la primera fase fue completada con éxito.' }}
           </p>
           <div class="modal-buttons">
+            <button type="button" class="btn btn-secondary modal-button" (click)="irAFase2()">
+              Ahora llena el formulario socioeconómico
+            </button>
             <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalRegistroCompletado()">
               Listo
             </button>
@@ -941,6 +813,9 @@
           </div>
           <p class="modal-message">El estudiante con esta cédula ya tiene un registro completado. Puedes actualizar tus datos y volver a guardar.</p>
           <div class="modal-buttons">
+            <button type="button" class="btn btn-secondary modal-button" (click)="irAFase2DesdeModalYaRegistrado()">
+              Completar ficha socioeconómica
+            </button>
             <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalEstudianteYaRegistrado()">
               Listo
             </button>

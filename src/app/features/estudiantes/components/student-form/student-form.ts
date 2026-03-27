@@ -97,7 +97,7 @@ export class StudentForm implements OnInit {
   totalSteps: number = 14;
   steps: Array<{ id: string; title: string; icon: string; fields: string[] }> = [
       { id: 'identificacion', title: 'Identificación', icon: 'clipboard', fields: ['tipoDocumentoId', 'numeroIdentificacion', 'fechaNacimiento'] },
-    { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'pueblonacionalidadId', 'tipoSangre'] },
+    { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['correoElectronico', 'numeroCelular', 'primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'pueblonacionalidadId', 'tipoSangre'] },
     { id: 'discapacidad', title: 'Discapacidad', icon: 'accessibility', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad', 'alergias', 'medicamentos', 'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono', 'enfermedadCatastrofica'] },
     { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: 'globe', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
     { id: 'informacionAcademica', title: 'Información Académica', icon: 'graduation', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada', 'carrera', 'disenoCurricular', 'periodoAcademico'] },
@@ -105,11 +105,11 @@ export class StudentForm implements OnInit {
     { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: 'briefcase', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: 'gift', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
     { id: 'vinculacionSocial', title: 'Vinculación Social', icon: 'handshake', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
-    { id: 'contacto', title: 'Contacto', icon: 'mail', fields: ['correoElectronico', 'numeroCelular', 'direccionDomicilio', 'lugarResidencia'] },
+    { id: 'contacto', title: 'Contacto de Emergencia', icon: 'mail', fields: ['direccionDomicilio', 'lugarResidencia', 'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono'] },
     { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] },
     { id: 'composicionFamiliar', title: 'Composición Familiar', icon: 'users', fields: ['composicionFamiliar'] },
     { id: 'ingresosFamiliares', title: 'Ingresos Familiares', icon: 'dollar-sign', fields: ['ingresosFamiliares'] },
-    { id: 'datosFacturacion', title: 'Datos de Facturación', icon: 'credit-card', fields: ['tipoComprobante', 'facturacionNombre', 'facturacionTipoIdentificacion', 'facturacionIdentificacion', 'facturacionDireccion', 'facturacionCorreo', 'facturacionTelefono'] }
+    { id: 'datosFacturacion', title: 'Datos de Facturación', icon: 'credit-card', fields: ['facturacionNombre', 'facturacionTipoIdentificacion', 'facturacionIdentificacion', 'facturacionDireccion', 'facturacionCorreo', 'facturacionTelefono'] }
   ];
 
   // Propiedades para los grupos de pasos
@@ -133,7 +133,7 @@ export class StudentForm implements OnInit {
 
   // Total de pasos visibles según la fase actual
   get visibleTotalSteps(): number {
-    return this.formPhase === 1 ? 7 : 14;
+    return this.formPhase === 1 ? 7 : 10;
   }
   
   collapsedSections: { [key: string]: boolean } = {
@@ -399,21 +399,42 @@ export class StudentForm implements OnInit {
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   }
 
-  /** URL de esta misma app con query ?fase=2 para abrir en nueva pestaña. */
+  /** URL de la ruta /ficha-socioeconomica para abrir en nueva pestaña. */
   private getUrlFase2(): string {
-    const base = window.location.origin + window.location.pathname;
-    const sep = base.includes('?') ? '&' : '?';
-    return `${base}${sep}fase=2`;
+    return `${window.location.origin}/ficha-socioeconomica`;
   }
 
   /**
    * Cuando la pestaña se abrió con ?fase=2: cargar estudiante desde sessionStorage y mostrar solo pasos 8-14.
    */
   private cargarFase2DesdeNuevaPestana(): void {
-    // Fase 2 no habilitada aún — limpiar y quedarse en fase 1
-    try { sessionStorage.removeItem(this.FASE2_STORAGE_KEY); } catch (_) {}
-    this.router.navigate([], { queryParams: {}, replaceUrl: true });
-    this.cdr.detectChanges();
+    try {
+      const raw = sessionStorage.getItem(this.FASE2_STORAGE_KEY);
+      sessionStorage.removeItem(this.FASE2_STORAGE_KEY);
+      if (!raw) {
+        this.router.navigate(['/registro'], { replaceUrl: true });
+        return;
+      }
+      const { tipoDocumentoId, numeroIdentificacion } = JSON.parse(raw);
+      this.estudianteService.getEstudianteByCedula(tipoDocumentoId, numeroIdentificacion).subscribe({
+        next: (estudiante: any) => {
+          if (estudiante) {
+            this.patchFormFromEstudiante(estudiante);
+          }
+          this.formPhase = 2;
+          this.currentStep = 9;
+          this.cdr.detectChanges();
+          setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+        },
+        error: () => {
+          this.formPhase = 2;
+          this.currentStep = 9;
+          this.cdr.detectChanges();
+        }
+      });
+    } catch (_) {
+      this.router.navigate(['/registro'], { replaceUrl: true });
+    }
   }
 
   /**
@@ -606,8 +627,8 @@ export class StudentForm implements OnInit {
         setTimeout(() => this.cdr.detectChanges(), 0);
         setTimeout(() => this.cdr.detectChanges(), 100);
 
-        // Si se abrió esta pestaña con ?fase=2, cargar estudiante y mostrar solo pasos 8-14
-        if (this.route.snapshot.queryParams['fase'] === '2') {
+        // Si la ruta es /ficha-socioeconomica, cargar estudiante y mostrar solo pasos 8-14
+        if (this.route.snapshot.data['fase'] === 2) {
           this.cargarFase2DesdeNuevaPestana();
         }
       },
@@ -741,6 +762,7 @@ export class StudentForm implements OnInit {
     formatted = formatted.replace(/\bvalidacion\b/gi, 'Validación');
     formatted = formatted.replace(/\blinea\b/gi, 'Línea');
     formatted = formatted.replace(/\bhibrida\b/gi, 'Híbrida');
+    formatted = formatted.replace(/Trabaja Y Estudia/g, 'Trabaja, Estudia');
     
     return formatted;
   }
@@ -1487,6 +1509,7 @@ export class StudentForm implements OnInit {
 
       // 4. segundoApellido (Caracter 60, obligatorio o "NA", solo letras o NA)
       segundoApellido: ['', [
+        Validators.required,
         StudentForm.naOrRequiredValidator(),
         Validators.maxLength(60),
         StudentForm.lettersOrNAValidator(),
@@ -1508,6 +1531,7 @@ export class StudentForm implements OnInit {
 
       // 6. segundoNombre (Caracter 60, obligatorio o "NA", solo letras o NA)
       segundoNombre: ['', [
+        Validators.required,
         StudentForm.naOrRequiredValidator(),
         Validators.maxLength(60),
         StudentForm.lettersOrNAValidator(),
@@ -1769,10 +1793,11 @@ export class StudentForm implements OnInit {
       periodoAcademico: [''],
       alergias: [''],
       medicamentos: [''],
-      referenciaPersonalNombre: ['', [StudentForm.lettersOnlyValidator(true), Validators.maxLength(120)]],
-      referenciaPersonalParentesco: ['', [StudentForm.lettersOrNAValidator(), Validators.maxLength(60)]],
+      referenciaPersonalNombre: ['', [Validators.required, StudentForm.lettersOnlyValidator(true), Validators.maxLength(120)]],
+      referenciaPersonalParentesco: ['', [Validators.required, StudentForm.lettersOrNAValidator(), Validators.maxLength(60)]],
       referenciaPersonalParentescoOtro: ['', [StudentForm.lettersOnlyValidator(true), Validators.maxLength(60)]],
-      referenciaPersonalTelefono: ['', [StudentForm.numbersOrNAValidator(), Validators.maxLength(15)]],
+      referenciaPersonalTelefono: ['', [Validators.required, StudentForm.numbersOrNAValidator(), Validators.maxLength(15)]],
+      referenciaPersonalCorreo: ['', [Validators.maxLength(60)]],
       enfermedadCatastrofica: [''],
 
       // CAMPOS HOGAR (60-63)
@@ -1784,8 +1809,7 @@ export class StudentForm implements OnInit {
 
       // 62. ingresoTotalHogar (Entero variable o "NA") - obligatorio solo al guardar
       ingresoTotalHogar: ['', [
-        // Removemos Validators.required para permitir que esté vacío temporalmente
-        // Se validará al final cuando se guarde el formulario
+        Validators.required,
         (control: AbstractControl) => {
           if (!control.value || control.value === 'NA' || control.value === '') return null;
           // Validar que sea un número entero positivo (sin límite de dígitos)
@@ -1895,13 +1919,14 @@ export class StudentForm implements OnInit {
       banco: [''],
 
       // SECCIÓN 7: Datos de facturación
-      tipoComprobante: ['', [Validators.required]],
+      tipoComprobante: [''],
       facturacionNombre: ['', [Validators.required, Validators.maxLength(120)]],
       facturacionTipoIdentificacion: ['', [Validators.required]],
       facturacionIdentificacion: ['', [Validators.required, Validators.maxLength(13)]],
       facturacionDireccion: ['', [Validators.required, Validators.maxLength(200)]],
       facturacionCorreo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       facturacionTelefono: ['', [Validators.required, Validators.maxLength(20)]],
+      mantenerDatosFacturacion: [''],
 
     });
   }
@@ -2861,6 +2886,19 @@ export class StudentForm implements OnInit {
     return !!(control?.invalid && control?.touched);
   }
 
+  // Pasos ocultos (no se muestran en el stepper ni en el contenido)
+  private readonly hiddenSteps = new Set([7, 8, 11, 12]);
+
+  /** Devuelve el número visible (consecutivo) para un stepIndex real en fase 2. */
+  getVisibleStepNumber(stepIndex: number): number {
+    // Contamos cuántos pasos visibles hay desde el índice 7 hasta stepIndex (inclusive)
+    let count = 0;
+    for (let i = 7; i <= stepIndex; i++) {
+      if (!this.hiddenSteps.has(i)) count++;
+    }
+    return 7 + count;
+  }
+
   // Métodos de navegación por pasos
   getProgress(): number {
     if (this.estudianteEnModoActualizacion) return 100;
@@ -3044,6 +3082,12 @@ export class StudentForm implements OnInit {
       .subscribe({
         next: () => {
           this.currentStep++;
+          // Saltar pasos 7, 8, 11 y 12 (deshabilitados)
+          if (this.currentStep === 7 || this.currentStep === 8) {
+            this.currentStep = 9;
+          } else if (this.currentStep === 11 || this.currentStep === 12) {
+            this.currentStep = 13;
+          }
           this.submitError = false;
           this.submitMessage = 'Paso guardado correctamente.';
           this.saveFormData();
@@ -3136,6 +3180,12 @@ export class StudentForm implements OnInit {
     const minStep = this.formPhase === 1 ? 0 : 7;
     if (this.currentStep > minStep) {
       this.currentStep--;
+      // Saltar pasos 7, 8, 11 y 12 (deshabilitados)
+      if (this.currentStep === 7 || this.currentStep === 8) {
+        this.currentStep = 6;
+      } else if (this.currentStep === 11 || this.currentStep === 12) {
+        this.currentStep = 10;
+      }
       this.saveFormData();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

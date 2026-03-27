@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { StudentForm } from './features/estudiantes/components/student-form/student-form';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [StudentForm],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

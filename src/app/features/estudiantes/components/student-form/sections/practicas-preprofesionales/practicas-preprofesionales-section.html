@@ -74,5 +74,38 @@
         </small>
       </div>
     }
+
+    <div class="form-group">
+      <label>¿Participa en proyecto de vinculación con la sociedad?</label>
+      <div class="select-wrapper">
+        <select formControlName="participaEnProyectoVinculacionSociedad" class="form-control select-enhanced" [class.error]="hasError('participaEnProyectoVinculacionSociedad')">
+          <option value="">Seleccione</option>
+          <option value="SI">Sí</option>
+          <option value="NO">No</option>
+        </select>
+      </div>
+      <small class="error-message" *ngIf="hasError('participaEnProyectoVinculacionSociedad')">
+        {{ getErrorMessage('participaEnProyectoVinculacionSociedad') }}
+      </small>
+    </div>
+
+    @if (formGroup.get('participaEnProyectoVinculacionSociedad')?.value === 'SI') {
+      <div class="form-group">
+        <label>Tipo de alcance del proyecto de vinculación</label>
+        <div class="select-wrapper">
+          <select formControlName="tipoAlcanceProyectoVinculacionId" class="form-control select-enhanced" [class.error]="hasError('tipoAlcanceProyectoVinculacionId')">
+            <option value="">Seleccione el tipo de alcance</option>
+            @if (enums?.TipoAlcanceProyectoVinculacion) {
+              @for (item of enums?.TipoAlcanceProyectoVinculacion; track $index) {
+                <option [value]="item">{{ getEnumLabel(item) }}</option>
+              }
+            }
+          </select>
+        </div>
+        <small class="error-message" *ngIf="hasError('tipoAlcanceProyectoVinculacionId')">
+          {{ getErrorMessage('tipoAlcanceProyectoVinculacionId') }}
+        </small>
+      </div>
+    }
   </div>
 </div>
