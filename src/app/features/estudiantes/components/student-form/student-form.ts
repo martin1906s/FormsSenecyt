@@ -105,7 +105,7 @@ export class StudentForm implements OnInit {
     { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: 'briefcase', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: 'gift', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
     { id: 'vinculacionSocial', title: 'Vinculación Social', icon: 'handshake', fields: ['participaEnProyectoVinculacionSociedad', 'tipoAlcanceProyectoVinculacionId'] },
-    { id: 'contacto', title: 'Contacto de Emergencia', icon: 'mail', fields: ['direccionDomicilio', 'lugarResidencia', 'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono'] },
+    { id: 'contacto', title: 'Contacto de Emergencia', icon: 'mail', fields: ['direccionDomicilio', 'lugarResidencia', 'contactoEmergenciaNombre', 'contactoEmergenciaParentesco', 'contactoEmergenciaTelefono'] },
     { id: 'datosHogar', title: 'Datos del Hogar', icon: 'home', fields: ['nivelFormacionPadre', 'nivelFormacionMadre', 'ingresoTotalHogar', 'cantidadMiembrosHogar'] },
     { id: 'composicionFamiliar', title: 'Composición Familiar', icon: 'users', fields: ['composicionFamiliar'] },
     { id: 'ingresosFamiliares', title: 'Ingresos Familiares', icon: 'dollar-sign', fields: ['ingresosFamiliares'] },
@@ -275,6 +275,11 @@ export class StudentForm implements OnInit {
       referenciaPersonalNombre: e.referenciaPersonalNombre ?? '',
       referenciaPersonalParentesco: e.referenciaPersonalParentesco ?? '',
       referenciaPersonalTelefono: e.referenciaPersonalTelefono ?? '',
+      // Contacto de emergencia (fase 2 - campos independientes)
+      contactoEmergenciaNombre: e.contactoEmergenciaNombre ?? '',
+      contactoEmergenciaParentesco: e.contactoEmergenciaParentesco ?? '',
+      contactoEmergenciaTelefono: e.contactoEmergenciaTelefono ?? '',
+      contactoEmergenciaCorreo: e.contactoEmergenciaCorreo ?? '',
       enfermedadCatastrofica: e.enfermedadCatastrofica ?? '',
       nivelFormacionPadre: e.nivelFormacionPadre ?? '',
       nivelFormacionMadre: e.nivelFormacionMadre ?? '',
@@ -1798,6 +1803,11 @@ export class StudentForm implements OnInit {
       referenciaPersonalParentescoOtro: ['', [StudentForm.lettersOnlyValidator(true), Validators.maxLength(60)]],
       referenciaPersonalTelefono: ['', [Validators.required, StudentForm.numbersOrNAValidator(), Validators.maxLength(15)]],
       referenciaPersonalCorreo: ['', [Validators.maxLength(60)]],
+      // Contacto de emergencia (fase 2 - independiente del representante de fase 1)
+      contactoEmergenciaNombre: ['', [Validators.required, Validators.maxLength(120)]],
+      contactoEmergenciaParentesco: ['', [Validators.required]],
+      contactoEmergenciaTelefono: ['', [Validators.required, StudentForm.numbersOrNAValidator(), Validators.maxLength(15)]],
+      contactoEmergenciaCorreo: ['', [Validators.maxLength(60)]],
       enfermedadCatastrofica: [''],
 
       // CAMPOS HOGAR (60-63)
@@ -2625,6 +2635,11 @@ export class StudentForm implements OnInit {
         : (formValue.referenciaPersonalParentesco || 'NA'),
       referenciaPersonalTelefono: formValue.referenciaPersonalTelefono || 'NA',
       enfermedadCatastrofica: formValue.enfermedadCatastrofica || 'NA',
+      // Contacto de emergencia (fase 2)
+      contactoEmergenciaNombre: formValue.contactoEmergenciaNombre || 'NA',
+      contactoEmergenciaParentesco: formValue.contactoEmergenciaParentesco || 'NA',
+      contactoEmergenciaTelefono: formValue.contactoEmergenciaTelefono || 'NA',
+      contactoEmergenciaCorreo: formValue.contactoEmergenciaCorreo || 'NA',
 
       // Campos de hogar
       nivelFormacionPadre: formValue.nivelFormacionPadre || '',

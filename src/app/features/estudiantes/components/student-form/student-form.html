@@ -553,13 +553,13 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Nombre completo <span class="required">*</span></label>
-              <input type="text" formControlName="referenciaPersonalNombre" class="form-control" maxlength="120" [class.error]="hasError('referenciaPersonalNombre')" placeholder="Nombre y apellido" />
-              <small class="error-message" *ngIf="hasError('referenciaPersonalNombre')">{{ getErrorMessage('referenciaPersonalNombre') }}</small>
+              <input type="text" formControlName="contactoEmergenciaNombre" class="form-control" maxlength="120" [class.error]="hasError('contactoEmergenciaNombre')" placeholder="Nombre y apellido" />
+              <small class="error-message" *ngIf="hasError('contactoEmergenciaNombre')">{{ getErrorMessage('contactoEmergenciaNombre') }}</small>
             </div>
             <div class="form-group">
               <label>Parentesco con el estudiante <span class="required">*</span></label>
               <div class="select-wrapper">
-                <select formControlName="referenciaPersonalParentesco" class="form-control select-enhanced" [class.error]="hasError('referenciaPersonalParentesco')">
+                <select formControlName="contactoEmergenciaParentesco" class="form-control select-enhanced" [class.error]="hasError('contactoEmergenciaParentesco')">
                   <option value="">Seleccione el parentesco</option>
                   <option value="Madre">Mamá</option>
                   <option value="Padre">Papá</option>
@@ -576,17 +576,17 @@
                   <option value="Otro">Otro</option>
                 </select>
               </div>
-              <small class="error-message" *ngIf="hasError('referenciaPersonalParentesco')">{{ getErrorMessage('referenciaPersonalParentesco') }}</small>
+              <small class="error-message" *ngIf="hasError('contactoEmergenciaParentesco')">{{ getErrorMessage('contactoEmergenciaParentesco') }}</small>
             </div>
             <div class="form-group">
               <label>Teléfono de contacto <span class="required">*</span></label>
-              <input type="tel" formControlName="referenciaPersonalTelefono" class="form-control" maxlength="15" [class.error]="hasError('referenciaPersonalTelefono')" placeholder="0987654321" />
-              <small class="error-message" *ngIf="hasError('referenciaPersonalTelefono')">{{ getErrorMessage('referenciaPersonalTelefono') }}</small>
+              <input type="tel" formControlName="contactoEmergenciaTelefono" class="form-control" maxlength="15" [class.error]="hasError('contactoEmergenciaTelefono')" placeholder="0987654321" />
+              <small class="error-message" *ngIf="hasError('contactoEmergenciaTelefono')">{{ getErrorMessage('contactoEmergenciaTelefono') }}</small>
             </div>
             <div class="form-group">
               <label>Correo electrónico (o "NA")</label>
-              <input type="email" formControlName="referenciaPersonalCorreo" class="form-control" maxlength="60" [class.error]="hasError('referenciaPersonalCorreo')" placeholder="correo@ejemplo.com o NA" />
-              <small class="error-message" *ngIf="hasError('referenciaPersonalCorreo')">{{ getErrorMessage('referenciaPersonalCorreo') }}</small>
+              <input type="email" formControlName="contactoEmergenciaCorreo" class="form-control" maxlength="60" [class.error]="hasError('contactoEmergenciaCorreo')" placeholder="correo@ejemplo.com o NA" />
+              <small class="error-message" *ngIf="hasError('contactoEmergenciaCorreo')">{{ getErrorMessage('contactoEmergenciaCorreo') }}</small>
               <small class="hint">Máximo 60 caracteres o "NA"</small>
             </div>
             <div class="form-group">
