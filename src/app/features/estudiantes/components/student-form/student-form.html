@@ -755,6 +755,35 @@
     </div>
   </form>
 
+  <!-- Modal Ficha Socioeconómica Completada (Fase 2) -->
+  @if (showModalFichaSocioeconomicaCompletada) {
+    <div class="modal-overlay" (click)="cerrarModalFichaSocioeconomicaCompletada()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div class="modal-icon success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h2 class="modal-title">¡Ficha Socioeconómica Completada!</h2>
+          <div class="modal-progress-complete">
+            <div class="modal-progress-bar">
+              <div class="modal-progress-fill"></div>
+            </div>
+            <span class="modal-progress-label">100% completado</span>
+          </div>
+          <p class="modal-message">Has completado con éxito la ficha socioeconómica.</p>
+          <div class="modal-buttons">
+            <button type="button" class="btn btn-primary modal-button" (click)="cerrarModalFichaSocioeconomicaCompletada()">
+              Listo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Modal de Registro Completado / Actualizado -->
   @if (showModalRegistroCompletado) {
     <div class="modal-overlay" (click)="cerrarModalRegistroCompletado()">

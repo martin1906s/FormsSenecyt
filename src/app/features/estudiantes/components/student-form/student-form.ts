@@ -85,6 +85,7 @@ export class StudentForm implements OnInit {
   // Propiedades para los modales
   showModalRegistroCompletado = false;
   showModalEstudianteYaRegistrado = false;
+  showModalFichaSocioeconomicaCompletada = false;
   /** Si el estudiante ya tiene ficha 1 pero le falta completar ficha socioeconómica (pasos 8-14) */
   faltaCompletarFase2 = false;
   /** Si el estudiante ya completó fase 1 y está en modo actualización (barra al 100%) */
@@ -360,6 +361,11 @@ export class StudentForm implements OnInit {
   /**
    * Cierra el modal de registro completado y resetea el formulario
    */
+  cerrarModalFichaSocioeconomicaCompletada(): void {
+    this.showModalFichaSocioeconomicaCompletada = false;
+    this.cdr.detectChanges();
+  }
+
   cerrarModalRegistroCompletado(): void {
     this.showModalRegistroCompletado = false;
 
@@ -2203,8 +2209,12 @@ export class StudentForm implements OnInit {
               console.log('Estudiante guardado exitosamente:', response);
               this.isSubmitting = false;
               this.submitError = false;
-              // En ambos casos mostrar el modal (el texto cambia según estudianteEnModoActualizacion)
-              this.showModalRegistroCompletado = true;
+              // Modal diferente según la fase
+              if (this.formPhase === 2) {
+                this.showModalFichaSocioeconomicaCompletada = true;
+              } else {
+                this.showModalRegistroCompletado = true;
+              }
               this.cdr.detectChanges();
             },
             error: (error: any) => {
