@@ -100,7 +100,7 @@ export class StudentForm implements OnInit {
     { id: 'datosPersonales', title: 'Datos Personales', icon: 'user', fields: ['correoElectronico', 'numeroCelular', 'primerApellido', 'segundoApellido', 'primerNombre', 'segundoNombre', 'sexo', 'genero', 'estadoCivil', 'etnia', 'pueblonacionalidadId', 'tipoSangre'] },
     { id: 'discapacidad', title: 'Discapacidad', icon: 'accessibility', fields: ['discapacidad', 'porcentajeDiscapacidad', 'numCarnetConadis', 'tipoDiscapacidad', 'alergias', 'medicamentos', 'referenciaPersonalNombre', 'referenciaPersonalParentesco', 'referenciaPersonalTelefono', 'enfermedadCatastrofica'] },
     { id: 'nacionalidad', title: 'Nacionalidad y Residencia', icon: 'globe', fields: ['paisNacionalidadId', 'provinciaNacimientoId', 'cantonNacimientoId', 'paisResidenciaId', 'provinciaResidenciaId', 'cantonResidenciaId'] },
-    { id: 'informacionAcademica', title: 'Información Académica', icon: 'graduation', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'fechaMatricula', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'haPerdidoLaGratuidad', 'recibePensionDiferenciada', 'carrera', 'disenoCurricular', 'periodoAcademico'] },
+    { id: 'informacionAcademica', title: 'Información Académica', icon: 'graduation', fields: ['tipoColegioId', 'modalidadCarrera', 'jornadaCarrera', 'fechaInicioCarrera', 'tipoMatriculaId', 'duracionPeriodoAcademico', 'nivelAcademicoQueCursa', 'haRepetidoAlMenosUnaMateria', 'paraleloId', 'recibePensionDiferenciada', 'carrera', 'disenoCurricular', 'periodoAcademico'] },
     { id: 'informacionEconomica', title: 'Información Económica', icon: 'dollar', fields: ['estudianteocupacionId', 'ingresosestudianteId', 'bonoDesarrollo'] },
     { id: 'practicasPreprofesionales', title: 'Prácticas Preprofesionales', icon: 'briefcase', fields: ['haRealizadoPracticasPreprofesionales', 'nroHorasPracticasPreprofesionalesPorPeriodo', 'entornoInstitucionalPracticasProfesionales', 'sectorEconomicoPracticaProfesional'] },
     { id: 'becasAyudas', title: 'Becas y Ayudas', icon: 'gift', fields: ['tipoBecaId', 'primeraRazonBecaId', 'segundaRazonBecaId', 'terceraRazonBecaId', 'cuartaRazonBecaId', 'quintaRazonBecaId', 'sextaRazonBecaId', 'montoBeca', 'porcientoBecaCoberturaArancel', 'porcientoBecaCoberturaManuntencion', 'financiamientoBeca', 'montoAyudaEconomica', 'montoCreditoEducativo'] },
@@ -1612,8 +1612,8 @@ export class StudentForm implements OnInit {
       // 27. fechaInicioCarrera (yyyy-mm-dd) - obligatorio
       fechaInicioCarrera: ['', [Validators.required, StudentForm.dateFormatValidator()]],
 
-      // 28. fechaMatricula (yyyy-mm-dd) - obligatorio
-      fechaMatricula: ['', [Validators.required, StudentForm.dateFormatValidator()]],
+      // 28. fechaMatricula (yyyy-mm-dd) - opcional
+      fechaMatricula: ['', [StudentForm.dateFormatValidator()]],
 
       // 29. tipoMatriculaId (Enum) - obligatorio
       tipoMatriculaId: ['', [Validators.required]],
@@ -1641,8 +1641,8 @@ export class StudentForm implements OnInit {
       // 33. paraleloId (Enum) - obligatorio
       paraleloId: ['', [Validators.required]],
 
-      // 34. haPerdidoLaGratuidad (Enum) - obligatorio
-      haPerdidoLaGratuidad: ['', [Validators.required]],
+      // 34. haPerdidoLaGratuidad (Enum) - opcional
+      haPerdidoLaGratuidad: [''],
 
       // 35. recibePensionDiferenciada (Enum) - obligatorio
       recibePensionDiferenciada: ['', [Validators.required]],
